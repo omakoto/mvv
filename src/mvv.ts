@@ -612,7 +612,7 @@ class Coordinator {
     }
 
     onKeyDown(ev: KeyboardEvent) {
-        debug("onKeyDown", ev.timeStamp, ev.which, ev);
+        debug("onKeyDown", ev.timeStamp, ev.code, ev);
 
         // Don't respond if any modifier keys are pressed.
         if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
@@ -621,41 +621,41 @@ class Coordinator {
         // Ignore key repeats.
         const isRepeat = ev.repeat;
 
-        switch (ev.which) {
-            case 112: // F1
+        switch (ev.code) {
+            case 'F1':
                 if (isRepeat) break;
                 this.toggleVideoMute();
                 break;
-            case 70: // F
+            case 'KeyF':
                 if (isRepeat) break;
                 this.#efps.toggle();
                 break;
-            case 82: // R
+            case 'KeyR':
                 if (isRepeat) break;
                 this.toggleRecording();
                 break;
-            case 83: // S
+            case 'KeyS':
                 if (isRepeat) break;
                 this.#open_download_box();
                 break;
-            case 76: // L
+            case 'KeyL':
                 if (isRepeat) break;
                 $('#open_file').trigger('click');
                 break;
-            case 90: // Z
+            case 'KeyZ':
                 if (isRepeat) break;
                 if (recorder.isPlaying || recorder.isPausing) {
                     recorder.stopPlaying();
                 }
                 break;
-            case 32: // Space
+            case 'Space':
                 if (isRepeat) break;
                 this.togglePlayback();
                 break;
-            case 37: // Left
+            case 'ArrowLeft':
                 this.#onRewindPressed(isRepeat);
                 break;
-            case 39: // Right
+            case 'ArrowRight':
                 if (recorder.isPlaying || recorder.isPausing) {
                     this.resetMidi();
                     recorder.adjustPlaybackPosition(1000);
@@ -932,7 +932,7 @@ worker.postMessage({action: "setInterval", interval: 1000.0 / FPS, result: DRAW_
 
 navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
-$(window).keydown((ev) => coordinator.onKeyDown(ev.originalEvent!));
+$(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
 
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
 $(window).on('unload', () => {
@@ -974,7 +974,7 @@ $("#open_file").on("change", (ev) => {
 $("#save_as_filename").keydown((ev) => {
     console.log(ev);
     ev.stopPropagation();
-    if (ev.which == 13) { // enter
+    if (ev.code == 'Enter') { // enter
         coordinator.do_download();
         ev.preventDefault();
     }
@@ -985,5 +985,5 @@ $("#save").on('click', (ev) => {
 });
 
 $("#save_as_box").on('popbox_closing', (ev) => {
-    $("#save_as_filename").blur(); // unfocus, so shortcut keys will start working again
+    $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
 });
