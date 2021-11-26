@@ -1,0 +1,97 @@
+html {
+    width: 100%;
+    height: 100%;
+
+    --main-text-color: #ffff20;
+}
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0.5%; /* Note we override it in JS */
+    overflow: hidden;
+    background-color: black;
+    font-size: 10pt;
+    font-family: 'Roboto', sans-serif;
+    color: var(--main-text-color);
+}
+
+#canvases {
+    margin: 0;
+    width: 99%;
+    height: 99%;
+    display: block;
+}
+
+canvas#bar2 {
+    margin: 0;
+    width: 100%;
+    height: 30%; /* Note we override it in JS */
+    display: block;
+}
+
+canvas#roll2 {
+    margin: 0;
+    width: 100%;
+    height: 70%; /* Note we override it in JS */
+    display: block;
+}
+
+.recorderStatusIndicator {
+    position: fixed;
+    left: 8px;
+    top: 8px;
+    width: 32px;
+    height: 32px;
+    display: none;
+}
+
+#fps {
+    position: fixed;
+    left: 2px;
+    top: 2px;
+    display: none;
+}
+
+#link {
+    position: fixed;
+    right: 2px;
+    bottom: 2px;
+}
+
+#status {
+    position: fixed;
+    right: 2px;
+    top: 2px;
+    display: none;
+    font-size: 12pt;
+    font-weight: bold;
+}
+
+.popbox_container {
+    color: #202020;
+}
+
+#save_as_filename {
+    width: 20em;
+}
+
+/* unvisited link */
+a:link {
+    color: var(--main-text-color);
+}
+
+/* visited link */
+a:visited {
+    color: var(--main-text-color);
+}
+
+/* mouse over link */
+a:hover {
+    color: var(--main-text-color);
+}
+
+/* selected link */
+a:active {
+    color: var(--main-text-color);
+}

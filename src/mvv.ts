@@ -4,6 +4,10 @@
 // Get screen size: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
 // and window.screen.{width,height{
 
+declare class Popbox {
+    constructor(args);
+};
+
 
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
@@ -954,7 +958,7 @@ $("body").on("drop", function(ev) {
 });
 
 $("#open_file").on("change", (ev) => {
-    const file = ev.target.files[0];
+    const file = (<HTMLInputElement>ev.target).files[0];
     if (!file) {
         return; // canceled
     }

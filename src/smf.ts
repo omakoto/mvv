@@ -635,7 +635,7 @@ function downloadMidi(blob, filename) {
     reader.readAsDataURL(blob); // converts the blob to base64 and calls onload
 
     reader.onload = function() {
-        element.href = reader.result; // data url
+        element.href = <string>reader.result; // data url
         element.click();
         document.body.removeChild(element);
     };
@@ -646,7 +646,7 @@ function loadMidi(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function (event) {
-            const ar = new Uint8Array(event.target.result);
+            const ar = new Uint8Array(<ArrayBuffer>event.target.result);
             console.log("Read from file", file);
 
             try {

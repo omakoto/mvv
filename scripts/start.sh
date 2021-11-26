@@ -2,9 +2,11 @@
 
 set -e
 
-SCRIPT_DIR="${0%/*}"
+cd "${0%/*}/.."
 
-cd "$SCRIPT_DIR/../src"
+./scripts/build.sh
+
+cd dist
 
 port=11080
 (
