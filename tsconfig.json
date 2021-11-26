@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "baseUrl": "src",
+        "outDir": "./dist",
+        "noEmitOnError": false,
+        "target": "es2015",
+        "lib": [
+            "es2021",
+            "dom",
+        ],
+    },
+    "include": [
+        "src/**/*",
+    ],
+}
