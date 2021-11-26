@@ -16,32 +16,32 @@ function logBlob(blob: Blob) {
 
 class MidiEvent {
     #timeStamp: number;
-    #data: Array<number>;
+    #data: Array<number> | Uint8Array;
     #device: string;
 
-    constructor(timeStamp: number, data: Array<number>, device?: string) {
+    constructor(timeStamp: number, data: Array<number> | Uint8Array, device?: string) {
         this.#timeStamp = timeStamp;
         this.#data = data;
         this.#device = device ? device : "unknown-device";
     }
 
-    static fromNativeEvent(e) {
-        return new MidiEvent(e.timeStamp, e.data, e.currentTarget.name);
+    static fromNativeEvent(e: WebMidi.MIDIMessageEvent): MidiEvent {
+        return new MidiEvent(e.timeStamp, e.data, (<WebMidi.MIDIPort>e.currentTarget).name);
     }
 
-    withTimestamp(timeStamp) {
+    withTimestamp(timeStamp: number): MidiEvent {
         return new MidiEvent(timeStamp, this.#data, this.#device);
     }
 
-    get timeStamp() {
+    get timeStamp(): number {
         return this.#timeStamp;
     }
 
-    get data() {
+    get data(): Array<number> | Uint8Array {
         return this.#data;
     }
 
-    get device() {
+    get device(): string {
         return this.#device;
     }
 }
@@ -77,44 +77,44 @@ class BytesWriter {
         return this;
     }
 
-    writeU8(val: number) {
+    writeU8(val: number): BytesWriter {
         this.setU8(this.#size, val);
         this.#size += 1;
         return this;
     }
 
-    writeU16(val: number) {
+    writeU16(val: number): BytesWriter {
         this.setU16(this.#size, val);
         this.#size += 2;
         return this;
     }
 
-    writeU24(val: number) {
+    writeU24(val: number): BytesWriter {
         this.setU24(this.#size, val);
         this.#size += 3;
         return this;
     }
 
-    writeU32(val: number) {
+    writeU32(val: number): BytesWriter {
         this.setU32(this.#size, val);
         this.#size += 4;
         return this;
     }
 
-    setU8(pos: number, val: number) {
+    setU8(pos: number, val: number): BytesWriter {
         this.#ensureCap(pos + 1);
         this.#buf[pos + 0] = (val >>  0) & 255;
         return this;
     }
 
-    setU16(pos: number, val: number) {
+    setU16(pos: number, val: number): BytesWriter {
         this.#ensureCap(pos + 2);
         this.#buf[pos + 0] = (val >>  8) & 255;
         this.#buf[pos + 1] = (val >>  0) & 255;
         return this;
     }
 
-    setU24(pos: number, val: number) {
+    setU24(pos: number, val: number): BytesWriter {
         this.#ensureCap(pos + 3);
         this.#buf[pos + 0] = (val >> 16) & 255;
         this.#buf[pos + 1] = (val >>  8) & 255;
@@ -122,7 +122,7 @@ class BytesWriter {
         return this;
     }
 
-    setU32(pos: number, val: number) {
+    setU32(pos: number, val: number): BytesWriter {
         this.#ensureCap(pos + 4);
         this.#buf[pos + 0] = (val >> 24) & 255;
         this.#buf[pos + 1] = (val >> 16) & 255;
@@ -131,7 +131,7 @@ class BytesWriter {
         return this;
     }
 
-    #grow() {
+    #grow(): BytesWriter {
         this.#cap *= 2;
         let nb = new Uint8Array(this.#cap);
         nb.set(this.#buf);
@@ -139,23 +139,23 @@ class BytesWriter {
         return this;
     }
 
-    #ensureCap(cap: number) {
+    #ensureCap(cap: number): BytesWriter {
         if (this.#cap >= cap) {
-            return;
+            return this;
         }
         this.#grow();
         return this;
     }
 
-    #ensureGrowth(size: number) {
+    #ensureGrowth(size: number): BytesWriter {
         return this.#ensureCap(this.#size + size);
     }
 
-    getSize() {
+    getSize(): number {
         return this.#size;
     }
 
-    getBlob(contentType: string) {
+    getBlob(contentType: string): Blob {
         let ret = (new Blob([this.#buf])).slice(0, this.#size, contentType);
         // logBlob(ret);
         return ret;
@@ -165,32 +165,32 @@ class BytesWriter {
 class BytesReader {
     #buffer: Uint8Array;
     #pos = 0;
-s
-    constructor(ar) {
+
+    constructor(ar: Uint8Array) {
         this.#buffer = new Uint8Array(ar);
     }
 
-    readU8() {
+    readU8(): number {
         return this.#buffer[this.#pos++];
     }
 
-    readU16() {
+    readU16(): number {
         return (this.readU8() << 8) + this.readU8();;
     }
 
-    readU24() {
+    readU24(): number {
         return (this.readU16() << 8) + this.readU8();;
     }
 
-    readU32() {
+    readU32(): number {
         return (this.readU16() << 16) + this.readU16();;
     }
 
-    getPos() {
+    getPos(): number {
         return this.#pos;
     }
 
-    readVar() {
+    readVar(): number {
         let ret = 0;
         for (;;) {
             let v = this.readU8();
@@ -202,11 +202,11 @@ s
         }
     }
 
-    skip(nbytes: number) {
+    skip(nbytes: number): void {
         this.#pos += nbytes;
     }
 
-    startOver() {
+    startOver(): void {
         this.#pos = 0;
     }
 }
@@ -226,7 +226,7 @@ class TickConverter {
 
     #lastTempoEvent: TempoEvent;
 
-    constructor(ticksPerBeat) {
+    constructor(ticksPerBeat: number) {
         this.#ticksPerBeat = ticksPerBeat;
 
         // Arbitrary initial tempo
@@ -238,11 +238,11 @@ class TickConverter {
         this.#tempos.push(this.#lastTempoEvent);
     }
 
-    #ticksToMilliseconds(ticks: number, mspb: number) {
+    #ticksToMilliseconds(ticks: number, mspb: number): number {
         return ((ticks / this.#ticksPerBeat) * mspb) / 1000;
     }
 
-    setTempo(ticks: number, microsecondsPerBeat: number) {
+    setTempo(ticks: number, microsecondsPerBeat: number): void {
         const last = this.#lastTempoEvent;
         const deltaTicks = ticks - last.ticks;
         const deltaTimeOffset = this.#ticksToMilliseconds(deltaTicks, last.mspb);
@@ -253,7 +253,11 @@ class TickConverter {
         this.#tempos.push(this.#lastTempoEvent);
     }
 
-    getTime(ticks) {
+    // Convert a "midi tick" number to a millisecond.
+    getTime(ticks: number): number {
+        if (ticks < 0) {
+            throw "ticks must not be negative";
+        }
         let nearestTempo;
         for (let i = 0; i < this.#tempos.length; i++) {
             const t = this.#tempos[i];
@@ -263,59 +267,62 @@ class TickConverter {
 
             nearestTempo = t;
         }
+        if (!nearestTempo) {
+            throw "Internal error: nearestTempo not found.";
+        }
         return nearestTempo.timeOffset + this.#ticksToMilliseconds(ticks - nearestTempo.ticks, nearestTempo.mspb);
     }
 }
 
-function hex8(v) {
+function hex8(v: number): string {
     return v.toString(16); // TODO pad-0
 }
 
 class SmfReader {
-    #reader;
-    #events;
+    #reader: BytesReader;
+    #events: Array<MidiEvent>;
 
-    constructor(ar) {
+    constructor(ar: Uint8Array) {
         this.#reader = new BytesReader(ar);
     }
 
-    getEvents() {
+    getEvents(): Array<MidiEvent> {
         this.#load();
         return this.#events;
     }
 
-    #onInvalidFormat() {
+    #onInvalidFormat(): void {
         throw 'Unexpected byte found near index ' +
                 (this.#reader.getPos() - 1);
     }
 
-    #ensureU8(v) {
+    #ensureU8(v: number): void {
         if (this.#reader.readU8() != v) {
             this.#onInvalidFormat();
         }
     }
 
-    #ensureU16(v) {
+    #ensureU16(v: number): void {
         if (this.#reader.readU16() != v) {
             this.#onInvalidFormat();
         }
     }
 
-    #ensureU32(v) {
+    #ensureU32(v: number): void {
         if (this.#reader.readU32() != v) {
             this.#onInvalidFormat();
         }
     }
 
-    #ensureU8Array(ar) {
+    #ensureU8Array(ar: Array<number>) {
         ar.forEach((v) => this.#ensureU8(v));
     }
 
-    #withReader(callback) {
+    #withReader(callback: (arg: BytesReader) => void) {
         callback(this.#reader);
     }
 
-    #load() {
+    #load(): void {
         if (this.#events) {
             return;
         }
@@ -332,7 +339,7 @@ class SmfReader {
         });
     }
 
-    #loadOld() {
+    #loadOld(): void {
         // Old parser that can only read self-created MIDI files.
         console.log("Parsing a midi file...");
 
@@ -403,7 +410,7 @@ class SmfReader {
     }
 
     // Better SMF parser
-    #loadBetter() {
+    #loadBetter(): void {
         console.log("Parsing a midi file with a new parser...");
         this.#ensureU32(0x4d546864); // MIDI header
         this.#ensureU32(6) // Header length
@@ -514,11 +521,11 @@ class SmfReader {
 class SmfWriter {
     #writer = new BytesWriter();
 
-    #trackLengthPos;
+    #trackLengthPos: number;
 
     #closed = false;
 
-    #withWriter(callback) {
+    #withWriter(callback: (arg: BytesWriter) => void) {
         callback(this.#writer);
     }
 
@@ -564,7 +571,7 @@ class SmfWriter {
         });
     }
 
-    #writeResetData() {
+    #writeResetData(): void {
         this.#withWriter((w) => {
             // All notes off
             w.writeVar(0); // time
@@ -591,10 +598,11 @@ class SmfWriter {
         });
     }
 
-    close() {
+    close(): void {
         if (this.#closed) {
             return;
         }
+        this.#closed = true;
         this.#withWriter((w) => {
             // end of track
             w.writeVar(0); // time
@@ -607,12 +615,12 @@ class SmfWriter {
         });
     }
 
-    getBlob() {
+    getBlob(): Blob {
         this.close();
         return this.#writer.getBlob("audio/mid");
     }
 
-    download(filename?: string) {
+    download(filename?: string): void {
         downloadMidi(this.getBlob(), filename);
     }
 
@@ -624,7 +632,7 @@ class SmfWriter {
     }
 }
 
-function downloadMidi(blob, filename) {
+function downloadMidi(blob: Blob, filename?: string | null) {
     if (!filename) {
         filename = "unnamed.mid";
     }
@@ -646,11 +654,11 @@ function downloadMidi(blob, filename) {
 }
 
 // Returns a promise
-function loadMidi(file) {
+function loadMidi(file: Blob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = function (event) {
-            const ar = new Uint8Array(<ArrayBuffer>event.target.result);
+        reader.onload = function (event: ProgressEvent<FileReader>) {
+            const ar = new Uint8Array((<ArrayBuffer>reader.result));
             console.log("Read from file", file);
 
             try {

@@ -5,7 +5,7 @@
 // and window.screen.{width,height{
 
 declare class Popbox {
-    constructor(args);
+    constructor(args: any);
 };
 
 
@@ -21,23 +21,20 @@ const MARGIN = 0.005; // Margin at each side
 const FPS = 60;
 
 // Common values
-const RGB_BLACK = [0, 0, 0];
+const RGB_BLACK: [number, number, number] = [0, 0, 0];
 
 // Utility functions
 
-function int(v) {
+function int(v: number) {
     return Math.floor(v);
 }
 
-function s(v) {
+function s(v: number) {
     return int(v * SCALE);
 }
 
-function hsvToRgb(h, s, v) {
+function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
     let r, g, b, i, f, p, q, t;
-    if (arguments.length === 1) {
-        s = h.s, v = h.v, h = h.h;
-    }
     i = Math.floor(h * 6);
     f = h * 6 - i;
     p = v * (1 - s);
@@ -58,7 +55,7 @@ function hsvToRgb(h, s, v) {
     ];
 }
 
-function rgbToStr(rgb) {
+function rgbToStr(rgb: [number, number, number]) {
     // special common cases
     if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) {
         return "black";
@@ -75,7 +72,7 @@ function getCurrentTime() {
     return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
 
-function show(selector, show) {
+function show(selector: string, show: boolean) {
     if (show) {
         $(selector).show();
     } else {
@@ -87,7 +84,7 @@ function show(selector, show) {
 
 class Renderer {
     #BAR_SUB_LINE_WIDTH = s(2);
-    #BAR_BASE_LINE_COLOR = [200, 255, 200];
+    #BAR_BASE_LINE_COLOR: [number, number, number] = [200, 255, 200];
     #ROLL_SCROLL_AMOUNT = s(2);
 
     #W; // Width in canvas pixels
@@ -97,17 +94,22 @@ class Renderer {
     #MIN_NOTE = 21;
     #MAX_NOTE = 108;
 
-    #cbar;
-    #bar;
-    #croll;
-    #roll;
+    #cbar: HTMLCanvasElement;
+    #bar: CanvasRenderingContext2D;
+    #croll: HTMLCanvasElement;
+    #roll: CanvasRenderingContext2D;
 
-    #cbar2;
-    #bar2;
-    #croll2;
-    #roll2;
+    #cbar2: HTMLCanvasElement;
+    #bar2: CanvasRenderingContext2D;
+    #croll2: HTMLCanvasElement;
+    #roll2: CanvasRenderingContext2D;
 
-    #frameCount = 0;
+    static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
+        // TODO: Doew it need an explicit 'srgb' color space? (It used to have it.)
+        let canvas = <HTMLCanvasElement>document.getElementById(name);
+        let context = <CanvasRenderingContext2D>canvas.getContext("2d");
+        return [canvas, context];
+    }
 
     constructor() {
         // Adjust CSS with the constants.
@@ -121,20 +123,10 @@ class Renderer {
         this.#BAR_H = int(this.#H * BAR_RATIO);
         this.#ROLL_H = this.#H - this.#BAR_H;
 
-        const colorSpace = "srgb"; // "display-p3";
-        let options = { colorSpace: colorSpace};
-
-        this.#cbar = document.getElementById("bar");
-        this.#bar = this.#cbar.getContext("2d", options);
-
-        this.#croll = document.getElementById("roll");
-        this.#roll = this.#croll.getContext("2d", options);
-
-        this.#cbar2 = document.getElementById("bar2");
-        this.#bar2 = this.#cbar2.getContext("2d", options);
-
-        this.#croll2 = document.getElementById("roll2");
-        this.#roll2 = this.#croll2.getContext("2d", options);
+        [this.#cbar, this.#bar] = Renderer.getCanvas("bar");
+        [this.#cbar2, this.#bar2] = Renderer.getCanvas("bar2");
+        [this.#croll, this.#roll] = Renderer.getCanvas("roll");
+        [this.#croll2, this.#roll2] = Renderer.getCanvas("roll2");
 
         this.#cbar.width = this.#W;
         this.#cbar.height = this.#BAR_H;
@@ -147,7 +139,7 @@ class Renderer {
         this.#croll2.height = this.#ROLL_H;
     }
 
-    getBarColor(velocity) {
+    getBarColor(velocity: number): [number, number, number] {
         let MAX_H = 0.4
         let h = MAX_H - (MAX_H * velocity / 127)
         let s = 0.9;
@@ -155,14 +147,14 @@ class Renderer {
         return hsvToRgb(h, s, l)
     }
 
-    getOnColor(count) {
+    getOnColor(count: number): [number, number, number] {
         let h = Math.max(0, 0.2 - count * 0.03)
         let s = Math.min(1, 0.3 + 0.2 * count)
         let l = Math.min(1, 0.4 + 0.2 * count)
         return hsvToRgb(h, s, l)
     }
 
-    getPedalColor(value) {
+    getPedalColor(value: number): [number, number, number] {
         if (value <= 0) {
             return RGB_BLACK;
         }
@@ -173,14 +165,12 @@ class Renderer {
     }
 
 
-    drawSubLine(percent) {
+    drawSubLine(percent: number) {
         this.#bar.fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
         this.#bar.fillRect(0, this.#BAR_H * percent, this.#W, this.#BAR_SUB_LINE_WIDTH)
     }
 
-    onDraw(now) {
-        this.#frameCount++;
-
+    onDraw() {
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, this.#ROLL_SCROLL_AMOUNT);
         this.#roll.fillStyle = rgbToStr(this.getPedalColor(midiRenderingStatus.pedal));
@@ -247,7 +237,7 @@ class Renderer {
 const renderer = new Renderer();
 
 class MidiRenderingStatus {
-    #notes;
+    #notes: Array<[boolean, number]>; // note on/off, velocity
     #pedal = 0;
     #onNoteCount = 0;
 
@@ -255,7 +245,7 @@ class MidiRenderingStatus {
         this.reset();
     }
 
-    onMidiMessage(ev) {
+    onMidiMessage(ev: MidiEvent) {
         let d = ev.data;
 
         if (d[0] == 144 && d[2] > 0) { // Note on
