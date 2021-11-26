@@ -8,6 +8,9 @@ cd "${0%/*}/.." # Move to the top dir
 
 ./scripts/build.sh
 
-rm -fr "$dest"
+echo 'Deploying MVV...'
 
+rm -fr "$dest/*"
+
+mkdir -p "$dest"
 cp -pr dist/* "$dest"
