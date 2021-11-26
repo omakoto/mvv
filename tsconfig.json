@@ -2,6 +2,9 @@
     "compilerOptions": {
         "baseUrl": "src",
         "outDir": "./dist",
+        "noImplicitAny": false,
+        "strictNullChecks": false,
+        "noImplicitThis": false,
         "noEmitOnError": false,
         "target": "es2021",
         "lib": [
