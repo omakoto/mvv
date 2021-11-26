@@ -8,8 +8,9 @@
 
 - `F1` hide screen
 - `R` Record start/stop
-- `SPACE` Playback start/stop
+- `SPACE` Playback start / pause
   - `Left`/`Right` during playback -- Rewind/Fast-forward
+- `Z` Stop playback
 - `S` Save the last recording as a midi file
 - `L` Load a `*.mid` file
 - `F` Show FPS and playback timer resolution.
