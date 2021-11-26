@@ -1,2 +1,3 @@
 src/*.js
 dist/*.js
+nohup.out
