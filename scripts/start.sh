@@ -2,7 +2,7 @@
 
 set -e
 
-cd "${0%/*}/.."
+cd "${0%/*}/.." # Move to the top dir
 
 ./scripts/build.sh
 
@@ -11,7 +11,7 @@ cd dist
 port=11080
 (
     sleep 0.5
-    google-chrome http://localhost:$port/
+    (nohup google-chrome http://localhost:$port/ &)
 
 ) &
 

@@ -40,6 +40,10 @@ class MidiEvent {
     get data() {
         return this.#data;
     }
+
+    get device() {
+        return this.#device;
+    }
 }
 
 const TICKS_PER_SECOND = 1000;

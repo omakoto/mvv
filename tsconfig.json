@@ -3,7 +3,7 @@
         "baseUrl": "src",
         "outDir": "./dist",
         "noEmitOnError": false,
-        "target": "es2015",
+        "target": "es2021",
         "lib": [
             "es2021",
             "dom",
