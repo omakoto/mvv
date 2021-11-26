@@ -654,7 +654,7 @@ function downloadMidi(blob: Blob, filename?: string | null) {
 }
 
 // Returns a promise
-function loadMidi(file: Blob) {
+function loadMidi(file: Blob): Promise<Array<MidiEvent>> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function (event: ProgressEvent<FileReader>) {

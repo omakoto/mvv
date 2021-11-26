@@ -6,6 +6,8 @@
 
 declare class Popbox {
     constructor(args: any);
+    clear(): void;
+    open(tag: string): void;
 };
 
 
@@ -486,7 +488,7 @@ class Recorder {
     }
 
     // Fast-forward or rewind.
-    adjustPlaybackPosition(milliseconds: number): void {
+    adjustPlaybackPosition(milliseconds: number): boolean {
         this.#playbackTimeAdjustment += milliseconds;
         let ts = this.#getCurrentPlaybackTimestamp();
         // If rewound beyond the starting point, just reset the
@@ -500,6 +502,8 @@ class Recorder {
         // Find the next play event index.
         this.#nextPlaybackIndex = 0;
         this.#moveUpToTimestamp(ts, null);
+
+        return ts > 0;
     }
 
     #getPausingDuration(): number {
@@ -600,14 +604,14 @@ class Coordinator {
     #flips = 0;
     #playbackTicks = 0;
     #efps;
-    #nextDrawTime;
+    #nextDrawTime = 0;
 
     constructor() {
         this.#nextSecond = window.performance.now() + 1000;
         this.#efps = $("#fps");
     }
 
-    onKeyDown(ev) {
+    onKeyDown(ev: KeyboardEvent) {
         debug("onKeyDown", ev.timeStamp, ev.which, ev);
 
         // Don't respond if any modifier keys are pressed.
@@ -615,7 +619,7 @@ class Coordinator {
             return;
         }
         // Ignore key repeats.
-        const isRepeat = ev.originalEvent.repeat;
+        const isRepeat = ev.repeat;
 
         switch (ev.which) {
             case 112: // F1
@@ -663,12 +667,12 @@ class Coordinator {
         ev.preventDefault();
     }
 
-    toggleVideoMute() {
+    toggleVideoMute(): void {
         info("Toggle video mute");
         renderer.toggleMute();
     }
 
-    toggleRecording() {
+    toggleRecording(): void {
         if (recorder.isRecording) {
             recorder.stopRecording();
         } else {
@@ -677,7 +681,7 @@ class Coordinator {
         this.#updateRecorderStatus();
     }
 
-    togglePlayback() {
+    togglePlayback(): void {
         if (recorder.isPausing) {
             recorder.unpause();
         } else if (recorder.isPlaying) {
@@ -689,20 +693,20 @@ class Coordinator {
         this.#updateRecorderStatus();
     }
 
-    onRecorderStatusChanged() {
+    onRecorderStatusChanged(): void {
         this.#updateRecorderStatus();
     }
 
-    #updateRecorderStatus() {
+    #updateRecorderStatus(): void {
         show('#playing', recorder.isPlaying);
         show('#recording', recorder.isRecording);
         show('#pausing', recorder.isPausing);
     }
 
     #ignoreRepeatedRewindKey = false;
-    #lastRewindPressTime;
+    #lastRewindPressTime = 0;
 
-    #onRewindPressed(isRepeat) {
+    #onRewindPressed(isRepeat: boolean): void {
         if (!(recorder.isPlaying || recorder.isPausing)) {
             return;
         }
@@ -728,7 +732,7 @@ class Coordinator {
         return;
     }
 
-    #normalizeMidiEvent(ev) {
+    #normalizeMidiEvent(ev: MidiEvent): void {
         // Allow V25's leftmost knob to be used as the pedal.
         if (ev.device.startsWith("V25")) {
             let d = ev.data;
@@ -738,7 +742,7 @@ class Coordinator {
         }
     }
 
-    onMidiMessage(ev) {
+    onMidiMessage(ev: MidiEvent): void {
         debug("onMidiMessage", ev.timeStamp, ev.data[0], ev.data[1], ev.data[2],  ev);
         this.#normalizeMidiEvent(ev);
 
@@ -748,22 +752,22 @@ class Coordinator {
         }
     }
 
-    reset() {
+    reset(): void {
         recorder.stopPlaying();
         recorder.stopRecording();
         this.#updateRecorderStatus();
         this.resetMidi();
     }
 
-    resetMidi() {
+    resetMidi(): void {
         midiRenderingStatus.reset();
         midiOutputManager.reset();
     }
 
     #getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = -1;
-    #getHumanReadableCurrentPlaybackTimestamp_lastResult;
+    #getHumanReadableCurrentPlaybackTimestamp_lastResult = "";
 
-    getHumanReadableCurrentPlaybackTimestamp() {
+    getHumanReadableCurrentPlaybackTimestamp(): string {
         const totalSeconds = int(recorder.currentPlaybackTimestamp / 1000);
         if (totalSeconds == this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds) {
             return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
@@ -783,7 +787,7 @@ class Coordinator {
         return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
     }
 
-    onDraw() {
+    onDraw(): void {
         // Update FPS
         this.#frames++;
         let now = window.performance.now();
@@ -797,11 +801,11 @@ class Coordinator {
 
         this.#now = now;
 
-        renderer.onDraw(this.#now);
+        renderer.onDraw();
         midiRenderingStatus.afterDraw(this.#now);
     }
 
-    scheduleFlip() {
+    scheduleFlip(): void {
         requestAnimationFrame(() => {
             this.#flips++;
             renderer.flip();
@@ -809,9 +813,9 @@ class Coordinator {
         });
     }
 
-    #onPlaybackTimer_lastShownPlaybackTimestamp;
+    #onPlaybackTimer_lastShownPlaybackTimestamp = "";
 
-    onPlaybackTimer() {
+    onPlaybackTimer(): void {
         this.#playbackTicks++;
         if (recorder.isPlaying) {
             recorder.playbackUpToNow();
@@ -826,12 +830,12 @@ class Coordinator {
         }
     }
 
-    startDrawTimer() {
+    startDrawTimer(): void {
         this.#nextDrawTime = window.performance.now();
         this.#scheduleDraw();
     }
 
-    #scheduleDraw() {
+    #scheduleDraw(): void {
         this.#nextDrawTime += (1000.0 / FPS);
         const delay = (this.#nextDrawTime - window.performance.now());
         setTimeout(() => {
@@ -840,13 +844,13 @@ class Coordinator {
         }, delay);
     }
 
-    startPlaybackTimer() {
+    startPlaybackTimer(): void {
         setInterval(() => coordinator.onPlaybackTimer(), 5);
     }
 
-    #save_as_box;
+    #save_as_box: Popbox | null;
 
-    #open_download_box() {
+    #open_download_box(): void {
         if (!recorder.isAnythingRecorded) {
             info("Nothing is recorded");
             return;
@@ -862,9 +866,12 @@ class Coordinator {
         $('#save_as_filename').focus();
     }
 
-    do_download() {
+    do_download(): void {
+        if (!this.#save_as_box) {
+            return; // Shouldn't happen
+        }
         this.#save_as_box.clear();
-        let filename = $('#save_as_filename').val();
+        let filename = $('#save_as_filename').val() as string;
         if (!filename) {
             info("Empty filename");
             return;
@@ -874,7 +881,7 @@ class Coordinator {
         info("Saved as " + filename);
     }
 
-    close() {
+    close(): void {
         recorder.stopPlaying();
         this.resetMidi();
     }
@@ -882,7 +889,7 @@ class Coordinator {
 
 const coordinator = new Coordinator();
 
-function onMIDISuccess(midiAccess) {
+function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
     console.log("onMIDISuccess");
 
     for (let input of midiAccess.inputs.values()) {
@@ -893,18 +900,16 @@ function onMIDISuccess(midiAccess) {
     }
     for (let output of midiAccess.outputs.values()) {
         console.log("Output: ", output);
-        if (!/midi through/i.test(output.name)) {
+        if (!/midi through/i.test(output.name ?? "")) {
             midiOutputManager.setMidiOut(output);
         }
     }
 }
 
-function onMIDIFailure() {
+function onMIDIFailure(): void {
     info('Could not access your MIDI devices.');
 }
 
-// coordinator.startPlaybackTimer();
-// coordinator.startDrawTimer();
 coordinator.scheduleFlip();
 
 const PLAYBACK_TIMER = "playbackTimer";
@@ -927,7 +932,7 @@ worker.postMessage({action: "setInterval", interval: 1000.0 / FPS, result: DRAW_
 
 navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
-$(window).keydown((ev) => coordinator.onKeyDown(ev));
+$(window).keydown((ev) => coordinator.onKeyDown(ev.originalEvent!));
 
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
 $(window).on('unload', () => {
@@ -938,7 +943,7 @@ $("body").on("dragover", function(ev) {
     ev.preventDefault();
 });
 
-function loadMidiFile(file) {
+function loadMidiFile(file: File) {
     info("loading from: " + file.name);
     coordinator.reset();
     loadMidi(file).then((events) => {
@@ -952,12 +957,13 @@ function loadMidiFile(file) {
 
 $("body").on("drop", function(ev) {
     ev.preventDefault();
-    console.log("File dropped", ev.originalEvent.dataTransfer.files[0], ev.originalEvent.dataTransfer);
-    loadMidiFile(ev.originalEvent.dataTransfer.files[0]);
+    let oev = <DragEvent>ev.originalEvent;
+    console.log("File dropped", oev.dataTransfer!.files[0], oev.dataTransfer);
+    loadMidiFile(oev.dataTransfer!.files[0]);
 });
 
 $("#open_file").on("change", (ev) => {
-    const file = (<HTMLInputElement>ev.target).files[0];
+    const file = (<HTMLInputElement>ev.target).files![0];
     if (!file) {
         return; // canceled
     }
