@@ -1,6 +1,6 @@
 'use strict';
 
-const DEBUG = parseInt((new URLSearchParams(window.location.search)).get("debug")) ? true : false;
+const DEBUG = parseInt((new URLSearchParams(window.location.search)).get("debug") ?? "0") ? true : false;
 
 if (!DEBUG) {
     console.log("Debug log is disabled. Use ?debug=1 to enable debug log.");

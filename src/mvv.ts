@@ -25,16 +25,16 @@ const RGB_BLACK: [number, number, number] = [0, 0, 0];
 
 // Utility functions
 
-function int(v: number) {
+function int(v: number): number {
     return Math.floor(v);
 }
 
-function s(v: number) {
+function s(v: number): number {
     return int(v * SCALE);
 }
 
 function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
-    let r, g, b, i, f, p, q, t;
+    let r = 0, g = 0, b = 0, i, f, p, q, t;
     i = Math.floor(h * 6);
     f = h * 6 - i;
     p = v * (1 - s);
@@ -55,7 +55,7 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
     ];
 }
 
-function rgbToStr(rgb: [number, number, number]) {
+function rgbToStr(rgb: [number, number, number]): string {
     // special common cases
     if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) {
         return "black";
@@ -65,14 +65,14 @@ function rgbToStr(rgb: [number, number, number]) {
 
 // Return the current time in "yyyy-mm-dd-hh-mm-ss.mmm" format, which is used for
 // midi filenames.
-function getCurrentTime() {
+function getCurrentTime(): string {
     const nowUtc = new Date();
     const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
     let ret = nowLocal.toISOString();
     return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
 
-function show(selector: string, show: boolean) {
+function show(selector: string, show: boolean): void {
     if (show) {
         $(selector).show();
     } else {
@@ -165,12 +165,12 @@ class Renderer {
     }
 
 
-    drawSubLine(percent: number) {
+    drawSubLine(percent: number): void {
         this.#bar.fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
         this.#bar.fillRect(0, this.#BAR_H * percent, this.#W, this.#BAR_SUB_LINE_WIDTH)
     }
 
-    onDraw() {
+    onDraw(): void {
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, this.#ROLL_SCROLL_AMOUNT);
         this.#roll.fillStyle = rgbToStr(this.getPedalColor(midiRenderingStatus.pedal));
@@ -220,16 +220,16 @@ class Renderer {
         this.#bar.fillRect(0, this.#BAR_H, this.#W, -this.#BAR_SUB_LINE_WIDTH)
     }
 
-    flip() {
+    flip(): void {
         this.#bar2.drawImage(this.#cbar, 0, 0);
         this.#roll2.drawImage(this.#croll, 0, 0);
     }
 
-    toggleMute() {
+    toggleMute(): void {
         $('#canvases').toggle();
     }
 
-    show() {
+    show(): void {
         $('#canvases').show();
     }
 }
@@ -245,7 +245,7 @@ class MidiRenderingStatus {
         this.reset();
     }
 
-    onMidiMessage(ev: MidiEvent) {
+    onMidiMessage(ev: MidiEvent): void {
         let d = ev.data;
 
         if (d[0] == 144 && d[2] > 0) { // Note on
@@ -259,7 +259,7 @@ class MidiRenderingStatus {
         }
     }
 
-    reset() {
+    reset(): void {
         this.#notes = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
             this.#notes[i] = [false, 0]; // note on/off, velocity
@@ -268,37 +268,37 @@ class MidiRenderingStatus {
         this.#onNoteCount = 0;
     }
 
-    afterDraw(now) {
+    afterDraw(now: number): void {
         this.#onNoteCount = 0;
     }
 
-    get onNoteCount() {
+    get onNoteCount(): number {
         return this.#onNoteCount;
     }
 
-    get pedal() {
+    get pedal(): number {
         return this.#pedal;
     }
 
-    getNote(note) {
-        return this.#notes[note];
+    getNote(noteIndex: number): [boolean, number] {
+        return this.#notes[noteIndex];
     }
 }
 
 const midiRenderingStatus = new MidiRenderingStatus();
 
 class MidiOutputManager {
-    #device = null;
+    #device: WebMidi.MIDIOutput | null;
     constructor() {
     }
 
-    setMidiOut(device) {
-        console.log("MIDI output device set:", device);
+    setMidiOut(device: WebMidi.MIDIOutput): void {
+        console.log("MIDI output dev: WebMidi.MIDIOutput set:", device);
         this.#device = device;
         midiOutputManager.reset();
     }
 
-    reset() {
+    reset(): void {
         if (!this.#device) {
             return;
         }
@@ -311,7 +311,7 @@ class MidiOutputManager {
         // console.log("MIDI reset");
     }
 
-    sendEvent(data, timeStamp) {
+    sendEvent(data: Array<number> | Uint8Array, timeStamp: number): void {
         if (!this.#device) {
             return;
         }
@@ -329,7 +329,7 @@ const RecorderState = {
 }
 
 class Recorder {
-    #events = [];
+    #events: Array<MidiEvent> = [];
     #state = RecorderState.Idle;
 
     #recordingStartTimestamp = 0;
@@ -341,15 +341,16 @@ class Recorder {
     constructor() {
     }
 
-    startRecording() {
+    startRecording(): boolean {
         if (this.isRecording) {
             return false;
         }
         this.stopPlaying();
         this.#startRecording();
+        return true;
     }
 
-    stopRecording() {
+    stopRecording(): boolean {
         if (!this.isRecording) {
             return false;
         }
@@ -357,14 +358,15 @@ class Recorder {
         return true;
     }
 
-    startPlaying() {
+    startPlaying(): boolean {
         if (!this.isIdle) {
             return false;
         }
         this.#startPlaying();
+        return true;
     }
 
-    stopPlaying() {
+    stopPlaying(): boolean {
         if (!(this.isPlaying || this.isPausing)) {
             return false;
         }
@@ -372,7 +374,7 @@ class Recorder {
         return true;
     }
 
-    pause() {
+    pause(): boolean {
         if (!this.isPlaying) {
             return false;
         }
@@ -382,7 +384,7 @@ class Recorder {
         return true;
     }
 
-    unpause() {
+    unpause(): boolean {
         if (!this.isPausing) {
             return false;
         }
@@ -394,35 +396,35 @@ class Recorder {
         return true;
     }
 
-    get isIdle() {
+    get isIdle(): boolean {
         return this.#state === RecorderState.Idle;
     }
 
-    get isRecording() {
+    get isRecording(): boolean {
         return this.#state === RecorderState.Recording;
     }
 
-    get isPlaying() {
+    get isPlaying(): boolean {
         return this.#state === RecorderState.Playing;
     }
 
-    get isPausing() {
+    get isPausing(): boolean {
         return this.#state === RecorderState.Pausing;
     }
 
-    get isAnythingRecorded() {
+    get isAnythingRecorded(): boolean {
         return this.#events.length > 0;
     }
 
-    get isAfterLast() {
+    get isAfterLast(): boolean {
         return this.#events.length <= this.#nextPlaybackIndex;
     }
 
-    get currentPlaybackTimestamp() {
+    get currentPlaybackTimestamp(): number {
         return this.#getCurrentPlaybackTimestamp();
     }
 
-    #startRecording() {
+    #startRecording(): void {
         info("Recording started");
         this.#state = RecorderState.Recording;
         this.#events = [];
@@ -430,14 +432,14 @@ class Recorder {
         coordinator.onRecorderStatusChanged();
     }
 
-    #stopRecording() {
+    #stopRecording(): void {
         info("Recording stopped");
         this.#state = RecorderState.Idle;
 
         coordinator.onRecorderStatusChanged();
     }
 
-    #startPlaying() {
+    #startPlaying(): void {
         info("Playback started");
         this.#state = RecorderState.Playing;
         this.#playbackStartTimestamp = window.performance.now();
@@ -447,7 +449,7 @@ class Recorder {
         coordinator.onRecorderStatusChanged();
     }
 
-    #stopPlaying() {
+    #stopPlaying(): void {
         info("Playback stopped");
         this.#state = RecorderState.Idle;
 
@@ -455,7 +457,7 @@ class Recorder {
         coordinator.resetMidi();
     }
 
-    recordEvent(ev) {
+    recordEvent(ev: MidiEvent): boolean {
         if (!this.isRecording) {
             return false;
         }
@@ -479,12 +481,12 @@ class Recorder {
         return true;
     }
 
-    moveToStart() {
+    moveToStart(): void {
         this.adjustPlaybackPosition(-9999999999);
     }
 
     // Fast-forward or rewind.
-    adjustPlaybackPosition(milliseconds) {
+    adjustPlaybackPosition(milliseconds: number): void {
         this.#playbackTimeAdjustment += milliseconds;
         let ts = this.#getCurrentPlaybackTimestamp();
         // If rewound beyond the starting point, just reset the
@@ -498,19 +500,18 @@ class Recorder {
         // Find the next play event index.
         this.#nextPlaybackIndex = 0;
         this.#moveUpToTimestamp(ts, null);
-        return ts >= 0;
     }
 
-    #getPausingDuration() {
+    #getPausingDuration(): number {
         return this.isPausing ? (performance.now() - this.#pauseStartTimestamp) : 0;
     }
 
-    #getCurrentPlaybackTimestamp() {
+    #getCurrentPlaybackTimestamp(): number {
         return (performance.now() - this.#playbackStartTimestamp) +
                 this.#playbackTimeAdjustment - this.#getPausingDuration();
     }
 
-    playbackUpToNow() {
+    playbackUpToNow(): boolean {
         if (!this.isPlaying) {
             return false;
         }
@@ -521,7 +522,7 @@ class Recorder {
             debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
 
-        return this.#moveUpToTimestamp(ts, (ev) => {
+        return this.#moveUpToTimestamp(ts, (ev: MidiEvent) => {
             if (DEBUG) {
                 debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
                         " index=" + (this.#nextPlaybackIndex - 1), ev);
@@ -531,7 +532,7 @@ class Recorder {
         });
     }
 
-    #moveUpToTimestamp(timeStamp, callback) {
+    #moveUpToTimestamp(timeStamp: number, callback: null | ((a: MidiEvent) => void)): boolean {
         for (;;) {
             if (this.isAfterLast) {
                 // No more events.
@@ -554,7 +555,7 @@ class Recorder {
         }
     }
 
-    download(filename) {
+    download(filename: string): void {
         if (this.#events.length == 0) {
             info("Nothing recorded yet");
             return;
@@ -573,7 +574,7 @@ class Recorder {
         wr.download(filename);
     }
 
-    setEvents(events) {
+    setEvents(events: Array<MidiEvent>): void {
         this.stopPlaying();
         this.stopRecording();
         this.#events = events;

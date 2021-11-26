@@ -624,7 +624,7 @@ class SmfWriter {
         downloadMidi(this.getBlob(), filename);
     }
 
-    writeMessage(deltaTimeMs: number, data: Array<number>) {
+    writeMessage(deltaTimeMs: number, data: Array<number> | Uint8Array) {
         this.#writer.writeVar(deltaTimeMs / (1000 / TICKS_PER_SECOND));
         for (let i = 0; i < data.length; i++) {
             this.#writer.writeU8(data[i]);
