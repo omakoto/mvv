@@ -33,7 +33,7 @@ class MidiEvent {
         return new MidiEvent(timeStamp, this.#data, this.#device);
     }
 
-    get timeStmap() {
+    get timeStamp() {
         return this.#timeStamp;
     }
 

@@ -321,11 +321,11 @@ class MidiOutputManager {
         // console.log("MIDI reset");
     }
 
-    sendEvent(data, timestamp) {
+    sendEvent(data, timeStamp) {
         if (!this.#device) {
             return;
         }
-        this.#device.send(data, timestamp);
+        this.#device.send(data, timeStamp);
     }
 }
 
@@ -516,7 +516,7 @@ class Recorder {
     }
 
     #getCurrentPlaybackTimestamp() {
-        return (window.performance.now() - this.#playbackStartTimestamp) +
+        return (performance.now() - this.#playbackStartTimestamp) +
                 this.#playbackTimeAdjustment - this.#getPausingDuration();
     }
 
@@ -527,14 +527,21 @@ class Recorder {
 
         // Current timestamp
         let ts = this.#getCurrentPlaybackTimestamp();
+        if (DEBUG) {
+            debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
+        }
 
         return this.#moveUpToTimestamp(ts, (ev) => {
+            if (DEBUG) {
+                debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
+                        " index=" + (this.#nextPlaybackIndex - 1), ev);
+            }
             midiRenderingStatus.onMidiMessage(ev);
             midiOutputManager.sendEvent(ev.data, 0)
         });
     }
 
-    #moveUpToTimestamp(timestamp, callback) {
+    #moveUpToTimestamp(timeStamp, callback) {
         for (;;) {
             if (this.isAfterLast) {
                 // No more events.
@@ -546,7 +553,7 @@ class Recorder {
                 return true;
             }
             let ev = this.#events[this.#nextPlaybackIndex];
-            if (ev.timeStamp > timestamp) {
+            if (ev.timeStamp > timeStamp) {
                 return true;
             }
             this.#nextPlaybackIndex++;
@@ -820,10 +827,10 @@ class Coordinator {
         }
         if (recorder.isPlaying || recorder.isPausing) {
             // Update the time indicator
-            const timestamp = this.getHumanReadableCurrentPlaybackTimestamp();
-            if (timestamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
-                infoRaw(timestamp);
-                this.#onPlaybackTimer_lastShownPlaybackTimestamp = timestamp;
+            const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
+            if (timeStamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
+                infoRaw(timeStamp);
+                this.#onPlaybackTimer_lastShownPlaybackTimestamp = timeStamp;
             }
         }
     }
@@ -944,6 +951,7 @@ function loadMidiFile(file) {
     info("loading from: " + file.name);
     coordinator.reset();
     loadMidi(file).then((events) => {
+        debug("File loaded", events);
         recorder.setEvents(events);
     }).catch((error) => {
         info("Failed loading from " + file.name + ": " + error);

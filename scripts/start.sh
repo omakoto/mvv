@@ -11,7 +11,7 @@ cd dist
 port=11080
 (
     sleep 0.5
-    (nohup google-chrome http://localhost:$port/ &)
+    (nohup google-chrome "http://localhost:$port/${ARGS:+?}${ARGS:-}" &)
 
 ) &
 
