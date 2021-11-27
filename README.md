@@ -4,8 +4,6 @@
 
 [MVV](https://omakoto.github.io/mvv/) is an online MIDI input visualizer, created for piano learners.
 
-Source file is available [here](https://github.com/omakoto/mvv).
-
 ## Keys
 
 - `F1` hide screen
