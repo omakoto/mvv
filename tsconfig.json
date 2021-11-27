@@ -5,6 +5,20 @@
         "noImplicitAny": true,
         "strictNullChecks": true,
         "noImplicitThis": true,
+
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUnusedParameters": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": true,
+        "useUnknownInCatchVariables": true,
+        "strict": true,
+        // "noUncheckedIndexedAccess": true,
+        "noUnusedLocals": true,
+        "strictPropertyInitialization": true,
+
         "noEmitOnError": false,
         "target": "es2021",
         "lib": [

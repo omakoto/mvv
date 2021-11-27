@@ -239,7 +239,7 @@ class Renderer {
 const renderer = new Renderer();
 
 class MidiRenderingStatus {
-    #notes: Array<[boolean, number]>; // note on/off, velocity
+    #notes: Array<[boolean, number]> = []; // note on/off, velocity
     #pedal = 0;
     #onNoteCount = 0;
 
@@ -248,16 +248,18 @@ class MidiRenderingStatus {
     }
 
     onMidiMessage(ev: MidiEvent): void {
-        let d = ev.data;
+        let data0 = ev.data0;
+        let data1 = ev.data1;
+        let data2 = ev.data2;
 
-        if (d[0] == 144 && d[2] > 0) { // Note on
+        if (data0 == 144 && data2 > 0) { // Note on
             this.#onNoteCount++;
-            this.#notes[d[1]][0] = true;
-            this.#notes[d[1]][1] = d[2];
-        } else if ((d[0] == 128) || (d[0] == 144 && d[2] == 0)) { // Note off
-            this.#notes[d[1]][0] = false;
-        } else if (d[0] == 176 && d[1] == 64) { // Pedal
-            this.#pedal = d[2];
+            this.#notes[data1][0] = true;
+            this.#notes[data1][1] = data2;
+        } else if ((data0 == 128) || (data0 == 144 && data2 == 0)) { // Note off
+            this.#notes[data1][0] = false;
+        } else if (data0 == 176 && data1 == 64) { // Pedal
+            this.#pedal = data2;
         }
     }
 
@@ -270,7 +272,7 @@ class MidiRenderingStatus {
         this.#onNoteCount = 0;
     }
 
-    afterDraw(now: number): void {
+    afterDraw(_now: number): void {
         this.#onNoteCount = 0;
     }
 
@@ -290,7 +292,7 @@ class MidiRenderingStatus {
 const midiRenderingStatus = new MidiRenderingStatus();
 
 class MidiOutputManager {
-    #device: WebMidi.MIDIOutput | null;
+    #device: WebMidi.MIDIOutput | null = null;
     constructor() {
     }
 
@@ -465,7 +467,7 @@ class Recorder {
         }
 
         // Only record certain events.
-        switch (ev.data[0]) {
+        switch (ev.data0) {
             case 144: // Note on
             case 128: // Note off
             case 176: // Control
@@ -532,7 +534,7 @@ class Recorder {
                         " index=" + (this.#nextPlaybackIndex - 1), ev);
             }
             midiRenderingStatus.onMidiMessage(ev);
-            midiOutputManager.sendEvent(ev.data, 0)
+            midiOutputManager.sendEvent(ev.getDataAsArray(), 0)
         });
     }
 
@@ -570,9 +572,9 @@ class Recorder {
         let lastTimestamp = this.#events[0].timeStamp;
 
         this.#events.forEach((ev) => {
-            debug(ev.timeStamp, ev.data);
+            debug(ev.timeStamp, ev.getDataAsArray());
             let delta = ev.timeStamp - lastTimestamp;
-            wr.writeMessage(delta, ev.data);
+            wr.writeMessage(delta, ev.getDataAsArray());
             lastTimestamp = ev.timeStamp;
         });
         wr.download(filename);
@@ -735,15 +737,14 @@ class Coordinator {
     #normalizeMidiEvent(ev: MidiEvent): void {
         // Allow V25's leftmost knob to be used as the pedal.
         if (ev.device.startsWith("V25")) {
-            let d = ev.data;
-            if (d[0] == 176 && d[1] == 20) {
-                d[1] = 64;
+            if (ev.data0 == 176 && ev.data1 == 20) {
+                ev.replaceData(1, 64);
             }
         }
     }
 
     onMidiMessage(ev: MidiEvent): void {
-        debug("onMidiMessage", ev.timeStamp, ev.data[0], ev.data[1], ev.data[2],  ev);
+        debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2,  ev);
         this.#normalizeMidiEvent(ev);
 
         midiRenderingStatus.onMidiMessage(ev);
@@ -848,7 +849,7 @@ class Coordinator {
         setInterval(() => coordinator.onPlaybackTimer(), 5);
     }
 
-    #save_as_box: Popbox | null;
+    #save_as_box: Popbox | null = null;
 
     #open_download_box(): void {
         if (!recorder.isAnythingRecorded) {
@@ -980,10 +981,10 @@ $("#save_as_filename").keydown((ev) => {
     }
 });
 
-$("#save").on('click', (ev) => {
+$("#save").on('click', (_ev) => {
     coordinator.do_download();
 });
 
-$("#save_as_box").on('popbox_closing', (ev) => {
+$("#save_as_box").on('popbox_closing', (_ev) => {
     $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
 });

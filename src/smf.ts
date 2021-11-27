@@ -8,7 +8,7 @@ function logBlob(blob: Blob) {
     let fileReader = new FileReader();
     fileReader.readAsArrayBuffer(blob);
 
-    fileReader.onload = function(event) {
+    fileReader.onload = function(_event) {
         console.log(fileReader.result);
     };
     return blob;
@@ -37,12 +37,44 @@ class MidiEvent {
         return this.#timeStamp;
     }
 
-    get data(): Array<number> | Uint8Array {
-        return this.#data;
-    }
-
     get device(): string {
         return this.#device;
+    }
+
+    getData(index: number): number {
+        if (index < 0) {
+            throw "Index cannot be negative";
+        }
+        if (index >= this.#data.length) {
+            return 0;
+        }
+        return this.#data[index]!;
+    }
+
+    replaceData(index: number, value: number) {
+        if (index < 0) {
+            throw "Index cannot be negative";
+        }
+        if (index >= this.#data.length) {
+            throw "Index out of range";
+        }
+        this.#data[index] = value;
+    }
+
+    get data0(): number {
+        return this.getData(0);
+    }
+
+    get data1(): number {
+        return this.getData(1);
+    }
+
+    get data2(): number {
+        return this.getData(2);
+    }
+
+    getDataAsArray(): Array<number> | Uint8Array {
+        return this.#data;
     }
 }
 
@@ -147,10 +179,6 @@ class BytesWriter {
         return this;
     }
 
-    #ensureGrowth(size: number): BytesWriter {
-        return this.#ensureCap(this.#size + size);
-    }
-
     getSize(): number {
         return this.#size;
     }
@@ -171,7 +199,10 @@ class BytesReader {
     }
 
     readU8(): number {
-        return this.#buffer[this.#pos++];
+        if (this.#buffer.length <= this.#pos) {
+            throw "Reading after EOF"
+        }
+        return this.#buffer[this.#pos++]!;
     }
 
     readU16(): number {
@@ -212,9 +243,15 @@ class BytesReader {
 }
 
 class TempoEvent {
-    ticks: number;
-    mspb: number;
-    timeOffset: number;
+    ticks: number = 0;
+    mspb: number = 0;
+    timeOffset: number = 0;
+
+    constructor(ticks: number, mspb: number, timeOffset: number) {
+        this.ticks = ticks;
+        this.mspb = mspb;
+        this.timeOffset = timeOffset;
+    }
 }
 
 // Converts "ticks" (not delta ticks, but absolute ticks) in a midi file to milliseconds.
@@ -230,11 +267,7 @@ class TickConverter {
         this.#ticksPerBeat = ticksPerBeat;
 
         // Arbitrary initial tempo
-        this.#lastTempoEvent = {
-            ticks: 0,
-            mspb: 500_000,
-            timeOffset: 0,
-        };
+        this.#lastTempoEvent = new TempoEvent(0, 500_000, 0);
         this.#tempos.push(this.#lastTempoEvent);
     }
 
@@ -279,7 +312,8 @@ function hex8(v: number): string {
 
 class SmfReader {
     #reader: BytesReader;
-    #events: Array<MidiEvent>;
+    #loaded = false;
+    #events: Array<MidiEvent> = [];
 
     constructor(ar: Uint8Array) {
         this.#reader = new BytesReader(ar);
@@ -322,7 +356,7 @@ class SmfReader {
     }
 
     #load(): void {
-        if (this.#events) {
+        if (this.#loaded) {
             return;
         }
         this.#events = [];
@@ -336,6 +370,7 @@ class SmfReader {
         this.#events.sort((a, b) => {
             return a.timeStamp - b.timeStamp;
         });
+        this.#loaded = true;
     }
 
     #loadOld(): void {
@@ -366,7 +401,6 @@ class SmfReader {
 
         debug("Track size", trackSize);
 
-        let lastStatus = 0;
         let totalTime = 0;
         for (;;) {
             const time = this.#reader.readVar();
@@ -490,7 +524,7 @@ class SmfReader {
                     lastStatus = status;
 
                     const statusType = status & 0xf0;
-                    const channel = status & 0x0f;
+                    // const _channel = status & 0x0f;
 
                     // TODO: Ignore non-channel-0 data??
 
@@ -520,7 +554,7 @@ class SmfReader {
 class SmfWriter {
     #writer = new BytesWriter();
 
-    #trackLengthPos: number;
+    #trackLengthPos: number = 0;
 
     #closed = false;
 
@@ -656,7 +690,7 @@ function downloadMidi(blob: Blob, filename?: string | null) {
 function loadMidi(file: Blob): Promise<Array<MidiEvent>> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = function (event: ProgressEvent<FileReader>) {
+        reader.onload = function (_event: ProgressEvent<FileReader>) {
             const ar = new Uint8Array((<ArrayBuffer>reader.result));
             console.log("Read from file", file);
 
