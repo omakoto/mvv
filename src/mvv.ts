@@ -254,10 +254,10 @@ class MidiRenderingStatus {
 
         if (data0 == 144 && data2 > 0) { // Note on
             this.#onNoteCount++;
-            this.#notes[data1][0] = true;
-            this.#notes[data1][1] = data2;
+            this.#notes[data1]![0] = true;
+            this.#notes[data1]![1] = data2;
         } else if ((data0 == 128) || (data0 == 144 && data2 == 0)) { // Note off
-            this.#notes[data1][0] = false;
+            this.#notes[data1]![0] = false;
         } else if (data0 == 176 && data1 == 64) { // Pedal
             this.#pedal = data2;
         }
@@ -285,7 +285,7 @@ class MidiRenderingStatus {
     }
 
     getNote(noteIndex: number): [boolean, number] {
-        return this.#notes[noteIndex];
+        return this.#notes[noteIndex]!;
     }
 }
 
@@ -549,7 +549,7 @@ class Recorder {
                 // return false;
                 return true;
             }
-            let ev = this.#events[this.#nextPlaybackIndex];
+            let ev = this.#events[this.#nextPlaybackIndex]!;
             if (ev.timeStamp > timeStamp) {
                 return true;
             }
@@ -569,7 +569,7 @@ class Recorder {
         console.log("Converting to the SMF format...");
 
         let wr = new SmfWriter();
-        let lastTimestamp = this.#events[0].timeStamp;
+        let lastTimestamp = this.#events[0]!.timeStamp;
 
         this.#events.forEach((ev) => {
             debug(ev.timeStamp, ev.getDataAsArray());
@@ -590,7 +590,7 @@ class Recorder {
             return;
         }
 
-        const lastEvent = events[events.length - 1];
+        const lastEvent = events[events.length - 1]!;
 
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
         info(message);
@@ -715,7 +715,7 @@ class Coordinator {
         // If non-repeat left is pressed twice within a timeout, move to start.
         if (!isRepeat) {
             const now = window.performance.now();
-            if ((now - this.#lastRewindPressTime) <= 120) {
+            if ((now - this.#lastRewindPressTime) <= 150) {
                 recorder.moveToStart();
                 return;
             }
@@ -960,7 +960,7 @@ $("body").on("drop", function(ev) {
     ev.preventDefault();
     let oev = <DragEvent>ev.originalEvent;
     console.log("File dropped", oev.dataTransfer!.files[0], oev.dataTransfer);
-    loadMidiFile(oev.dataTransfer!.files[0]);
+    loadMidiFile(oev.dataTransfer!.files[0]!);
 });
 
 $("#open_file").on("change", (ev) => {

@@ -659,8 +659,8 @@ class SmfWriter {
 
     writeMessage(deltaTimeMs: number, data: Array<number> | Uint8Array) {
         this.#writer.writeVar(deltaTimeMs / (1000 / TICKS_PER_SECOND));
-        for (let i = 0; i < data.length; i++) {
-            this.#writer.writeU8(data[i]);
+        for (let d of data) {
+            this.#writer.writeU8(d);
         }
     }
 }
