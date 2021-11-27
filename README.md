@@ -25,12 +25,12 @@ Source file is available [here](https://github.com/omakoto/mvv).
 ## Bugs/TODOs
 
 - [ ] Add help
-- [X] Support pausing
-- [ ] Show confirmation dialog before over-recording
+- [ ] Show confirmation dialog before over-recording or loading
 - [ ] Support non-zero channels
 - [ ] Better playback (as a geneal MIDI player)
   - [ ] Fast-forward should send all skipped control changes
   - [ ] Rewind should replay all control changes
+- [X] Support pausing
 - [ ] Sync the renderer to vsync (?)
 - [ ] Support SMPTE time format in *.mid files
 - [X] Keep playing while in the BG too

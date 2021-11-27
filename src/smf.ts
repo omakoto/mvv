@@ -135,14 +135,14 @@ class BytesWriter {
 
     setU8(pos: number, val: number): BytesWriter {
         this.#ensureCap(pos + 1);
-        this.#buf[pos + 0] = (val >>  0) & 255;
+        this.#buf[pos + 0] = val & 255;
         return this;
     }
 
     setU16(pos: number, val: number): BytesWriter {
         this.#ensureCap(pos + 2);
         this.#buf[pos + 0] = (val >>  8) & 255;
-        this.#buf[pos + 1] = (val >>  0) & 255;
+        this.#buf[pos + 1] = val         & 255;
         return this;
     }
 
@@ -150,7 +150,7 @@ class BytesWriter {
         this.#ensureCap(pos + 3);
         this.#buf[pos + 0] = (val >> 16) & 255;
         this.#buf[pos + 1] = (val >>  8) & 255;
-        this.#buf[pos + 2] = (val >>  0) & 255;
+        this.#buf[pos + 2] = val         & 255;
         return this;
     }
 
@@ -159,7 +159,7 @@ class BytesWriter {
         this.#buf[pos + 0] = (val >> 24) & 255;
         this.#buf[pos + 1] = (val >> 16) & 255;
         this.#buf[pos + 2] = (val >>  8) & 255;
-        this.#buf[pos + 3] = (val >>  0) & 255;
+        this.#buf[pos + 3] = val         & 255;
         return this;
     }
 
