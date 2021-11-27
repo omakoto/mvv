@@ -259,8 +259,7 @@ class TickConverter {
             throw "ticks must not be negative";
         }
         let nearestTempo;
-        for (let i = 0; i < this.#tempos.length; i++) {
-            const t = this.#tempos[i];
+        for (let t of this.#tempos) {
             if (t.ticks > ticks) {
                 break;
             }
