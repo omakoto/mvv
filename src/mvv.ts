@@ -323,11 +323,11 @@ class MidiOutputManager {
 
 const midiOutputManager = new MidiOutputManager();
 
-const RecorderState = {
-    Idle: 'Idle',
-    Playing: 'Playing',
-    Pausing: 'Pausing',
-    Recording: 'Recording',
+enum RecorderState {
+    Idle,
+    Playing,
+    Pausing,
+    Recording,
 }
 
 class Recorder {
