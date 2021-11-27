@@ -928,14 +928,15 @@ worker.onmessage = (e) => {
         return;
     }
 };
-worker.postMessage({action: "setInterval", interval: 10, result: PLAYBACK_TIMER});
-worker.postMessage({action: "setInterval", interval: 1000.0 / FPS, result: DRAW_TIMER});
 
 navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
 $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
 
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
+$(window).on('load', () => {
+    $('.body').trigger('focus');
+});
 $(window).on('unload', () => {
     coordinator.close();
 });
@@ -988,3 +989,7 @@ $("#save").on('click', (_ev) => {
 $("#save_as_box").on('popbox_closing', (_ev) => {
     $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
 });
+
+// Start the timers.
+worker.postMessage({action: "setInterval", interval: 10, result: PLAYBACK_TIMER});
+worker.postMessage({action: "setInterval", interval: 1000.0 / FPS, result: DRAW_TIMER});
