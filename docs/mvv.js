@@ -405,13 +405,15 @@ class Recorder {
     adjustPlaybackPosition(milliseconds) {
         __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + milliseconds, "f");
         let ts = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
-        // If rewound beyond the starting point, just reset the
+        // If rewound beyond the starting point, reset the relevant values.
         if (ts <= 0) {
-            __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, window.performance.now(), "f");
+            __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
+            if (this.isPausing) {
+                __classPrivateFieldSet(this, _Recorder_pauseStartTimestamp, __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f"), "f");
+            }
             __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f");
             ts = -1; // Special case: Move before the first note.
         }
-        // info("New playback timestamp: " + (ts < 0 ? 0 : int(ts / 1000)));
         // Find the next play event index.
         __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, ts, null);
@@ -476,7 +478,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
 }, _Recorder_startPlaying = function _Recorder_startPlaying() {
     info("Playback started");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
-    __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, window.performance.now(), "f");
+    __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
     __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f");
     __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
     coordinator.onRecorderStatusChanged();
@@ -528,7 +530,7 @@ class Coordinator {
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult.set(this, "");
         _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp.set(this, "");
         _Coordinator_save_as_box.set(this, null);
-        __classPrivateFieldSet(this, _Coordinator_nextSecond, window.performance.now() + 1000, "f");
+        __classPrivateFieldSet(this, _Coordinator_nextSecond, performance.now() + 1000, "f");
         __classPrivateFieldSet(this, _Coordinator_efps, $("#fps"), "f");
     }
     onKeyDown(ev) {
@@ -660,7 +662,7 @@ class Coordinator {
         var _a;
         // Update FPS
         __classPrivateFieldSet(this, _Coordinator_frames, (_a = __classPrivateFieldGet(this, _Coordinator_frames, "f"), _a++, _a), "f");
-        let now = window.performance.now();
+        let now = performance.now();
         if (now >= __classPrivateFieldGet(this, _Coordinator_nextSecond, "f")) {
             __classPrivateFieldGet(this, _Coordinator_efps, "f").text(__classPrivateFieldGet(this, _Coordinator_flips, "f") + "/" + __classPrivateFieldGet(this, _Coordinator_frames, "f") + "/" + __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"));
             __classPrivateFieldSet(this, _Coordinator_flips, 0, "f");
@@ -696,7 +698,7 @@ class Coordinator {
         }
     }
     startDrawTimer() {
-        __classPrivateFieldSet(this, _Coordinator_nextDrawTime, window.performance.now(), "f");
+        __classPrivateFieldSet(this, _Coordinator_nextDrawTime, performance.now(), "f");
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_scheduleDraw).call(this);
     }
     startPlaybackTimer() {
@@ -731,7 +733,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
     }
     // If non-repeat left is pressed twice within a timeout, move to start.
     if (!isRepeat) {
-        const now = window.performance.now();
+        const now = performance.now();
         if ((now - __classPrivateFieldGet(this, _Coordinator_lastRewindPressTime, "f")) <= 150) {
             recorder.moveToStart();
             return;
@@ -758,7 +760,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
     }
 }, _Coordinator_scheduleDraw = function _Coordinator_scheduleDraw() {
     __classPrivateFieldSet(this, _Coordinator_nextDrawTime, __classPrivateFieldGet(this, _Coordinator_nextDrawTime, "f") + (1000.0 / FPS), "f");
-    const delay = (__classPrivateFieldGet(this, _Coordinator_nextDrawTime, "f") - window.performance.now());
+    const delay = (__classPrivateFieldGet(this, _Coordinator_nextDrawTime, "f") - performance.now());
     setTimeout(() => {
         this.onDraw(); // TODO Handle frame drop properly
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_scheduleDraw).call(this);

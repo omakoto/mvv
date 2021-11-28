@@ -446,7 +446,7 @@ class Recorder {
     #startPlaying(): void {
         info("Playback started");
         this.#state = RecorderState.Playing;
-        this.#playbackStartTimestamp = window.performance.now();
+        this.#playbackStartTimestamp = performance.now();
         this.#playbackTimeAdjustment = 0;
         this.#nextPlaybackIndex = 0;
 
@@ -493,13 +493,15 @@ class Recorder {
     adjustPlaybackPosition(milliseconds: number): boolean {
         this.#playbackTimeAdjustment += milliseconds;
         let ts = this.#getCurrentPlaybackTimestamp();
-        // If rewound beyond the starting point, just reset the
+        // If rewound beyond the starting point, reset the relevant values.
         if (ts <= 0) {
-            this.#playbackStartTimestamp = window.performance.now();
+            this.#playbackStartTimestamp = performance.now();
+            if (this.isPausing) {
+                this.#pauseStartTimestamp = this.#playbackStartTimestamp;
+            }
             this.#playbackTimeAdjustment = 0;
             ts = -1; // Special case: Move before the first note.
         }
-        // info("New playback timestamp: " + (ts < 0 ? 0 : int(ts / 1000)));
 
         // Find the next play event index.
         this.#nextPlaybackIndex = 0;
@@ -609,7 +611,7 @@ class Coordinator {
     #nextDrawTime = 0;
 
     constructor() {
-        this.#nextSecond = window.performance.now() + 1000;
+        this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
     }
 
@@ -714,7 +716,7 @@ class Coordinator {
         }
         // If non-repeat left is pressed twice within a timeout, move to start.
         if (!isRepeat) {
-            const now = window.performance.now();
+            const now = performance.now();
             if ((now - this.#lastRewindPressTime) <= 150) {
                 recorder.moveToStart();
                 return;
@@ -791,7 +793,7 @@ class Coordinator {
     onDraw(): void {
         // Update FPS
         this.#frames++;
-        let now = window.performance.now();
+        let now = performance.now();
         if (now >= this.#nextSecond) {
             this.#efps.text(this.#flips + "/" + this.#frames + "/" + this.#playbackTicks);
             this.#flips = 0;
@@ -832,13 +834,13 @@ class Coordinator {
     }
 
     startDrawTimer(): void {
-        this.#nextDrawTime = window.performance.now();
+        this.#nextDrawTime = performance.now();
         this.#scheduleDraw();
     }
 
     #scheduleDraw(): void {
         this.#nextDrawTime += (1000.0 / FPS);
-        const delay = (this.#nextDrawTime - window.performance.now());
+        const delay = (this.#nextDrawTime - performance.now());
         setTimeout(() => {
             this.onDraw(); // TODO Handle frame drop properly
             this.#scheduleDraw();
