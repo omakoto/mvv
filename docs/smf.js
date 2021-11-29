@@ -347,14 +347,14 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
         totalTime += time;
         const status = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
         debug("Status 0x" + status.toString(16) + " at t=" + totalTime);
-        if (status == 0xff) {
+        if (status === 0xff) {
             let type = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
             let len = __classPrivateFieldGet(this, _SmfReader_reader, "f").readVar();
             debug("Type 0x" + type.toString(16) + " len=" + len);
-            if (type == 0x2f) { // End of track
+            if (type === 0x2f) { // End of track
                 break;
             }
-            else if (type == 0x51) { // Tempo
+            else if (type === 0x51) { // Tempo
                 if (len != 3) {
                     __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_onInvalidFormat).call(this);
                 }
@@ -413,15 +413,15 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                 let status = rd.readU8();
                 tick += delta;
                 // META message?
-                if (status == 0xff) {
+                if (status === 0xff) {
                     const type = rd.readU8();
                     const len = rd.readVar();
                     // console.log("        Meta 0x" + hex8(type) + " len=" + len);
-                    if (type == 0x2f) {
+                    if (type === 0x2f) {
                         // end of track
                         break;
                     }
-                    if (type == 0x51) {
+                    if (type === 0x51) {
                         // tempo
                         const tempo = rd.readU24();
                         console.log("  @" + tick + " Tempo=" + tempo);
@@ -433,7 +433,7 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                     continue;
                 }
                 // SysEX?
-                if (status == 0xf0 || status == 0xf7) {
+                if (status === 0xf0 || status === 0xf7) {
                     const len = rd.readVar();
                     rd.skip(len);
                     continue;
@@ -485,7 +485,7 @@ class SmfWriter {
             w.writeU32(6); // header length
             w.writeU16(0); // single track
             w.writeU16(1); // contains a single track
-            w.writeU16(TICKS_PER_SECOND); // 1000 per quarter-note == 1ms / unit
+            w.writeU16(TICKS_PER_SECOND); // 1000 per quarter-note === 1ms / unit
             w.writeU8(0x4D); // M
             w.writeU8(0x54); // T
             w.writeU8(0x72); // r
@@ -506,7 +506,7 @@ class SmfWriter {
             w.writeU8(0xff);
             w.writeU8(0x51);
             w.writeU8(0x03);
-            w.writeU24(1000000); // 100,000 == 60 bpm
+            w.writeU24(1000000); // 100,000 === 60 bpm
             __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_writeResetData).call(this);
         });
     }

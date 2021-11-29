@@ -64,7 +64,7 @@ function hsvToRgb(h, s, v) {
 }
 function rgbToStr(rgb) {
     // special common cases
-    if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) {
+    if (rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0) {
         return "black";
     }
     return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
@@ -224,16 +224,16 @@ class MidiRenderingStatus {
         let data0 = ev.data0;
         let data1 = ev.data1;
         let data2 = ev.data2;
-        if (data0 == 144 && data2 > 0) { // Note on
+        if (data0 === 144 && data2 > 0) { // Note on
             __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, // Note on
             (_a = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _a++, _a), "f");
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = true;
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][1] = data2;
         }
-        else if ((data0 == 128) || (data0 == 144 && data2 == 0)) { // Note off
+        else if ((data0 === 128) || (data0 === 144 && data2 === 0)) { // Note off
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
         }
-        else if (data0 == 176 && data1 == 64) { // Pedal
+        else if (data0 === 176 && data1 === 64) { // Pedal
             __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
         }
     }
@@ -391,7 +391,7 @@ class Recorder {
             default:
                 return false;
         }
-        if (__classPrivateFieldGet(this, _Recorder_events, "f").length == 0) {
+        if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
             // First event, remember the timestamp.
             __classPrivateFieldSet(this, _Recorder_recordingStartTimestamp, ev.timeStamp, "f");
         }
@@ -438,7 +438,7 @@ class Recorder {
         });
     }
     download(filename) {
-        if (__classPrivateFieldGet(this, _Recorder_events, "f").length == 0) {
+        if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
             info("Nothing recorded yet");
             return;
         }
@@ -457,7 +457,7 @@ class Recorder {
         this.stopPlaying();
         this.stopRecording();
         __classPrivateFieldSet(this, _Recorder_events, events, "f");
-        if (events.length == 0) {
+        if (events.length === 0) {
             info("File contains no events.");
             return;
         }
@@ -642,7 +642,7 @@ class Coordinator {
     }
     getHumanReadableCurrentPlaybackTimestamp() {
         const totalSeconds = int(recorder.currentPlaybackTimestamp / 1000);
-        if (totalSeconds == __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, "f")) {
+        if (totalSeconds === __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, "f")) {
             return __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f");
         }
         if (totalSeconds <= 0) {
@@ -754,7 +754,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
 }, _Coordinator_normalizeMidiEvent = function _Coordinator_normalizeMidiEvent(ev) {
     // Allow V25's leftmost knob to be used as the pedal.
     if (ev.device.startsWith("V25")) {
-        if (ev.data0 == 176 && ev.data1 == 20) {
+        if (ev.data0 === 176 && ev.data1 === 20) {
             ev.replaceData(1, 64);
         }
     }
@@ -804,11 +804,11 @@ const DRAW_TIMER = "drawTimer";
 const worker = new Worker("timer-worker.js");
 worker.onmessage = (e) => {
     const data = e.data;
-    if (data == PLAYBACK_TIMER) {
+    if (data === PLAYBACK_TIMER) {
         coordinator.onPlaybackTimer();
         return;
     }
-    if (data == DRAW_TIMER) {
+    if (data === DRAW_TIMER) {
         coordinator.onDraw();
         return;
     }
@@ -854,7 +854,7 @@ $("#open_file").on("change", (ev) => {
 $("#save_as_filename").keydown((ev) => {
     console.log(ev);
     ev.stopPropagation();
-    if (ev.code == 'Enter') { // enter
+    if (ev.code === 'Enter') { // enter
         coordinator.do_download();
         ev.preventDefault();
     }

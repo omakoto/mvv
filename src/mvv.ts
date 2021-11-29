@@ -59,7 +59,7 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
 
 function rgbToStr(rgb: [number, number, number]): string {
     // special common cases
-    if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) {
+    if (rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0) {
         return "black";
     }
     return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
@@ -252,13 +252,13 @@ class MidiRenderingStatus {
         let data1 = ev.data1;
         let data2 = ev.data2;
 
-        if (data0 == 144 && data2 > 0) { // Note on
+        if (data0 === 144 && data2 > 0) { // Note on
             this.#onNoteCount++;
             this.#notes[data1]![0] = true;
             this.#notes[data1]![1] = data2;
-        } else if ((data0 == 128) || (data0 == 144 && data2 == 0)) { // Note off
+        } else if ((data0 === 128) || (data0 === 144 && data2 === 0)) { // Note off
             this.#notes[data1]![0] = false;
-        } else if (data0 == 176 && data1 == 64) { // Pedal
+        } else if (data0 === 176 && data1 === 64) { // Pedal
             this.#pedal = data2;
         }
     }
@@ -476,7 +476,7 @@ class Recorder {
                 return false;
         }
 
-        if (this.#events.length == 0) {
+        if (this.#events.length === 0) {
             // First event, remember the timestamp.
             this.#recordingStartTimestamp = ev.timeStamp;
         }
@@ -564,7 +564,7 @@ class Recorder {
     }
 
     download(filename: string): void {
-        if (this.#events.length == 0) {
+        if (this.#events.length === 0) {
             info("Nothing recorded yet");
             return;
         }
@@ -587,7 +587,7 @@ class Recorder {
         this.stopRecording();
         this.#events = events;
 
-        if (events.length == 0) {
+        if (events.length === 0) {
             info("File contains no events.");
             return;
         }
@@ -739,7 +739,7 @@ class Coordinator {
     #normalizeMidiEvent(ev: MidiEvent): void {
         // Allow V25's leftmost knob to be used as the pedal.
         if (ev.device.startsWith("V25")) {
-            if (ev.data0 == 176 && ev.data1 == 20) {
+            if (ev.data0 === 176 && ev.data1 === 20) {
                 ev.replaceData(1, 64);
             }
         }
@@ -772,7 +772,7 @@ class Coordinator {
 
     getHumanReadableCurrentPlaybackTimestamp(): string {
         const totalSeconds = int(recorder.currentPlaybackTimestamp / 1000);
-        if (totalSeconds == this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds) {
+        if (totalSeconds === this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds) {
             return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
         }
 
@@ -921,11 +921,11 @@ const DRAW_TIMER = "drawTimer";
 const worker = new Worker("timer-worker.js");
 worker.onmessage = (e) => {
     const data = e.data;
-    if (data == PLAYBACK_TIMER) {
+    if (data === PLAYBACK_TIMER) {
         coordinator.onPlaybackTimer();
         return;
     }
-    if (data == DRAW_TIMER) {
+    if (data === DRAW_TIMER) {
         coordinator.onDraw();
         return;
     }
@@ -978,7 +978,7 @@ $("#open_file").on("change", (ev) => {
 $("#save_as_filename").keydown((ev) => {
     console.log(ev);
     ev.stopPropagation();
-    if (ev.code == 'Enter') { // enter
+    if (ev.code === 'Enter') { // enter
         coordinator.do_download();
         ev.preventDefault();
     }
