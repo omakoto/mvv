@@ -107,7 +107,6 @@ class Renderer {
     #roll2: CanvasRenderingContext2D;
 
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
-        // TODO: Doew it need an explicit 'srgb' color space? (It used to have it.)
         let canvas = <HTMLCanvasElement>document.getElementById(name);
         let context = <CanvasRenderingContext2D>canvas.getContext("2d");
         return [canvas, context];
@@ -248,17 +247,17 @@ class MidiRenderingStatus {
     }
 
     onMidiMessage(ev: MidiEvent): void {
-        let data0 = ev.data0;
+        let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
 
-        if (data0 === 144 && data2 > 0) { // Note on
+        if (ev.isNoteOn) { // Note on
             this.#onNoteCount++;
             this.#notes[data1]![0] = true;
             this.#notes[data1]![1] = data2;
-        } else if ((data0 === 128) || (data0 === 144 && data2 === 0)) { // Note off
+        } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             this.#notes[data1]![0] = false;
-        } else if (data0 === 176 && data1 === 64) { // Pedal
+        } else if (status === 176 && data1 === 64) { // Pedal
             this.#pedal = data2;
         }
     }

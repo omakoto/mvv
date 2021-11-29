@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _MidiEvent_timeStamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_load, _SmfReader_loadOld, _SmfReader_loadBetter, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
+var _MidiEvent_timeStamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
 // SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
 // https://www.music.mcgill.ca/~gary/306/week9/smf.html
 // https://midimusic.github.io/tech/midispec.html
@@ -40,6 +40,9 @@ class MidiEvent {
     get timeStamp() {
         return __classPrivateFieldGet(this, _MidiEvent_timeStamp, "f");
     }
+    shiftTime(millisecond) {
+        __classPrivateFieldSet(this, _MidiEvent_timeStamp, Math.max(0, __classPrivateFieldGet(this, _MidiEvent_timeStamp, "f") + millisecond), "f");
+    }
     get device() {
         return __classPrivateFieldGet(this, _MidiEvent_device, "f");
     }
@@ -61,6 +64,9 @@ class MidiEvent {
         }
         __classPrivateFieldGet(this, _MidiEvent_data, "f")[index] = value;
     }
+    get status() {
+        return this.data0 & 0xf0;
+    }
     get data0() {
         return this.getData(0);
     }
@@ -69,6 +75,9 @@ class MidiEvent {
     }
     get data2() {
         return this.getData(2);
+    }
+    get isNoteOn() {
+        return this.status === 144 && this.data2 > 0;
     }
     getDataAsArray() {
         return __classPrivateFieldGet(this, _MidiEvent_data, "f");
@@ -304,81 +313,33 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
     ar.forEach((v) => __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU8).call(this, v));
 }, _SmfReader_withReader = function _SmfReader_withReader(callback) {
     callback(__classPrivateFieldGet(this, _SmfReader_reader, "f"));
+}, _SmfReader_cleanEvents = function _SmfReader_cleanEvents() {
+    __classPrivateFieldGet(this, _SmfReader_events, "f").sort((a, b) => {
+        return a.timeStamp - b.timeStamp;
+    });
+    // Find the first note event;
+    let firstNoteOnTime = 0;
+    for (let ev of __classPrivateFieldGet(this, _SmfReader_events, "f")) {
+        if (ev.isNoteOn) {
+            firstNoteOnTime = ev.timeStamp;
+            break;
+        }
+    }
+    if (firstNoteOnTime == 0) {
+        return;
+    }
+    for (let ev of __classPrivateFieldGet(this, _SmfReader_events, "f")) {
+        ev.shiftTime(-firstNoteOnTime);
+    }
 }, _SmfReader_load = function _SmfReader_load() {
     if (__classPrivateFieldGet(this, _SmfReader_loaded, "f")) {
         return;
     }
     __classPrivateFieldSet(this, _SmfReader_events, [], "f");
-    if (true) {
-        __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_loadBetter).call(this);
-    }
-    else {
-        __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_loadOld).call(this);
-    }
-    __classPrivateFieldGet(this, _SmfReader_events, "f").sort((a, b) => {
-        return a.timeStamp - b.timeStamp;
-    });
+    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_loadInner).call(this);
+    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_cleanEvents).call(this);
     __classPrivateFieldSet(this, _SmfReader_loaded, true, "f");
-}, _SmfReader_loadOld = function _SmfReader_loadOld() {
-    // Old parser that can only read self-created MIDI files.
-    console.log("Parsing a midi file...");
-    // For now, support only files written by MVV.
-    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU8Array).call(this, [
-        0x4D,
-        0x54,
-        0x68,
-        0x64,
-        0, 0, 0, 6,
-        0, 0,
-        0, 1, // only one track
-    ]);
-    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU16).call(this, TICKS_PER_SECOND);
-    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU8Array).call(this, [
-        0x4D,
-        0x54,
-        0x72,
-        0x6B,
-    ]);
-    const trackSize = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU32();
-    debug("Track size", trackSize);
-    let totalTime = 0;
-    for (;;) {
-        const time = __classPrivateFieldGet(this, _SmfReader_reader, "f").readVar();
-        totalTime += time;
-        const status = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
-        debug("Status 0x" + status.toString(16) + " at t=" + totalTime);
-        if (status === 0xff) {
-            let type = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
-            let len = __classPrivateFieldGet(this, _SmfReader_reader, "f").readVar();
-            debug("Type 0x" + type.toString(16) + " len=" + len);
-            if (type === 0x2f) { // End of track
-                break;
-            }
-            else if (type === 0x51) { // Tempo
-                if (len != 3) {
-                    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_onInvalidFormat).call(this);
-                }
-                const tempo = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU24();
-                debug("Tempo=" + tempo);
-                if (tempo != 1000000) {
-                    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_onInvalidFormat).call(this);
-                }
-            }
-            else {
-                for (let i = 0; i < len; i++) {
-                    __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
-                }
-            }
-        }
-        else {
-            const d1 = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
-            const d2 = __classPrivateFieldGet(this, _SmfReader_reader, "f").readU8();
-            let ev = new MidiEvent(totalTime, [status, d1, d2]);
-            __classPrivateFieldGet(this, _SmfReader_events, "f").push(ev);
-        }
-    }
-    console.log("Done parsing.");
-}, _SmfReader_loadBetter = function _SmfReader_loadBetter() {
+}, _SmfReader_loadInner = function _SmfReader_loadInner() {
     console.log("Parsing a midi file with a new parser...");
     __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 0x4d546864); // MIDI header
     __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 6); // Header length

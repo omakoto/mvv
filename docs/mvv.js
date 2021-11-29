@@ -129,7 +129,6 @@ class Renderer {
         __classPrivateFieldGet(this, _Renderer_croll2, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
     }
     static getCanvas(name) {
-        // TODO: Doew it need an explicit 'srgb' color space? (It used to have it.)
         let canvas = document.getElementById(name);
         let context = canvas.getContext("2d");
         return [canvas, context];
@@ -221,19 +220,19 @@ class MidiRenderingStatus {
     }
     onMidiMessage(ev) {
         var _a;
-        let data0 = ev.data0;
+        let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
-        if (data0 === 144 && data2 > 0) { // Note on
+        if (ev.isNoteOn) { // Note on
             __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, // Note on
             (_a = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _a++, _a), "f");
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = true;
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][1] = data2;
         }
-        else if ((data0 === 128) || (data0 === 144 && data2 === 0)) { // Note off
+        else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
         }
-        else if (data0 === 176 && data1 === 64) { // Pedal
+        else if (status === 176 && data1 === 64) { // Pedal
             __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
         }
     }

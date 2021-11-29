@@ -37,6 +37,10 @@ class MidiEvent {
         return this.#timeStamp;
     }
 
+    shiftTime(millisecond: number) {
+        this.#timeStamp = Math.max(0, this.#timeStamp + millisecond);
+    }
+
     get device(): string {
         return this.#device;
     }
@@ -61,6 +65,10 @@ class MidiEvent {
         this.#data[index] = value;
     }
 
+    get status(): number {
+        return this.data0 & 0xf0;
+    }
+
     get data0(): number {
         return this.getData(0);
     }
@@ -71,6 +79,10 @@ class MidiEvent {
 
     get data2(): number {
         return this.getData(2);
+    }
+
+    get isNoteOn(): boolean {
+        return this.status === 144 && this.data2 > 0;
     }
 
     getDataAsArray(): Array<number> | Uint8Array {
@@ -355,95 +367,41 @@ class SmfReader {
         callback(this.#reader);
     }
 
+    #cleanEvents() {
+        this.#events.sort((a, b) => {
+            return a.timeStamp - b.timeStamp;
+        });
+
+        // Find the first note event;
+        let firstNoteOnTime = 0;
+        for (let ev of this.#events) {
+            if (ev.isNoteOn) {
+                firstNoteOnTime = ev.timeStamp;
+                break;
+            }
+        }
+        if (firstNoteOnTime == 0) {
+            return;
+        }
+        for (let ev of this.#events) {
+            ev.shiftTime(-firstNoteOnTime);
+        }
+    }
+
+
     #load(): void {
         if (this.#loaded) {
             return;
         }
         this.#events = [];
 
-        if (true) {
-            this.#loadBetter();
-        } else {
-            this.#loadOld();
-        }
+        this.#loadInner();
+        this.#cleanEvents();
 
-        this.#events.sort((a, b) => {
-            return a.timeStamp - b.timeStamp;
-        });
         this.#loaded = true;
     }
 
-    #loadOld(): void {
-        // Old parser that can only read self-created MIDI files.
-        console.log("Parsing a midi file...");
-
-        // For now, support only files written by MVV.
-
-        this.#ensureU8Array([
-            0x4D, // MThd
-            0x54,
-            0x68,
-            0x64,
-
-            0, 0, 0, 6, // Header length
-
-            0, 0, // single track
-            0, 1, // only one track
-        ]);
-        this.#ensureU16(TICKS_PER_SECOND);
-        this.#ensureU8Array([
-            0x4D, // MTrk
-            0x54,
-            0x72,
-            0x6B,
-        ]);
-        const trackSize = this.#reader.readU32();
-
-        debug("Track size", trackSize);
-
-        let totalTime = 0;
-        for (;;) {
-            const time = this.#reader.readVar();
-            totalTime += time;
-
-            const status = this.#reader.readU8();
-            debug("Status 0x" + status.toString(16) + " at t=" + totalTime);
-
-            if (status === 0xff) {
-                let type = this.#reader.readU8();
-                let len = this.#reader.readVar();
-
-                debug("Type 0x" + type.toString(16) + " len=" + len);
-
-                if (type === 0x2f) { // End of track
-                    break;
-                } else if (type === 0x51) { // Tempo
-                    if (len != 3) {
-                        this.#onInvalidFormat();
-                    }
-                    const tempo = this.#reader.readU24();
-                    debug("Tempo=" + tempo);
-                    if (tempo != 1000000) {
-                        this.#onInvalidFormat();
-                    }
-                } else {
-                    for (let i = 0; i < len; i++) {
-                        this.#reader.readU8();
-                    }
-                }
-            } else {
-                const d1 = this.#reader.readU8();
-                const d2 = this.#reader.readU8();
-
-                let ev = new MidiEvent(totalTime, [status, d1, d2]);
-                this.#events.push(ev);
-            }
-        }
-        console.log("Done parsing.");
-    }
-
-    // Better SMF parser
-    #loadBetter(): void {
+    #loadInner(): void {
         console.log("Parsing a midi file with a new parser...");
         this.#ensureU32(0x4d546864); // MIDI header
         this.#ensureU32(6) // Header length

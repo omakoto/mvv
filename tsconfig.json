@@ -15,7 +15,7 @@
         "useUnknownInCatchVariables": true,
         "strict": true,
         "noUncheckedIndexedAccess": true,
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "strictPropertyInitialization": true,
         "noEmitOnError": false,
         "target": "es2021",
