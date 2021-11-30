@@ -326,6 +326,10 @@ class Recorder {
         if (!this.isIdle) {
             return false;
         }
+        if (!this.isAnythingRecorded) {
+            info("Nothing recorded yet");
+            return false;
+        }
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startPlaying).call(this);
         return true;
     }
@@ -437,7 +441,7 @@ class Recorder {
         });
     }
     download(filename) {
-        if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
+        if (!this.isAnythingRecorded) {
             info("Nothing recorded yet");
             return;
         }
