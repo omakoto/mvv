@@ -275,8 +275,10 @@ class MidiOutputManager {
         if (__classPrivateFieldGet(this, _MidiOutputManager_device, "f").clear) {
             __classPrivateFieldGet(this, _MidiOutputManager_device, "f").clear(); // Chrome doesn't support it yet.
         }
-        __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([176, 123, 0], 0); // All notes off
-        __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([176, 121, 0], 0); // Reset all controllers
+        for (let i = 0; i <= 15; i++) {
+            __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([176 + i, 123, 0], 0); // All notes off
+            __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([176 + i, 121, 0], 0); // Reset all controllers
+        }
         __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([255], 0); // All reset
         // console.log("MIDI reset");
     }
