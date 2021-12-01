@@ -958,6 +958,15 @@ function loadMidiFile(file: File) {
     });
 }
 
+const elink = $('#link');
+
+$("body").on("mousemove", function(_ev) {
+    // Show the source link.
+    elink.stop(true, true);
+    elink.show();
+    elink.delay(3000).fadeOut(1000);
+});
+
 $("body").on("drop", function(ev) {
     ev.preventDefault();
     let oev = <DragEvent>ev.originalEvent;

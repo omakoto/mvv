@@ -57,6 +57,7 @@ canvas#roll2 {
     position: fixed;
     right: 2px;
     bottom: 2px;
+    display: none;
 }
 
 #status {
