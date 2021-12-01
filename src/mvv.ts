@@ -367,6 +367,10 @@ class Recorder {
         if (!this.isIdle) {
             return false;
         }
+        if (!this.isAnythingRecorded) {
+            info("Nothing recorded yet");
+            return false;
+        }
         this.#startPlaying();
         return true;
     }
@@ -565,7 +569,7 @@ class Recorder {
     }
 
     download(filename: string): void {
-        if (this.#events.length === 0) {
+        if (!this.isAnythingRecorded) {
             info("Nothing recorded yet");
             return;
         }
