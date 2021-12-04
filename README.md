@@ -7,6 +7,7 @@
 ## Keys
 
 - `F1` hide screen
+- `F2` Freeze roll pane
 - `R` Record start/stop
 - `SPACE` Playback start / pause
   - `Left`/`Right` during playback -- Rewind/Fast-forward
