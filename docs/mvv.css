@@ -14,6 +14,7 @@ body {
     font-size: 10pt;
     font-family: 'Roboto', sans-serif;
     color: var(--main-text-color);
+    cursor: none;
 }
 
 #canvases {
@@ -57,6 +58,7 @@ canvas#roll2 {
     position: fixed;
     right: 2px;
     bottom: 2px;
+    display: none;
 }
 
 #status {
