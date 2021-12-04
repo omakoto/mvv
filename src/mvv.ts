@@ -938,6 +938,10 @@ worker.onmessage = (e) => {
 
 navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
+
+const elink = $('#link');
+const ebody = $('body');
+
 $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
 
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
@@ -964,13 +968,21 @@ function loadMidiFile(file: File) {
     });
 }
 
-const elink = $('#link');
+let clearCursorTimeout: number | null = null;
 
 $("body").on("mousemove", function(_ev) {
     // Show the source link.
     elink.stop(true, true);
     elink.show();
     elink.delay(3000).fadeOut(1000);
+
+    if (clearCursorTimeout !== null) {
+        clearTimeout(clearCursorTimeout);
+    }
+    ebody.css('cursor', 'default');
+    clearCursorTimeout = setTimeout(() => {
+        ebody.css('cursor', 'none');
+    }, 3000);
 });
 
 $("body").on("drop", function(ev) {
