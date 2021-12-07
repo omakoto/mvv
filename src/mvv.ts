@@ -106,6 +106,8 @@ class Renderer {
     #croll2: HTMLCanvasElement;
     #roll2: CanvasRenderingContext2D;
 
+    #rollFrozen = false;
+
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
         let context = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -223,7 +225,9 @@ class Renderer {
 
     flip(): void {
         this.#bar2.drawImage(this.#cbar, 0, 0);
-        this.#roll2.drawImage(this.#croll, 0, 0);
+        if (!this.#rollFrozen) {
+            this.#roll2.drawImage(this.#croll, 0, 0);
+        }
     }
 
     toggleMute(): void {
@@ -232,6 +236,14 @@ class Renderer {
 
     show(): void {
         $('#canvases').show();
+    }
+
+    toggleRollFrozen(): void {
+        this.#rollFrozen = !this.#rollFrozen;
+    }
+
+    get isRollFrozen(): boolean {
+        return this.#rollFrozen;
     }
 }
 
@@ -635,6 +647,10 @@ class Coordinator {
                 if (isRepeat) break;
                 this.toggleVideoMute();
                 break;
+            case 'F2':
+                if (isRepeat) break;
+                this.toggleRollFrozen();
+                break;
             case 'KeyF':
                 if (isRepeat) break;
                 this.#efps.toggle();
@@ -679,6 +695,13 @@ class Coordinator {
     toggleVideoMute(): void {
         info("Toggle video mute");
         renderer.toggleMute();
+    }
+
+    toggleRollFrozen(): void {
+        renderer.toggleRollFrozen();
+        if (renderer.isRollFrozen) {
+            info("Roll frozen");
+        }
     }
 
     toggleRecording(): void {
