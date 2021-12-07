@@ -674,6 +674,9 @@ class Coordinator {
             __classPrivateFieldSet(this, _Coordinator_frames, 0, "f");
             __classPrivateFieldSet(this, _Coordinator_playbackTicks, 0, "f");
             __classPrivateFieldSet(this, _Coordinator_nextSecond, __classPrivateFieldGet(this, _Coordinator_nextSecond, "f") + 1000, "f");
+            if (__classPrivateFieldGet(this, _Coordinator_nextSecond, "f") < now) {
+                __classPrivateFieldSet(this, _Coordinator_nextSecond, now + 1000, "f");
+            }
         }
         __classPrivateFieldSet(this, _Coordinator_now, now, "f");
         renderer.onDraw();

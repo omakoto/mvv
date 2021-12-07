@@ -805,6 +805,9 @@ class Coordinator {
             this.#frames = 0;
             this.#playbackTicks = 0;
             this.#nextSecond += 1000;
+            if (this.#nextSecond < now) {
+                this.#nextSecond = now + 1000;
+            }
         }
 
         this.#now = now;
