@@ -61,6 +61,13 @@ canvas#roll2 {
     display: none;
 }
 
+#fullscreen {
+    position: fixed;
+    left: 2px;
+    bottom: 2px;
+    display: none;
+}
+
 #status {
     position: fixed;
     right: 2px;

@@ -980,6 +980,7 @@ navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
 
 const elink = $('#link');
+const efullscreen = $('#fullscreen');
 const ebody = $('body');
 
 $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
@@ -1015,6 +1016,11 @@ $("body").on("mousemove", function(_ev) {
     elink.stop(true, true);
     elink.show();
     elink.delay(3000).fadeOut(1000);
+
+    // Show the full screen action. TODO: merge it with the above code.
+    efullscreen.stop(true, true);
+    efullscreen.show();
+    efullscreen.delay(3000).fadeOut(1000);
 
     if (clearCursorTimeout !== null) {
         clearTimeout(clearCursorTimeout);
@@ -1057,6 +1063,11 @@ $("#save").on('click', (_ev) => {
 $("#save_as_box").on('popbox_closing', (_ev) => {
     $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
 });
+
+$(efullscreen).on('click', (_ev) => {
+    coordinator.toggleFullScreen();
+});
+
 
 // Start the timers.
 worker.postMessage({action: "setInterval", interval: 10, result: PLAYBACK_TIMER});
