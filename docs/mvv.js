@@ -557,14 +557,21 @@ class Coordinator {
         const isRepeat = ev.repeat;
         switch (ev.code) {
             case 'F1':
+            case 'Digit1':
                 if (isRepeat)
                     break;
                 this.toggleVideoMute();
                 break;
             case 'F2':
+            case 'Digit2':
                 if (isRepeat)
                     break;
                 this.toggleRollFrozen();
+                break;
+            case 'Digit3':
+                if (isRepeat)
+                    break;
+                this.toggleFullScreen();
                 break;
             case 'KeyF':
                 if (isRepeat)
@@ -643,6 +650,14 @@ class Coordinator {
             recorder.startPlaying();
         }
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateRecorderStatus).call(this);
+    }
+    toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        }
+        else {
+            document.exitFullscreen();
+        }
     }
     onRecorderStatusChanged() {
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateRecorderStatus).call(this);

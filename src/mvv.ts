@@ -644,12 +644,18 @@ class Coordinator {
 
         switch (ev.code) {
             case 'F1':
+            case 'Digit1':
                 if (isRepeat) break;
                 this.toggleVideoMute();
                 break;
             case 'F2':
+            case 'Digit2':
                 if (isRepeat) break;
                 this.toggleRollFrozen();
+                break;
+            case 'Digit3':
+                if (isRepeat) break;
+                this.toggleFullScreen();
                 break;
             case 'KeyF':
                 if (isRepeat) break;
@@ -723,6 +729,14 @@ class Coordinator {
             recorder.startPlaying();
         }
         this.#updateRecorderStatus();
+    }
+
+    toggleFullScreen(): void {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
     }
 
     onRecorderStatusChanged(): void {
