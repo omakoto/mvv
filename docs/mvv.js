@@ -932,6 +932,9 @@ $("#save_as_box").on('popbox_closing', (_ev) => {
 $(efullscreen).on('click', (_ev) => {
     coordinator.toggleFullScreen();
 });
+$("body").on('dblclick', (_ev) => {
+    coordinator.toggleFullScreen();
+});
 // Start the timers.
 worker.postMessage({ action: "setInterval", interval: 10, result: PLAYBACK_TIMER });
 worker.postMessage({ action: "setInterval", interval: 1000.0 / FPS, result: DRAW_TIMER });

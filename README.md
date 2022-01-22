@@ -8,7 +8,7 @@
 
 - `1` or `F1` hide screen
 - `2` or `F2` Freeze roll pane
-- `3` Toggle full-screen
+- `3` or double tap anywhere Toggle full-screen
 - `R` Record start/stop
 - `SPACE` Playback start / pause
   - `Left`/`Right` during playback -- Rewind/Fast-forward

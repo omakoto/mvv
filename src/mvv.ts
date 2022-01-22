@@ -1068,6 +1068,10 @@ $(efullscreen).on('click', (_ev) => {
     coordinator.toggleFullScreen();
 });
 
+$("body").on('dblclick', (_ev) => {
+    coordinator.toggleFullScreen();
+});
+
 
 // Start the timers.
 worker.postMessage({action: "setInterval", interval: 10, result: PLAYBACK_TIMER});
