@@ -16,6 +16,9 @@ const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const NOTES_COUNT = 128;
 
+const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
+// const WAKE_LOCK_MILLIS = 3000; // for testing
+
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 const MARGIN = 0.005; // Margin at each side
@@ -626,6 +629,8 @@ class Coordinator {
     #playbackTicks = 0;
     #efps;
     #nextDrawTime = 0;
+    #wakelock : WakeLockSentinel | null = null;
+    #wakelockTimer : number | null = 0;
 
     constructor() {
         this.#nextSecond = performance.now() + 1000;
@@ -634,6 +639,8 @@ class Coordinator {
 
     onKeyDown(ev: KeyboardEvent) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
+
+        this.extendWakelock();
 
         // Don't respond if any modifier keys are pressed.
         if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
@@ -789,6 +796,9 @@ class Coordinator {
 
     onMidiMessage(ev: MidiEvent): void {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2,  ev);
+
+        this.extendWakelock();
+
         this.#normalizeMidiEvent(ev);
 
         midiRenderingStatus.onMidiMessage(ev);
@@ -914,7 +924,7 @@ class Coordinator {
         $('#save_as_filename').focus();
     }
 
-    do_download(): void {
+    doDownload(): void {
         if (!this.#save_as_box) {
             return; // Shouldn't happen
         }
@@ -927,6 +937,30 @@ class Coordinator {
         filename += ".mid";
         recorder.download(filename);
         info("Saved as " + filename);
+    }
+
+    async extendWakelock(): Promise<void> {
+        // Got the wake lock type definition from:
+        // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
+        // npm i @types/dom-screen-wake-lock
+        if (this.#wakelock === null) {
+            try {
+                this.#wakelock = await navigator.wakeLock.request('screen');
+                console.log("Wake lock acquired");
+            } catch (err) {
+                console.log("Failed to acquire wake lock", err);
+            }
+        }
+        if (this.#wakelockTimer !== null) {
+            clearTimeout(this.#wakelockTimer);
+        }
+        this.#wakelockTimer = setTimeout(() => {
+            if (this.#wakelock !== null) {
+                this.#wakelock.release();
+                this.#wakelock = null;
+                console.log("Wake lock released");
+            }
+        }, WAKE_LOCK_MILLIS);
     }
 
     close(): void {
@@ -1029,6 +1063,8 @@ $("body").on("mousemove", function(_ev) {
     clearCursorTimeout = setTimeout(() => {
         ebody.css('cursor', 'none');
     }, 3000);
+
+    coordinator.extendWakelock();
 });
 
 $("body").on("drop", function(ev) {
@@ -1051,13 +1087,13 @@ $("#save_as_filename").keydown((ev) => {
     console.log(ev);
     ev.stopPropagation();
     if (ev.code === 'Enter') { // enter
-        coordinator.do_download();
+        coordinator.doDownload();
         ev.preventDefault();
     }
 });
 
 $("#save").on('click', (_ev) => {
-    coordinator.do_download();
+    coordinator.doDownload();
 });
 
 $("#save_as_box").on('popbox_closing', (_ev) => {
@@ -1070,6 +1106,7 @@ $(efullscreen).on('click', (_ev) => {
 
 $("body").on('dblclick', (_ev) => {
     coordinator.toggleFullScreen();
+    coordinator.extendWakelock();
 });
 
 

@@ -10,12 +10,14 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_updateRecorderStatus, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_scheduleDraw, _Coordinator_save_as_box, _Coordinator_open_download_box;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_updateRecorderStatus, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_scheduleDraw, _Coordinator_save_as_box, _Coordinator_open_download_box;
 ;
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const NOTES_COUNT = 128;
+// const WAKE_LOCK_MILLIS = 30 * 60 * 1000; // 30 minutes
+const WAKE_LOCK_MILLIS = 3000;
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 const MARGIN = 0.005; // Margin at each side
@@ -538,6 +540,8 @@ class Coordinator {
         _Coordinator_playbackTicks.set(this, 0);
         _Coordinator_efps.set(this, void 0);
         _Coordinator_nextDrawTime.set(this, 0);
+        _Coordinator_wakelock.set(this, null);
+        _Coordinator_wakelockTimer.set(this, 0);
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
         _Coordinator_lastRewindPressTime.set(this, 0);
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds.set(this, -1);
@@ -549,6 +553,7 @@ class Coordinator {
     }
     onKeyDown(ev) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
+        this.extendWakelock();
         // Don't respond if any modifier keys are pressed.
         if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
             return;
@@ -664,6 +669,7 @@ class Coordinator {
     }
     onMidiMessage(ev) {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
+        this.extendWakelock();
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_normalizeMidiEvent).call(this, ev);
         midiRenderingStatus.onMidiMessage(ev);
         if (recorder.isRecording) {
@@ -747,7 +753,7 @@ class Coordinator {
     startPlaybackTimer() {
         setInterval(() => coordinator.onPlaybackTimer(), 5);
     }
-    do_download() {
+    doDownload() {
         if (!__classPrivateFieldGet(this, _Coordinator_save_as_box, "f")) {
             return; // Shouldn't happen
         }
@@ -761,12 +767,36 @@ class Coordinator {
         recorder.download(filename);
         info("Saved as " + filename);
     }
+    async extendWakelock() {
+        // Got the wake lock type definition from:
+        // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
+        // npm i @types/dom-screen-wake-lock
+        if (__classPrivateFieldGet(this, _Coordinator_wakelock, "f") === null) {
+            try {
+                __classPrivateFieldSet(this, _Coordinator_wakelock, await navigator.wakeLock.request('screen'), "f");
+                console.log("Wake lock acquired");
+            }
+            catch (err) {
+                console.log("Failed to acquire wake lock", err);
+            }
+        }
+        if (__classPrivateFieldGet(this, _Coordinator_wakelockTimer, "f") !== null) {
+            clearTimeout(__classPrivateFieldGet(this, _Coordinator_wakelockTimer, "f"));
+        }
+        __classPrivateFieldSet(this, _Coordinator_wakelockTimer, setTimeout(() => {
+            if (__classPrivateFieldGet(this, _Coordinator_wakelock, "f") !== null) {
+                __classPrivateFieldGet(this, _Coordinator_wakelock, "f").release();
+                __classPrivateFieldSet(this, _Coordinator_wakelock, null, "f");
+                console.log("Wake lock released");
+            }
+        }, WAKE_LOCK_MILLIS), "f");
+    }
     close() {
         recorder.stopPlaying();
         this.resetMidi();
     }
 }
-_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_save_as_box = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_updateRecorderStatus = function _Coordinator_updateRecorderStatus() {
+_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_save_as_box = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_updateRecorderStatus = function _Coordinator_updateRecorderStatus() {
     show('#playing', recorder.isPlaying);
     show('#recording', recorder.isRecording);
     show('#pausing', recorder.isPausing);
@@ -900,6 +930,7 @@ $("body").on("mousemove", function (_ev) {
     clearCursorTimeout = setTimeout(() => {
         ebody.css('cursor', 'none');
     }, 3000);
+    coordinator.extendWakelock();
 });
 $("body").on("drop", function (ev) {
     ev.preventDefault();
@@ -919,12 +950,12 @@ $("#save_as_filename").keydown((ev) => {
     console.log(ev);
     ev.stopPropagation();
     if (ev.code === 'Enter') { // enter
-        coordinator.do_download();
+        coordinator.doDownload();
         ev.preventDefault();
     }
 });
 $("#save").on('click', (_ev) => {
-    coordinator.do_download();
+    coordinator.doDownload();
 });
 $("#save_as_box").on('popbox_closing', (_ev) => {
     $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
@@ -934,6 +965,7 @@ $(efullscreen).on('click', (_ev) => {
 });
 $("body").on('dblclick', (_ev) => {
     coordinator.toggleFullScreen();
+    coordinator.extendWakelock();
 });
 // Start the timers.
 worker.postMessage({ action: "setInterval", interval: 10, result: PLAYBACK_TIMER });
