@@ -20,32 +20,20 @@
     <link rel="stylesheet" href="mvv.css">
 </head>
 <body>
-    <div>
-        <div id="canvases">
-            <image id="recording" src="res/record-a.png" class="recorderStatusIndicator">
-            <image id="playing" src="res/play-a.png" class="recorderStatusIndicator">
-            <image id="pausing" src="res/pause-a.png" class="recorderStatusIndicator">
-            <span id="fps">--</span>
-            <canvas id="bar2"></canvas>
-            <canvas id="roll2"></canvas>
-            <span id="fullscreen">
-                Toggle fullscreen
-            </span>
-            <span id="status">No message</span>
-            <span id="link">
-                <a href="https://github.com/omakoto/mvv" target="source">Source code</a>
-            </span>
-        </div>
-        <div id="controls">
-        </div>
-    </div>
-    <!-- For double-buffering -->
-    <div id="realCanvases" style="display:none">
-        <canvas id="bar"></canvas>
-        <canvas id="roll"></canvas>
-    </div>
-
     <input type="file" id="open_file" style="display:none" />
+
+    <image id="recording" src="res/recording.png" class="recorderStatusIndicator">
+    <image id="playing" src="res/playing.png" class="recorderStatusIndicator">
+    <image id="pausing" src="res/pausing.png" class="recorderStatusIndicator">
+    <span id="fps">--</span>
+    <span id="link">
+        <a href="https://github.com/omakoto/mvv" target="source">Source code</a>
+    </span>
+    <span id="fullscreen">
+        Toggle fullscreen
+    </span>
+    <span id="status">No message</span>
+
     <div id="dialogs">
         <div id="save_as_box" data-popbox-id="save_as_box" class="popbox">
             <div class="popbox_container">
@@ -54,6 +42,16 @@
                 <button id="save" data-popbox-close="save_as_box">Save</button>
             </div>
         </div>
+    </div>
+
+    <div id="canvases">
+        <canvas id="bar2"></canvas>
+        <canvas id="roll2"></canvas>
+    </div>
+    <!-- For double-buffering -->
+    <div id="realCanvases" style="display:none">
+        <canvas id="bar"></canvas>
+        <canvas id="roll"></canvas>
     </div>
     <script src="util.js"></script>
     <script src="smf.js"></script>
