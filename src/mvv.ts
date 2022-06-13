@@ -119,7 +119,7 @@ class Renderer {
 
     constructor() {
         // Adjust CSS with the constants.
-        $("body").css("padding", (MARGIN * 100) + "%");
+        $("#main").css("padding", (MARGIN * 100) + "%");
         $("#canvases").css("width", (100 - MARGIN * 200) + "%");
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");
