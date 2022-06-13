@@ -16,8 +16,8 @@ const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search))
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const NOTES_COUNT = 128;
-// const WAKE_LOCK_MILLIS = 30 * 60 * 1000; // 30 minutes
-const WAKE_LOCK_MILLIS = 3000;
+const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
+// const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 const MARGIN = 0.005; // Margin at each side
