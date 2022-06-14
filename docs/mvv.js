@@ -20,7 +20,6 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
-const MARGIN = 0.005; // Margin at each side
 const FPS = 60;
 // Common values
 const RGB_BLACK = [0, 0, 0];
@@ -79,14 +78,6 @@ function getCurrentTime() {
     let ret = nowLocal.toISOString();
     return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
-function show(selector, show) {
-    if (show) {
-        $(selector).show();
-    }
-    else {
-        $(selector).hide();
-    }
-}
 // Logic
 class Renderer {
     constructor() {
@@ -110,12 +101,10 @@ class Renderer {
         _Renderer_roll2.set(this, void 0);
         _Renderer_rollFrozen.set(this, false);
         // Adjust CSS with the constants.
-        $("body").css("padding", (MARGIN * 100) + "%");
-        $("#canvases").css("width", (100 - MARGIN * 200) + "%");
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");
-        __classPrivateFieldSet(this, _Renderer_W, s(screen.width * (1 - MARGIN * 2)), "f");
-        __classPrivateFieldSet(this, _Renderer_H, s(screen.height * (1 - MARGIN * 2)), "f");
+        __classPrivateFieldSet(this, _Renderer_W, s(screen.width), "f");
+        __classPrivateFieldSet(this, _Renderer_H, s(screen.height), "f");
         __classPrivateFieldSet(this, _Renderer_BAR_H, int(__classPrivateFieldGet(this, _Renderer_H, "f") * BAR_RATIO), "f");
         __classPrivateFieldSet(this, _Renderer_ROLL_H, __classPrivateFieldGet(this, _Renderer_H, "f") - __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), "f");
         _a = this, _b = this, [({ set value(_j) { __classPrivateFieldSet(_a, _Renderer_cbar, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_b, _Renderer_bar, _j, "f"); } }).value] = Renderer.getCanvas("bar");
@@ -805,9 +794,9 @@ class Coordinator {
     }
 }
 _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_save_as_box = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_updateRecorderStatus = function _Coordinator_updateRecorderStatus() {
-    show('#playing', recorder.isPlaying);
-    show('#recording', recorder.isRecording);
-    show('#pausing', recorder.isPausing);
+    // show('#playing', recorder.isPlaying);
+    // show('#recording', recorder.isRecording);
+    // show('#pausing', recorder.isPausing);
 }, _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (!(recorder.isPlaying || recorder.isPausing)) {
         return;
@@ -970,6 +959,10 @@ $("#save_as_box").on('popbox_closing', (_ev) => {
 });
 $(efullscreen).on('click', (_ev) => {
     coordinator.toggleFullScreen();
+});
+$("#buttons").on('dblclick', (ev) => {
+    console.log("xxxx");
+    ev.preventDefault();
 });
 $("body").on('dblclick', (_ev) => {
     coordinator.toggleFullScreen();

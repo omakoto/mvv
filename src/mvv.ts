@@ -21,7 +21,6 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
-const MARGIN = 0.005; // Margin at each side
 
 const FPS = 60;
 
@@ -77,14 +76,6 @@ function getCurrentTime(): string {
     return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
 
-function show(selector: string, show: boolean): void {
-    if (show) {
-        $(selector).show();
-    } else {
-        $(selector).hide();
-    }
-}
-
 // Logic
 
 class Renderer {
@@ -119,13 +110,11 @@ class Renderer {
 
     constructor() {
         // Adjust CSS with the constants.
-        $("body").css("padding", (MARGIN * 100) + "%");
-        $("#canvases").css("width", (100 - MARGIN * 200) + "%");
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");
 
-        this.#W = s(screen.width * (1 - MARGIN * 2));
-        this.#H = s(screen.height * (1 - MARGIN * 2));
+        this.#W = s(screen.width);
+        this.#H = s(screen.height);
         this.#BAR_H = int(this.#H * BAR_RATIO);
         this.#ROLL_H = this.#H - this.#BAR_H;
 
@@ -751,9 +740,9 @@ class Coordinator {
     }
 
     #updateRecorderStatus(): void {
-        show('#playing', recorder.isPlaying);
-        show('#recording', recorder.isRecording);
-        show('#pausing', recorder.isPausing);
+        // show('#playing', recorder.isPlaying);
+        // show('#recording', recorder.isRecording);
+        // show('#pausing', recorder.isPausing);
     }
 
     #ignoreRepeatedRewindKey = false;
@@ -1114,6 +1103,11 @@ $("#save_as_box").on('popbox_closing', (_ev) => {
 $(efullscreen).on('click', (_ev) => {
     coordinator.toggleFullScreen();
 });
+
+// Try to prevent double-clkcing buttons from going to body. not working.
+// $("#buttons").on('dblclick', (ev) => {
+//     ev.preventDefault();
+// });
 
 $("body").on('dblclick', (_ev) => {
     coordinator.toggleFullScreen();

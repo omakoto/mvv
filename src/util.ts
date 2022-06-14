@@ -35,7 +35,6 @@ function w<ArgType>(value: ArgType, callback: (arg: ArgType) => void) {
     callback(value);
 }
 
-
 // Light weight event handling
 interface ILiteEvent<T> {
     on(handler: { (data?: T): void }) : void;
