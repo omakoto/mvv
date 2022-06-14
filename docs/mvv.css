@@ -55,32 +55,31 @@ canvas#roll2 {
     display: inline-block;
 }
 
+.button:hover {
+    filter: brightness(4);
+}
+
+.button:active {
+    filter: brightness(4) drop-shadow(0px 0px 4px yellow);
+}
+
+.button-disabled {
+    pointer-events: none;
+    filter: grayscale(100%)
+}
+
+.button-always-disabled {
+    pointer-events: none;
+}
+
 #top {
     background-image: url("res/top.png");
-}
-#top:hover {
-    background-image: url("res/top-h.png");
-}
-#top:active {
-    background-image: url("res/top-a.png");
 }
 #rewind {
     background-image: url("res/rewind.png");
 }
-#rewind:hover {
-    background-image: url("res/rewind-h.png");
-}
-#rewind:active {
-    background-image: url("res/rewind-a.png");
-}
 #play {
     background-image: url("res/play.png");
-}
-#play:hover {
-    background-image: url("res/play-h.png");
-}
-#play:active {
-    background-image: url("res/play-a.png");
 }
 #play-i {
     background-image: url("res/play-i.png");
@@ -88,38 +87,14 @@ canvas#roll2 {
 #pause {
     background-image: url("res/pause.png");
 }
-#pause:hover {
-    background-image: url("res/pause-h.png");
-}
-#pause:active {
-    background-image: url("res/pause-a.png");
-}
 #stop {
     background-image: url("res/stop.png");
-}
-#stop:hover {
-    background-image: url("res/stop-h.png");
-}
-#stop:active {
-    background-image: url("res/stop-a.png");
 }
 #ff {
     background-image: url("res/ff.png");
 }
-#ff:hover {
-    background-image: url("res/ff-h.png");
-}
-#ff:active {
-    background-image: url("res/ff-a.png");
-}
 #record {
     background-image: url("res/record.png");
-}
-#record:hover {
-    background-image: url("res/record-h.png");
-}
-#record:active {
-    background-image: url("res/record-a.png");
 }
 #record-i {
     background-image: url("res/record-i.png");
@@ -127,20 +102,8 @@ canvas#roll2 {
 #up {
     background-image: url("res/up.png");
 }
-#up:hover {
-    background-image: url("res/up-h.png");
-}
-#up:active {
-    background-image: url("res/up-a.png");
-}
 #down {
     background-image: url("res/down.png");
-}
-#down:hover {
-    background-image: url("res/down-h.png");
-}
-#down:active {
-    background-image: url("res/down-a.png");
 }
 
 #fps {

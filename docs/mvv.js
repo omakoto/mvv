@@ -794,9 +794,7 @@ class Coordinator {
     }
 }
 _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_save_as_box = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_updateRecorderStatus = function _Coordinator_updateRecorderStatus() {
-    // show('#playing', recorder.isPlaying);
-    // show('#recording', recorder.isRecording);
-    // show('#pausing', recorder.isPausing);
+    controls.update();
 }, _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (!(recorder.isPlaying || recorder.isPausing)) {
         return;
@@ -960,10 +958,10 @@ $("#save_as_box").on('popbox_closing', (_ev) => {
 $(efullscreen).on('click', (_ev) => {
     coordinator.toggleFullScreen();
 });
-$("#buttons").on('dblclick', (ev) => {
-    console.log("xxxx");
-    ev.preventDefault();
-});
+// Try to prevent double-clkcing buttons from going to body. not working.
+// $("#buttons").on('dblclick', (ev) => {
+//     ev.preventDefault();
+// });
 $("body").on('dblclick', (_ev) => {
     coordinator.toggleFullScreen();
     coordinator.extendWakelock();

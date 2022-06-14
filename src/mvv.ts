@@ -740,9 +740,7 @@ class Coordinator {
     }
 
     #updateRecorderStatus(): void {
-        // show('#playing', recorder.isPlaying);
-        // show('#recording', recorder.isRecording);
-        // show('#pausing', recorder.isPausing);
+        controls.update();
     }
 
     #ignoreRepeatedRewindKey = false;
