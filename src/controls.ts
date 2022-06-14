@@ -26,8 +26,14 @@ class Controls {
         this.#up = $("#up")
         this.#down = $("#down")
 
-        this.#up.on('click', (_) => coordinator.uploadRequested());
-        this.#down.on('click', (_) => coordinator.downloadRequested());
+        this.#up.on('click', (ev) => {
+            coordinator.uploadRequested();
+            ev.stopPropagation();
+        });
+        this.#down.on('click', (ev) => {
+            coordinator.downloadRequested();
+            ev.stopPropagation();
+        });
     }
 
 

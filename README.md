@@ -32,6 +32,7 @@
   - [ ] Throttle control (at least the pedal) changes if needed.
   - [ ] Auto-detect between pieces
 - [ ] Show confirmation dialog before over-recording or loading
+- [ ] Prevent double-click propagation
 - [ ] Add help
 - [ ] P3: Support reading from non-zero channels
 - [ ] P3: Better playback (as a geneal MIDI player)

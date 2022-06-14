@@ -35,8 +35,14 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_recording, $("#record-i"), "f");
         __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
         __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
-        __classPrivateFieldGet(this, _Controls_up, "f").on('click', (_) => coordinator.uploadRequested());
-        __classPrivateFieldGet(this, _Controls_down, "f").on('click', (_) => coordinator.downloadRequested());
+        __classPrivateFieldGet(this, _Controls_up, "f").on('click', (ev) => {
+            coordinator.uploadRequested();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_down, "f").on('click', (ev) => {
+            coordinator.downloadRequested();
+            ev.stopPropagation();
+        });
     }
 }
 _Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap();
