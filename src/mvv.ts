@@ -674,11 +674,11 @@ class Coordinator {
                 break;
             case 'KeyS':
                 if (isRepeat) break;
-                this.#open_download_box();
+                this.downloadRequested();
                 break;
             case 'KeyL':
                 if (isRepeat) break;
-                $('#open_file').trigger('click');
+                this.uploadRequested();
                 break;
             case 'KeyZ':
                 if (isRepeat) break;
@@ -924,6 +924,14 @@ class Coordinator {
         $('#save_as_filename').focus();
     }
 
+    downloadRequested(): void {
+        this.#open_download_box();
+    }
+
+    uploadRequested(): void {
+        $('#open_file').trigger('click');
+    }
+
     doDownload(): void {
         if (!this.#save_as_box) {
             return; // Shouldn't happen
@@ -937,6 +945,9 @@ class Coordinator {
         filename += ".mid";
         recorder.download(filename);
         info("Saved as " + filename);
+    }
+
+    doUpload(): void {
     }
 
     async extendWakelock(): Promise<void> {

@@ -591,12 +591,12 @@ class Coordinator {
             case 'KeyS':
                 if (isRepeat)
                     break;
-                __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_open_download_box).call(this);
+                this.downloadRequested();
                 break;
             case 'KeyL':
                 if (isRepeat)
                     break;
-                $('#open_file').trigger('click');
+                this.uploadRequested();
                 break;
             case 'KeyZ':
                 if (isRepeat)
@@ -753,6 +753,12 @@ class Coordinator {
     startPlaybackTimer() {
         setInterval(() => coordinator.onPlaybackTimer(), 5);
     }
+    downloadRequested() {
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_open_download_box).call(this);
+    }
+    uploadRequested() {
+        $('#open_file').trigger('click');
+    }
     doDownload() {
         if (!__classPrivateFieldGet(this, _Coordinator_save_as_box, "f")) {
             return; // Shouldn't happen
@@ -766,6 +772,8 @@ class Coordinator {
         filename += ".mid";
         recorder.download(filename);
         info("Saved as " + filename);
+    }
+    doUpload() {
     }
     async extendWakelock() {
         // Got the wake lock type definition from:

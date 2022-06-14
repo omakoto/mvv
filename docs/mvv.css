@@ -60,7 +60,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 0);
     background-image: url("res/top-h.png");
 }
-#top-a {
+#top:active {
     left: calc(8px + var(--icon-size) * 0);
     background-image: url("res/top-a.png");
 }
@@ -72,7 +72,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 1);
     background-image: url("res/rewind-h.png");
 }
-#rewind-a {
+#rewind:active {
     left: calc(8px + var(--icon-size) * 1);
     background-image: url("res/rewind-a.png");
 }
@@ -84,9 +84,13 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 2);
     background-image: url("res/play-h.png");
 }
-#play-a {
+#play:active {
     left: calc(8px + var(--icon-size) * 2);
     background-image: url("res/play-a.png");
+}
+#play-i {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/play-i.png");
 }
 #pause {
     left: calc(8px + var(--icon-size) * 2);
@@ -96,7 +100,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 2);
     background-image: url("res/pause-h.png");
 }
-#pause-a {
+#pause:active {
     left: calc(8px + var(--icon-size) * 2);
     background-image: url("res/pause-a.png");
 }
@@ -108,7 +112,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 2);
     background-image: url("res/stop-h.png");
 }
-#stop-a {
+#stop:active {
     left: calc(8px + var(--icon-size) * 2);
     background-image: url("res/stop-a.png");
 }
@@ -120,7 +124,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 3);
     background-image: url("res/ff-h.png");
 }
-#ff-a {
+#ff:active {
     left: calc(8px + var(--icon-size) * 3);
     background-image: url("res/ff-a.png");
 }
@@ -132,9 +136,13 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 4);
     background-image: url("res/record-h.png");
 }
-#record-a {
+#record:active {
     left: calc(8px + var(--icon-size) * 4);
     background-image: url("res/record-a.png");
+}
+#record-i {
+    left: calc(8px + var(--icon-size) * 4);
+    background-image: url("res/record-i.png");
 }
 #up {
     left: calc(8px + var(--icon-size) * 6);
@@ -144,7 +152,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 6);
     background-image: url("res/up-h.png");
 }
-#up-a {
+#up:active {
     left: calc(8px + var(--icon-size) * 6);
     background-image: url("res/up-a.png");
 }
@@ -156,7 +164,7 @@ canvas#roll2 {
     left: calc(8px + var(--icon-size) * 7);
     background-image: url("res/down-h.png");
 }
-#down-a {
+#down:active {
     left: calc(8px + var(--icon-size) * 7);
     background-image: url("res/down-a.png");
 }
