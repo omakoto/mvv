@@ -1,3 +1,6 @@
+:root {
+    --icon-size: 32px;
+}
 html {
     width: 100%;
     height: 100%;
@@ -11,7 +14,7 @@ body {
     padding: 0.5%; /* Note we override it in JS */
     overflow: hidden;
     background-color: black;
-    font-size: 10pt;
+    font-size: 9pt;
     font-family: 'Roboto', sans-serif;
     color: var(--main-text-color);
     cursor: none;
@@ -42,38 +45,97 @@ canvas#roll2 {
     position: fixed;
     left: 8px;
     top: 8px;
-    width: 32px;
-    height: 32px;
-    display: block;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    background-size: var(--icon-size);
+    background-repeat: no-repeat;
+    display: inline-block;
 }
 
-#jumptotop {
-    left: 8px;
+#top {
+    left: calc(8px + var(--icon-size) * 0);
+    background-image: url("res/top.png");
+}
+#top:hover {
+    left: calc(8px + var(--icon-size) * 0);
+    background-image: url("res/top-h.png");
+}
+#top-a {
+    left: calc(8px + var(--icon-size) * 0);
+    background-image: url("res/top-a.png");
 }
 #rewind {
-    left: 8px;
+    left: calc(8px + var(--icon-size) * 1);
+    background-image: url("res/rewind.png");
+}
+#rewind:hover {
+    left: calc(8px + var(--icon-size) * 1);
+    background-image: url("res/rewind-h.png");
+}
+#rewind-a {
+    left: calc(8px + var(--icon-size) * 1);
+    background-image: url("res/rewind-a.png");
 }
 #play {
-    left: 8px;
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/play.png");
+}
+#play:hover {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/play-h.png");
+}
+#play-a {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/play-a.png");
 }
 #pause {
-    left: 8px;
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/pause.png");
+}
+#pause:hover {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/pause-h.png");
+}
+#pause-a {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/pause-a.png");
 }
 #stop {
-    left: 8px;
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/stop.png");
 }
-#fastforward {
-    left: 8px;
+#stop:hover {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/stop-h.png");
+}
+#stop-a {
+    left: calc(8px + var(--icon-size) * 2);
+    background-image: url("res/stop-a.png");
+}
+#ff {
+    left: calc(8px + var(--icon-size) * 3);
+    background-image: url("res/ff.png");
+}
+#ff:hover {
+    left: calc(8px + var(--icon-size) * 3);
+    background-image: url("res/ff-h.png");
+}
+#ff-a {
+    left: calc(8px + var(--icon-size) * 3);
+    background-image: url("res/ff-a.png");
 }
 #record {
-    left: 8px;
+    left: calc(8px + var(--icon-size) * 4);
+    background-image: url("res/record.png");
 }
-
-
-
-
-
-
+#record:hover {
+    left: calc(8px + var(--icon-size) * 4);
+    background-image: url("res/record-h.png");
+}
+#record-a {
+    left: calc(8px + var(--icon-size) * 4);
+    background-image: url("res/record-a.png");
+}
 
 #fps {
     position: fixed;
