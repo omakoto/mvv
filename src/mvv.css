@@ -44,8 +44,36 @@ canvas#roll2 {
     top: 8px;
     width: 32px;
     height: 32px;
-    display: none;
+    display: block;
 }
+
+#jumptotop {
+    left: 8px;
+}
+#rewind {
+    left: 8px;
+}
+#play {
+    left: 8px;
+}
+#pause {
+    left: 8px;
+}
+#stop {
+    left: 8px;
+}
+#fastforward {
+    left: 8px;
+}
+#record {
+    left: 8px;
+}
+
+
+
+
+
+
 
 #fps {
     position: fixed;
