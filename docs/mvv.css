@@ -41,7 +41,7 @@ canvas#roll2 {
     display: block;
 }
 
-.recorderStatusIndicator {
+.button {
     position: fixed;
     left: 8px;
     top: 8px;
@@ -135,6 +135,30 @@ canvas#roll2 {
 #record-a {
     left: calc(8px + var(--icon-size) * 4);
     background-image: url("res/record-a.png");
+}
+#up {
+    left: calc(8px + var(--icon-size) * 6);
+    background-image: url("res/up.png");
+}
+#up:hover {
+    left: calc(8px + var(--icon-size) * 6);
+    background-image: url("res/up-h.png");
+}
+#up-a {
+    left: calc(8px + var(--icon-size) * 6);
+    background-image: url("res/up-a.png");
+}
+#down {
+    left: calc(8px + var(--icon-size) * 7);
+    background-image: url("res/down.png");
+}
+#down:hover {
+    left: calc(8px + var(--icon-size) * 7);
+    background-image: url("res/down-h.png");
+}
+#down-a {
+    left: calc(8px + var(--icon-size) * 7);
+    background-image: url("res/down-a.png");
 }
 
 #fps {
