@@ -35,6 +35,25 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_ff, $("#ff"), "f");
         __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
         __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
+        __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_play, "f").on('click', (ev) => {
+            coordinator.togglePlayback();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_pause, "f").on('click', (ev) => {
+            coordinator.pause();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_stop, "f").on('click', (ev) => {
+            coordinator.stop();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_record, "f").on('click', (ev) => {
+            coordinator.startRecording();
+            ev.stopPropagation();
+        });
         __classPrivateFieldGet(this, _Controls_up, "f").on('click', (ev) => {
             coordinator.uploadRequested();
             ev.stopPropagation();
@@ -63,15 +82,27 @@ class Controls {
             this.disable(__classPrivateFieldGet(this, _Controls_pause, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
             this.hide(__classPrivateFieldGet(this, _Controls_record, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_recording, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_recording, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
             return;
         }
         if (recorder.isPlaying) {
             this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.hide(__classPrivateFieldGet(this, _Controls_play, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_playing, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
+            this.hide(__classPrivateFieldGet(this, _Controls_recording, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            return;
+        }
+        if (recorder.isPausing) {
+            this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.hide(__classPrivateFieldGet(this, _Controls_playing, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));

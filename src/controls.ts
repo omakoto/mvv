@@ -27,6 +27,27 @@ class Controls {
         this.#up = $("#up");
         this.#down = $("#down");
 
+        this.#top.on('click', (ev) => {
+            ev.stopPropagation();
+        });
+        this.#play.on('click', (ev) => {
+            coordinator.togglePlayback();
+            ev.stopPropagation();
+        });
+        this.#pause.on('click', (ev) => {
+            coordinator.pause();
+            ev.stopPropagation();
+        });
+        this.#stop.on('click', (ev) => {
+            coordinator.stop();
+            ev.stopPropagation();
+        });
+        this.#record.on('click', (ev) => {
+            coordinator.startRecording();
+            ev.stopPropagation();
+        });
+
+
         this.#up.on('click', (ev) => {
             coordinator.uploadRequested();
             ev.stopPropagation();
@@ -59,15 +80,27 @@ class Controls {
             this.disable(this.#pause);
             this.enable(this.#stop);
             this.hide(this.#record);
-            this.disable(this.#recording);
+            this.enable(this.#recording);
             this.disable(this.#rewind);
             this.disable(this.#ff);
             return;
         }
         if (recorder.isPlaying) {
             this.enable(this.#top);
-            this.disable(this.#play);
+            this.hide(this.#play);
             this.enable(this.#playing);
+            this.enable(this.#pause);
+            this.enable(this.#stop);
+            this.enable(this.#record);
+            this.hide(this.#recording);
+            this.enable(this.#rewind);
+            this.enable(this.#ff);
+            return;
+        }
+        if (recorder.isPausing) {
+            this.enable(this.#top);
+            this.enable(this.#play);
+            this.hide(this.#playing);
             this.enable(this.#pause);
             this.enable(this.#stop);
             this.enable(this.#record);

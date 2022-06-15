@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_updateRecorderStatus, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_scheduleDraw, _Coordinator_save_as_box, _Coordinator_open_download_box;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_scheduleDraw, _Coordinator_save_as_box, _Coordinator_open_download_box;
 ;
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
@@ -630,7 +630,13 @@ class Coordinator {
         else {
             recorder.startRecording();
         }
-        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateRecorderStatus).call(this);
+        this.updateUi();
+    }
+    startRecording() {
+        if (!recorder.isRecording) {
+            recorder.startRecording();
+        }
+        this.updateUi();
     }
     togglePlayback() {
         if (recorder.isPausing) {
@@ -640,10 +646,34 @@ class Coordinator {
             recorder.pause();
         }
         else if (recorder.isIdle) {
+            this.startPlayback();
+        }
+        this.updateUi();
+    }
+    startPlayback() {
+        if (recorder.isIdle) {
             renderer.show();
             recorder.startPlaying();
         }
-        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateRecorderStatus).call(this);
+        this.updateUi();
+    }
+    pause() {
+        if (recorder.isPlaying) {
+            recorder.pause();
+        }
+        else if (recorder.isPausing) {
+            recorder.unpause();
+        }
+        this.updateUi();
+    }
+    stop() {
+        if (recorder.isRecording) {
+            recorder.stopRecording();
+        }
+        else if (recorder.isPlaying) {
+            recorder.stopPlaying();
+        }
+        this.updateUi();
     }
     toggleFullScreen() {
         if (!document.fullscreenElement) {
@@ -654,7 +684,10 @@ class Coordinator {
         }
     }
     onRecorderStatusChanged() {
-        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateRecorderStatus).call(this);
+        this.updateUi();
+    }
+    updateUi() {
+        controls.update();
     }
     onMidiMessage(ev) {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
@@ -668,7 +701,7 @@ class Coordinator {
     reset() {
         recorder.stopPlaying();
         recorder.stopRecording();
-        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateRecorderStatus).call(this);
+        this.updateUi();
         this.resetMidi();
     }
     resetMidi() {
@@ -793,9 +826,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_save_as_box = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_updateRecorderStatus = function _Coordinator_updateRecorderStatus() {
-    controls.update();
-}, _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
+_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_save_as_box = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (!(recorder.isPlaying || recorder.isPausing)) {
         return;
     }
@@ -867,6 +898,7 @@ function onMIDIFailure() {
     info('Could not access your MIDI devices.');
 }
 coordinator.scheduleFlip();
+coordinator.updateUi();
 const PLAYBACK_TIMER = "playbackTimer";
 const DRAW_TIMER = "drawTimer";
 const worker = new Worker("timer-worker.js");
@@ -903,6 +935,7 @@ function loadMidiFile(file) {
     loadMidi(file).then((events) => {
         debug("File loaded", events);
         recorder.setEvents(events);
+        coordinator.updateUi();
     }).catch((error) => {
         info("Failed loading from " + file.name + ": " + error);
         console.log(error);

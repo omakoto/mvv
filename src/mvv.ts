@@ -712,7 +712,14 @@ class Coordinator {
         } else {
             recorder.startRecording();
         }
-        this.#updateRecorderStatus();
+        this.updateUi();
+    }
+
+    startRecording(): void {
+        if (!recorder.isRecording) {
+            recorder.startRecording();
+        }
+        this.updateUi();
     }
 
     togglePlayback(): void {
@@ -721,10 +728,35 @@ class Coordinator {
         } else if (recorder.isPlaying) {
             recorder.pause();
         } else if (recorder.isIdle) {
+            this.startPlayback();
+        }
+        this.updateUi();
+    }
+
+    startPlayback(): void {
+        if (recorder.isIdle) {
             renderer.show();
             recorder.startPlaying();
         }
-        this.#updateRecorderStatus();
+        this.updateUi();
+    }
+
+    pause(): void {
+        if (recorder.isPlaying) {
+            recorder.pause();
+        } else if (recorder.isPausing) {
+            recorder.unpause();
+        }
+        this.updateUi();
+    }
+
+    stop(): void {
+        if (recorder.isRecording) {
+            recorder.stopRecording();
+        } else if (recorder.isPlaying) {
+            recorder.stopPlaying();
+        }
+        this.updateUi();
     }
 
     toggleFullScreen(): void {
@@ -736,10 +768,10 @@ class Coordinator {
     }
 
     onRecorderStatusChanged(): void {
-        this.#updateRecorderStatus();
+        this.updateUi();
     }
 
-    #updateRecorderStatus(): void {
+    updateUi(): void {
         controls.update();
     }
 
@@ -797,7 +829,7 @@ class Coordinator {
     reset(): void {
         recorder.stopPlaying();
         recorder.stopRecording();
-        this.#updateRecorderStatus();
+        this.updateUi();
         this.resetMidi();
     }
 
@@ -991,6 +1023,8 @@ function onMIDIFailure(): void {
 }
 
 coordinator.scheduleFlip();
+coordinator.updateUi();
+
 
 const PLAYBACK_TIMER = "playbackTimer";
 const DRAW_TIMER = "drawTimer";
@@ -1035,6 +1069,7 @@ function loadMidiFile(file: File) {
     loadMidi(file).then((events) => {
         debug("File loaded", events);
         recorder.setEvents(events);
+        coordinator.updateUi();
     }).catch((error) => {
         info("Failed loading from " + file.name + ": " + error);
         console.log(error);
