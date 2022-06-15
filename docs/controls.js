@@ -36,6 +36,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
         __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
         __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
+            coordinator.moveToStart();
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_play, "f").on('click', (ev) => {
@@ -120,8 +121,10 @@ class Controls {
         this.hide(__classPrivateFieldGet(this, _Controls_recording, "f"));
         this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
         this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_down, "f"));
         if (recorder.isAnythingRecorded) {
             this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_down, "f"));
         }
     }
 }

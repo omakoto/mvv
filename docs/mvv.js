@@ -407,8 +407,8 @@ class Recorder {
         this.adjustPlaybackPosition(-9999999999);
     }
     // Fast-forward or rewind.
-    adjustPlaybackPosition(milliseconds) {
-        __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + milliseconds, "f");
+    adjustPlaybackPosition(deltaMilliseconds) {
+        __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + deltaMilliseconds, "f");
         let ts = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
         // If rewound beyond the starting point, reset the relevant values.
         if (ts <= 0) {
@@ -675,6 +675,13 @@ class Coordinator {
         }
         this.updateUi();
     }
+    moveToStart() {
+        if (recorder.isPlaying || recorder.isPausing) {
+            this.resetMidi();
+            recorder.moveToStart();
+        }
+        this.updateUi();
+    }
     toggleFullScreen() {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen();
@@ -834,7 +841,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
     if (!isRepeat) {
         const now = performance.now();
         if ((now - __classPrivateFieldGet(this, _Coordinator_lastRewindPressTime, "f")) <= 150) {
-            recorder.moveToStart();
+            this.moveToStart();
             return;
         }
         __classPrivateFieldSet(this, _Coordinator_lastRewindPressTime, now, "f");
@@ -849,7 +856,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
     if (!recorder.adjustPlaybackPosition(-1000)) {
         __classPrivateFieldSet(this, _Coordinator_ignoreRepeatedRewindKey, true, "f");
     }
-    return;
+    this.updateUi();
 }, _Coordinator_normalizeMidiEvent = function _Coordinator_normalizeMidiEvent(ev) {
     // Allow V25's leftmost knob to be used as the pedal.
     if (ev.device.startsWith("V25")) {

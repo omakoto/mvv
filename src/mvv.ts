@@ -499,8 +499,8 @@ class Recorder {
     }
 
     // Fast-forward or rewind.
-    adjustPlaybackPosition(milliseconds: number): boolean {
-        this.#playbackTimeAdjustment += milliseconds;
+    adjustPlaybackPosition(deltaMilliseconds: number): boolean {
+        this.#playbackTimeAdjustment += deltaMilliseconds;
         let ts = this.#getCurrentPlaybackTimestamp();
         // If rewound beyond the starting point, reset the relevant values.
         if (ts <= 0) {
@@ -759,6 +759,14 @@ class Coordinator {
         this.updateUi();
     }
 
+    moveToStart(): void {
+        if (recorder.isPlaying || recorder.isPausing) {
+            this.resetMidi();
+            recorder.moveToStart();
+        }
+        this.updateUi();
+    }
+
     toggleFullScreen(): void {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen();
@@ -786,7 +794,7 @@ class Coordinator {
         if (!isRepeat) {
             const now = performance.now();
             if ((now - this.#lastRewindPressTime) <= 150) {
-                recorder.moveToStart();
+                this.moveToStart();
                 return;
             }
             this.#lastRewindPressTime = now;
@@ -801,7 +809,7 @@ class Coordinator {
         if (!recorder.adjustPlaybackPosition(-1000)) {
             this.#ignoreRepeatedRewindKey = true;
         }
-        return;
+        this.updateUi();
     }
 
     #normalizeMidiEvent(ev: MidiEvent): void {

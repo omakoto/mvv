@@ -28,6 +28,7 @@ class Controls {
         this.#down = $("#down");
 
         this.#top.on('click', (ev) => {
+            coordinator.moveToStart();
             ev.stopPropagation();
         });
         this.#play.on('click', (ev) => {
@@ -119,8 +120,11 @@ class Controls {
         this.disable(this.#rewind);
         this.disable(this.#ff);
 
+        this.disable(this.#down);
+
         if (recorder.isAnythingRecorded) {
             this.enable(this.#play);
+            this.enable(this.#down);
         }
     }
 }
