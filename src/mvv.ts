@@ -347,6 +347,8 @@ class Recorder {
     #pauseStartTimestamp = 0;
     #nextPlaybackIndex = 0;
 
+    #isDirty = false;
+
     constructor() {
     }
 
@@ -409,6 +411,10 @@ class Recorder {
         return true;
     }
 
+    get isDirty(): boolean {
+        return this.#isDirty && this.isAnythingRecorded;
+    }
+
     get isIdle(): boolean {
         return this.#state === RecorderState.Idle;
     }
@@ -441,6 +447,7 @@ class Recorder {
         info("Recording started");
         this.#state = RecorderState.Recording;
         this.#events = [];
+        this.#isDirty = true;
 
         coordinator.onRecorderStatusChanged();
     }
@@ -589,12 +596,14 @@ class Recorder {
             lastTimestamp = ev.timeStamp;
         });
         wr.download(filename);
+        this.#isDirty = false;
     }
 
     setEvents(events: Array<MidiEvent>): void {
         this.stopPlaying();
         this.stopRecording();
         this.#events = events;
+        this.#isDirty = false;
 
         if (events.length === 0) {
             info("File contains no events.");
@@ -710,14 +719,14 @@ class Coordinator {
         if (recorder.isRecording) {
             recorder.stopRecording();
         } else {
-            recorder.startRecording();
+            this.startRecording();
         }
         this.updateUi();
     }
 
     startRecording(): void {
         if (!recorder.isRecording) {
-            recorder.startRecording();
+            this.withOverwriteConfirm(() => recorder.startRecording());
         }
         this.updateUi();
     }
@@ -938,7 +947,17 @@ class Coordinator {
     }
 
     uploadRequested(): void {
-        $('#open_file').trigger('click');
+        coordinator.withOverwriteConfirm(() => {
+            $('#open_file').trigger('click');
+        });
+    }
+
+    withOverwriteConfirm(callback: ()=> void): void {
+        if (recorder.isDirty) {
+            confirmBox.show("Discard recording?", () => callback());
+        } else {
+            callback();
+        }
     }
 
     async extendWakelock(): Promise<void> {
@@ -1076,7 +1095,9 @@ $("body").on("drop", function(ev) {
     ev.preventDefault();
     let oev = <DragEvent>ev.originalEvent;
     console.log("File dropped", oev.dataTransfer!.files[0], oev.dataTransfer);
-    loadMidiFile(oev.dataTransfer!.files[0]!);
+    coordinator.withOverwriteConfirm(() => {
+        loadMidiFile(oev.dataTransfer!.files[0]!);
+    });
 });
 
 $("#open_file").on("change", (ev) => {

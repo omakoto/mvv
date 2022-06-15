@@ -36,15 +36,14 @@
   - [ ] Estimate RAM consumption
   - [ ] Throttle control (at least the pedal) changes if needed.
   - [ ] Auto-detect between pieces
-- [ ] Show confirmation dialog before over-recording or loading
 - [ ] Prevent double-click propagation
 - [ ] Add help
-- [ ] P3: Support reading from non-zero channels
 - [ ] P3: Better playback (as a geneal MIDI player)
   - [ ] Fast-forward should send all skipped control changes
   - [ ] Rewind should replay all control changes
 - [ ] P4: Actually sync the renderer to vsync (how?)
 - [ ] P4: Support SMPTE time format in *.mid files
+- [X] Show confirmation dialog before over-recording or loading
 - [X] Prevent text selection
 - [X] Support pausing
 - [X] Keep playing while in the BG too

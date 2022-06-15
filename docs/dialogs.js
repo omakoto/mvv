@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _SaveAsBox_save_as_box;
+var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box;
 class SaveAsBox {
     constructor() {
         _SaveAsBox_save_as_box.set(this, null);
@@ -22,8 +22,9 @@ class SaveAsBox {
                 ev.preventDefault();
             }
         });
-        $("#save").on('click', (_ev) => {
+        $("#save").on('click', (ev) => {
             this.doDownload();
+            ev.preventDefault();
         });
         $("#save_as_box").on('popbox_closing', (_ev) => {
             $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
@@ -60,3 +61,32 @@ class SaveAsBox {
 }
 _SaveAsBox_save_as_box = new WeakMap();
 var saveAsBox = new SaveAsBox();
+class ConfirmBox {
+    constructor() {
+        _ConfirmBox_confirm_box.set(this, null);
+        $("#confirm_box").on('popbox_closing', (_ev) => {
+            $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
+        });
+    }
+    show(text, okayCallback) {
+        $('#confirm_text').text(text);
+        $("#confirm_ok").on('click', (ev) => {
+            console.log("ok");
+            ev.preventDefault();
+            if (okayCallback)
+                okayCallback();
+        });
+        $("#confirm_cancel").on('click', (ev) => {
+            console.log("canceled");
+            ev.preventDefault();
+        });
+        __classPrivateFieldSet(this, _ConfirmBox_confirm_box, new Popbox({
+            blur: true,
+            overlay: true,
+        }), "f");
+        __classPrivateFieldGet(this, _ConfirmBox_confirm_box, "f").open('confirm_box');
+        $('#confirm_box').focus();
+    }
+}
+_ConfirmBox_confirm_box = new WeakMap();
+var confirmBox = new ConfirmBox();

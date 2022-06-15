@@ -14,8 +14,9 @@ class SaveAsBox {
             }
         });
 
-        $("#save").on('click', (_ev) => {
+        $("#save").on('click', (ev) => {
             this.doDownload();
+            ev.preventDefault();
         });
 
         $("#save_as_box").on('popbox_closing', (_ev) => {
@@ -56,3 +57,35 @@ class SaveAsBox {
 }
 
 var saveAsBox = new SaveAsBox();
+
+class ConfirmBox {
+    #confirm_box: Popbox | null = null;
+
+    constructor() {
+        $("#confirm_box").on('popbox_closing', (_ev) => {
+            $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
+        });
+    }
+
+    show(text: string, okayCallback: ()=> void): void {
+        $('#confirm_text').text(text);
+        $("#confirm_ok").on('click', (ev) => {
+            console.log("ok");
+            ev.preventDefault();
+            if (okayCallback) okayCallback();
+        });
+        $("#confirm_cancel").on('click', (ev) => {
+            console.log("canceled");
+            ev.preventDefault();
+        });
+
+        this.#confirm_box = new Popbox({
+            blur: true,
+            overlay: true,
+        });
+        this.#confirm_box.open('confirm_box');
+        $('#confirm_box').focus();
+    }
+}
+
+var confirmBox = new ConfirmBox();

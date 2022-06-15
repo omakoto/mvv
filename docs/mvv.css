@@ -143,6 +143,14 @@ canvas#roll2 {
     width: 20em;
 }
 
+#confirm_box {
+}
+
+#confirm_text {
+    margin: 0px 0px 8px 0px;
+    font-size: 12pt;
+}
+
 /* unvisited link */
 a:link {
     color: var(--main-text-color);
