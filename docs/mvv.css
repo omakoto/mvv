@@ -185,6 +185,8 @@ canvas#roll2 {
     grid-row: 1 / 1;
     z-index: 1;
     margin-right: calc(var(--icon-size));
+
+    pointer-events: none; /* Allow position_bar to receive mousedowns  */
 }
 
 #position {
@@ -192,6 +194,8 @@ canvas#roll2 {
     left: 0%;
     background-image: url("res/position.png");
     background-size: var(--icon-size);
+
+    pointer-events: auto; /* Cancel parent's 'none' */
 }
 
 #fps {

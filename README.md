@@ -26,12 +26,13 @@
 
 ## Bugs/TODOs
 
+- [ ] P4: Re-architect it
 - [ ] P1: On-screen playback/recording controls
   - [X] Play/Record/Stop/Pause/RewindToTop
   - [ ] FF/Rewind
   - [ ] Video mute
   - [ ] Pane freeze
-  - [ ] Current position
+  - [X] Current position
 - [ ] P1: Always recording
   - [ ] Estimate RAM consumption
   - [ ] Throttle control (at least the pedal) changes if needed.

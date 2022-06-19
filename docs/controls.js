@@ -195,6 +195,7 @@ class Controls {
     directJump(ev) {
         const max = __classPrivateFieldGet(this, _Controls_positionBar, "f").innerWidth();
         console.log("jump to: " + ev.offsetX + " / " + max);
+        coordinator.moveToPercent(ev.offsetX / max);
     }
 }
 _Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();

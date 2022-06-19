@@ -207,6 +207,8 @@ class Controls {
     private directJump(ev: any): void { // TODO: What's the type?
         const max: number = this.#positionBar.innerWidth()!;
         console.log("jump to: " + ev.offsetX + " / " + max);
+
+        coordinator.moveToPercent(ev.offsetX / max);
     }
 }
 
