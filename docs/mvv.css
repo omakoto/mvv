@@ -155,14 +155,6 @@ canvas#roll2 {
     font-weight: 400;
 }
 
-#position {
-    background-image: url("res/position.png");
-    background-size: var(--icon-size);
-    grid-column: 1 / 1;
-    grid-row: 1 / 1;
-    z-index: 1;
-}
-
 #position_bar {
     background-image: url("res/h-bar.png");
     background-size: var(--icon-size);
@@ -175,6 +167,20 @@ canvas#roll2 {
     margin-right: calc(var(--icon-size) / 2);
     width: calc(100% - var(--icon-size));
     z-index: 0;
+}
+
+#position_outer {
+    grid-column: 1 / 1;
+    grid-row: 1 / 1;
+    z-index: 1;
+    margin-right: calc(var(--icon-size) / 2);
+}
+
+#position {
+    position: relative;
+    left: 0%;
+    background-image: url("res/position.png");
+    background-size: var(--icon-size);
 }
 
 #fps {
