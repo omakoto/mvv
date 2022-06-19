@@ -107,9 +107,12 @@ canvas#roll2 {
     filter: grayscale(100%) brightness(60%)
 }
 
-.button-ongoing {
-    pointer-events: none;
+.button-activated {
     filter: brightness(4);
+}
+
+.button-unclickable {
+    pointer-events: none;
 }
 
 #top {
@@ -150,10 +153,16 @@ canvas#roll2 {
 
 #fullscreen {
     background-image: url("res/fullscreen.png");
-    margin-left: 12px;
+}
+#video-mute {
+    background-image: url("res/video-mute.png");
+}
+#freeze {
+    background-image: url("res/freeze.png");
 }
 #source {
     background-image: url("res/source.png");
+    margin-right: 12px;
 }
 
 #timestamp {

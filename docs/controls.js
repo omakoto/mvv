@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Controls_top, _Controls_rewind, _Controls_play, _Controls_playing, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_recording, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_playing, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_recording, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 class Controls {
     constructor() {
         _Controls_top.set(this, void 0);
@@ -27,6 +27,8 @@ class Controls {
         _Controls_position.set(this, void 0);
         _Controls_positionOuter.set(this, void 0);
         _Controls_positionBar.set(this, void 0);
+        _Controls_freeze.set(this, void 0);
+        _Controls_videoMute.set(this, void 0);
         _Controls_isPositionDragging.set(this, false);
         _Controls_wasPlayingBeforeDrag.set(this, false);
         __classPrivateFieldSet(this, _Controls_top, $("#top"), "f");
@@ -43,6 +45,8 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_position, $("#position"), "f");
         __classPrivateFieldSet(this, _Controls_positionOuter, $("#position_outer"), "f");
         __classPrivateFieldSet(this, _Controls_positionBar, $("#position_bar"), "f");
+        __classPrivateFieldSet(this, _Controls_freeze, $("#freeze"), "f");
+        __classPrivateFieldSet(this, _Controls_videoMute, $("#video-mute"), "f");
         __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
             coordinator.moveToStart();
             ev.stopPropagation();
@@ -69,6 +73,26 @@ class Controls {
         });
         __classPrivateFieldGet(this, _Controls_down, "f").on('click', (ev) => {
             coordinator.downloadRequested();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_freeze, "f").on('click', (ev) => {
+            coordinator.toggleRollFrozen();
+            if (renderer.isRollFrozen) {
+                $(ev.target).removeClass('button-activated');
+            }
+            else {
+                $(ev.target).addClass('button-activated');
+            }
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_videoMute, "f").on('click', (ev) => {
+            coordinator.toggleVideoMute();
+            if (renderer.isVideoMuted) {
+                $(ev.target).removeClass('button-activated');
+            }
+            else {
+                $(ev.target).addClass('button-activated');
+            }
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_position, "f").draggable({
@@ -198,5 +222,5 @@ class Controls {
         coordinator.moveToPercent(ev.offsetX / max);
     }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
 const controls = new Controls();

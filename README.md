@@ -29,9 +29,9 @@
 - [ ] P4: Re-architect it
 - [ ] P1: On-screen playback/recording controls
   - [X] Play/Record/Stop/Pause/RewindToTop
-  - [ ] FF/Rewind
-  - [ ] Video mute
-  - [ ] Pane freeze
+  - [ ] ~~FF/Rewind -> not needed, now that we have the position bar~~
+  - [X] Video mute
+  - [X] Pane freeze
   - [X] Current position
 - [ ] P1: Always recording
   - [ ] Estimate RAM consumption

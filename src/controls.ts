@@ -15,6 +15,8 @@ class Controls {
     #position;
     #positionOuter;
     #positionBar;
+    #freeze;
+    #videoMute;
 
     constructor() {
         this.#top = $("#top");
@@ -33,6 +35,8 @@ class Controls {
         this.#position = $("#position");
         this.#positionOuter = $("#position_outer");
         this.#positionBar = $("#position_bar");
+        this.#freeze = $("#freeze");
+        this.#videoMute = $("#video-mute");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -62,6 +66,24 @@ class Controls {
         });
         this.#down.on('click', (ev) => {
             coordinator.downloadRequested();
+            ev.stopPropagation();
+        });
+        this.#freeze.on('click', (ev) => {
+            coordinator.toggleRollFrozen();
+            if (renderer.isRollFrozen) {
+                $(ev.target).addClass('button-activated')
+            } else {
+                $(ev.target).removeClass('button-activated')
+            }
+            ev.stopPropagation();
+        });
+        this.#videoMute.on('click', (ev) => {
+            coordinator.toggleVideoMute();
+            if (renderer.isVideoMuted) {
+                $(ev.target).addClass('button-activated')
+            } else {
+                $(ev.target).removeClass('button-activated')
+            }
             ev.stopPropagation();
         });
 

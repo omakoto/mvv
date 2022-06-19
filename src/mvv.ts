@@ -237,6 +237,10 @@ class Renderer {
     get isRollFrozen(): boolean {
         return this.#rollFrozen;
     }
+
+    get isVideoMuted(): boolean {
+        return $('#canvases').css('display') === 'none';
+    }
 }
 
 const renderer = new Renderer();
@@ -717,6 +721,7 @@ class Coordinator {
     toggleVideoMute(): void {
         info("Toggle video mute");
         renderer.toggleMute();
+        this.updateUi();
     }
 
     toggleRollFrozen(): void {
@@ -724,6 +729,7 @@ class Coordinator {
         if (renderer.isRollFrozen) {
             info("Roll frozen");
         }
+        this.updateUi();
     }
 
     toggleRecording(): void {

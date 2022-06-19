@@ -208,6 +208,9 @@ class Renderer {
     get isRollFrozen() {
         return __classPrivateFieldGet(this, _Renderer_rollFrozen, "f");
     }
+    get isVideoMuted() {
+        return $('#canvases').css('display') === 'none';
+    }
 }
 _Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_ROLL_SCROLL_AMOUNT = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap();
 const renderer = new Renderer();
@@ -631,12 +634,14 @@ class Coordinator {
     toggleVideoMute() {
         info("Toggle video mute");
         renderer.toggleMute();
+        this.updateUi();
     }
     toggleRollFrozen() {
         renderer.toggleRollFrozen();
         if (renderer.isRollFrozen) {
             info("Roll frozen");
         }
+        this.updateUi();
     }
     toggleRecording() {
         if (recorder.isRecording) {
