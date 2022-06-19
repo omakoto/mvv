@@ -66,10 +66,12 @@ canvas#roll2 {
     height: var(--icon-size);
 }
 #control_position {
-    display: inline-block;
+    display: inline-grid; /* Use grid to overlap the children */
     height: var(--icon-size);
     flex-grow: 1;
-    padding: 0pt 8pt 0pt 8pt;;
+    padding: 0pt 8pt 0pt 8pt;
+    grid-template-columns: 100%;
+    grid-template-rows: 100%;
 }
 
 
@@ -153,13 +155,26 @@ canvas#roll2 {
     font-weight: 400;
 }
 
+#position {
+    background-image: url("res/position.png");
+    background-size: var(--icon-size);
+    grid-column: 1 / 1;
+    grid-row: 1 / 1;
+    z-index: 1;
+}
+
 #position_bar {
     background-image: url("res/h-bar.png");
     background-size: var(--icon-size);
     background-repeat: repeat-x;
-    width: 100%;
     height: 100%;
     filter: brightness(0.6);
+    grid-column: 1 / 1;
+    grid-row: 1 / 1;
+    margin-left: calc(var(--icon-size) / 2);
+    margin-right: calc(var(--icon-size) / 2);
+    width: calc(100% - var(--icon-size));
+    z-index: 0;
 }
 
 #fps {
@@ -213,4 +228,22 @@ a:hover {
 /* selected link */
 a:active {
     color: var(--main-text-color);
+}
+
+
+element.style {
+    top: 242.195px;
+    left: 143.678px;
+}
+.ui-widget.ui-widget-content {
+    border: 1px solid #d3d3d3;
+}
+body .ui-tooltip {
+    border-width: 2px;
+}
+
+.ui-widget-shadow {
+    /* Remove the shadow from the tooptip */
+    box-shadow: none;
+    -webkit-box-shadow: none;
 }
