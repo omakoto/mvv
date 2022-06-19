@@ -4,6 +4,8 @@ html {
 
     --main-text-color: #ffff20;
     --icon-size: 32px;
+    --icon-space: 12px;
+    --control-margin: 4px;
 }
 body {
     width: 100%;
@@ -41,16 +43,29 @@ canvas#roll2 {
 }
 
 #controls {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
     position: fixed;
     left: 0px;
     bottom: 0px;
-    width: 100%;
-    padding: 4px;
+    width: calc(100% - var(--control-margin)*2);
+    margin: var(--control-margin);
+}
+#controls_left {
+    display: inline-block;
+    height: var(--icon-size);
+}
+#controls_middle {
+    display: inline-block;
+    height: var(--icon-size);
+    /* background-color: yellow; */
+    flex-grow: 1;
 }
 #controls_right {
-    position: fixed;
-    right: 0px;
-    bottom: 0px;
+    display: inline-block;
+    height: var(--icon-size);
 }
 
 .button {
@@ -108,7 +123,7 @@ canvas#roll2 {
 }
 #up {
     background-image: url("res/up.png");
-    margin-left: 12px;
+    margin-left: var(--icon-space);
 }
 #down {
     background-image: url("res/down.png");
@@ -136,6 +151,8 @@ canvas#roll2 {
     font-size: 12pt;
     font-weight: bold;
 }
+
+
 
 .popbox_container {
     color: #202020;
