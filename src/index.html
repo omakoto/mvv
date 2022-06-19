@@ -23,20 +23,23 @@
     <!-- This is used to open a "open file" system dialog box. -->
     <input type="file" id="open_file" style="display:none" />
 
-    <div id="buttons">
+    <div id="controls">
         <div id="top" class="button"></div>
         <!-- <div id="rewind" class="button"></div> not implemented yet-->
         <div id="play" class="button"></div>
-        <div id="play-i" class="button button-always-disabled"></div>
+        <div id="play-i" class="button button-ongoing"></div>
         <div id="pause" class="button"></div>
         <div id="stop" class="button"></div>
         <!-- <div id="ff" class="button"></div> not implemented yet -->
         <div id="record" class="button"></div>
-        <div id="record-i" class="button button-always-disabled"></div>
+        <div id="record-i" class="button button-ongoing"></div>
         <div id="up" class="button"></div>
         <div id="down" class="button"></div>
-        <div id="fullscreen" class="button"></div>
-        <div id="source" class="button"></div>
+
+        <div id="controls_right">
+            <div id="source" class="button"></div>
+            <div id="fullscreen" class="button"></div>
+        </div>
     </div>
 
     <span id="fps">--</span>

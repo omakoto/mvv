@@ -42,8 +42,15 @@ canvas#roll2 {
 
 #controls {
     position: fixed;
-    top: 8px;
-    left: 8px;
+    left: 0px;
+    bottom: 0px;
+    width: 100%;
+    padding: 4px;
+}
+#controls_right {
+    position: fixed;
+    right: 0px;
+    bottom: 0px;
 }
 
 .button {
@@ -52,7 +59,6 @@ canvas#roll2 {
     background-size: var(--icon-size);
     background-repeat: no-repeat;
     display: inline-block;
-    filter: brightness(250%)
 }
 
 .button:hover {
@@ -65,11 +71,12 @@ canvas#roll2 {
 
 .button-disabled {
     pointer-events: none;
-    filter: grayscale(100%) brightness(80%)
+    filter: grayscale(100%) brightness(60%)
 }
 
-.button-always-disabled {
+.button-ongoing {
     pointer-events: none;
+    filter: brightness(4);
 }
 
 #top {
@@ -82,7 +89,7 @@ canvas#roll2 {
     background-image: url("res/play.png");
 }
 #play-i {
-    background-image: url("res/play-i.png");
+    background-image: url("res/play.png");
 }
 #pause {
     background-image: url("res/pause.png");
@@ -97,22 +104,21 @@ canvas#roll2 {
     background-image: url("res/record.png");
 }
 #record-i {
-    background-image: url("res/record-i.png");
+    background-image: url("res/record.png");
 }
 #up {
     background-image: url("res/up.png");
-    margin-left: 24px;
+    margin-left: 12px;
 }
 #down {
     background-image: url("res/down.png");
 }
 #fullscreen {
     background-image: url("res/fullscreen.png");
-    margin-left: 24px;
+    margin-left: 12px;
 }
 #source {
     background-image: url("res/source.png");
-    margin-left: 24px;
 }
 
 #fps {
