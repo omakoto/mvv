@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Controls_top, _Controls_rewind, _Controls_play, _Controls_playing, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_recording, _Controls_up, _Controls_down;
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_playing, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_recording, _Controls_up, _Controls_down, _Controls_position;
 class Controls {
     constructor() {
         _Controls_top.set(this, void 0);
@@ -24,6 +24,7 @@ class Controls {
         _Controls_recording.set(this, void 0);
         _Controls_up.set(this, void 0);
         _Controls_down.set(this, void 0);
+        _Controls_position.set(this, void 0);
         __classPrivateFieldSet(this, _Controls_top, $("#top"), "f");
         __classPrivateFieldSet(this, _Controls_play, $("#play"), "f");
         __classPrivateFieldSet(this, _Controls_playing, $("#play-i"), "f");
@@ -35,6 +36,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_ff, $("#ff"), "f");
         __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
         __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
+        __classPrivateFieldSet(this, _Controls_position, $("#position"), "f");
         __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
             coordinator.moveToStart();
             ev.stopPropagation();
@@ -122,11 +124,13 @@ class Controls {
         this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
         this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
         this.disable(__classPrivateFieldGet(this, _Controls_down, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
         if (recorder.isAnythingRecorded) {
             this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_down, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
         }
     }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap();
 const controls = new Controls();

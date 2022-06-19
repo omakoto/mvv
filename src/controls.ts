@@ -12,6 +12,7 @@ class Controls {
     #recording;
     #up;
     #down;
+    #position;
 
     constructor() {
         this.#top = $("#top");
@@ -26,6 +27,8 @@ class Controls {
 
         this.#up = $("#up");
         this.#down = $("#down");
+
+        this.#position = $("#position");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -121,12 +124,17 @@ class Controls {
         this.disable(this.#ff);
 
         this.disable(this.#down);
+        this.disable(this.#position);
 
         if (recorder.isAnythingRecorded) {
             this.enable(this.#play);
             this.enable(this.#down);
+            this.enable(this.#position);
         }
     }
+
+    // setCurrentPosition(positionMillis: number, totalMillis: number) {
+    // }
 }
 
 const controls = new Controls();
