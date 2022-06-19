@@ -13,6 +13,8 @@ class Controls {
     #up;
     #down;
     #position;
+    #positionOuter;
+
 
     constructor() {
         this.#top = $("#top");
@@ -29,6 +31,7 @@ class Controls {
         this.#down = $("#down");
 
         this.#position = $("#position");
+        this.#positionOuter = $("#position_outer");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -60,6 +63,16 @@ class Controls {
             coordinator.downloadRequested();
             ev.stopPropagation();
         });
+
+        this.#position.draggable({
+            addClasses: false,
+            axis: "x",
+            // containment: "parent", // Doesn't work because jquery takes into account the element width,
+            // making it impossible to drag to the end.
+        });
+        this.#position.on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
+        this.#position.on('drag', (ev, ui) => this.positionDrag(ev, ui));
+        this.#position.on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
     }
 
     private hide(control: JQuery<HTMLElement>): void {
@@ -87,6 +100,7 @@ class Controls {
             this.enable(this.#recording);
             this.disable(this.#rewind);
             this.disable(this.#ff);
+            this.disable(this.#position);
             return;
         }
         if (recorder.isPlaying) {
@@ -99,6 +113,7 @@ class Controls {
             this.hide(this.#recording);
             this.enable(this.#rewind);
             this.enable(this.#ff);
+            this.enable(this.#position);
             return;
         }
         if (recorder.isPausing) {
@@ -111,6 +126,7 @@ class Controls {
             this.hide(this.#recording);
             this.enable(this.#rewind);
             this.enable(this.#ff);
+            this.enable(this.#position);
             return;
         }
         this.disable(this.#top);
@@ -134,11 +150,56 @@ class Controls {
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {
+        if (this.#isPositionDragging) {
+            // Dragging, ignore it.
+            return;
+        }
         let percent = 0;
         if (totalMillis > 0) {
             percent = Math.min(100, positionMillis / totalMillis * 100);
         }
         this.#position.css('left', percent + '%');
+    }
+
+    #isPositionDragging = false;
+    #wasPlayingBeforeDrag = false;
+
+    private positionDragStart(_ev: any, _ui: any): void {
+        console.log("Drag start");
+        this.#isPositionDragging = true;
+
+        this.#wasPlayingBeforeDrag = false;
+        if (recorder.isPlaying) {
+            this.#wasPlayingBeforeDrag = true;
+            coordinator.pause();
+        }
+    }
+
+    private positionDrag(_ev: any, ui: any): void {
+        if (ui.position.left < 0) {
+            ui.position.left = 0;
+            return;
+        }
+        const max: number = this.#positionOuter.innerWidth()!;
+        if (ui.position.left > max) {
+            ui.position.left = max;
+        }
+        const left: number = ui.position.left;
+        coordinator.moveToPercent(left / max);
+    }
+
+    private positionDragStop(_ev: any, ui: any): void {
+        console.log("Drag stop: " + ui.position.left);
+        this.#isPositionDragging = false;
+
+        const max: number = this.#positionOuter.innerWidth()!;
+        const left: number = ui.position.left;
+
+        coordinator.moveToPercent(left / max);
+
+        if (this.#wasPlayingBeforeDrag) {
+            coordinator.startPlayback();
+        }
     }
 }
 

@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Controls_top, _Controls_rewind, _Controls_play, _Controls_playing, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_recording, _Controls_up, _Controls_down, _Controls_position;
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_playing, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_recording, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 class Controls {
     constructor() {
         _Controls_top.set(this, void 0);
@@ -25,6 +25,9 @@ class Controls {
         _Controls_up.set(this, void 0);
         _Controls_down.set(this, void 0);
         _Controls_position.set(this, void 0);
+        _Controls_positionOuter.set(this, void 0);
+        _Controls_isPositionDragging.set(this, false);
+        _Controls_wasPlayingBeforeDrag.set(this, false);
         __classPrivateFieldSet(this, _Controls_top, $("#top"), "f");
         __classPrivateFieldSet(this, _Controls_play, $("#play"), "f");
         __classPrivateFieldSet(this, _Controls_playing, $("#play-i"), "f");
@@ -37,6 +40,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
         __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
         __classPrivateFieldSet(this, _Controls_position, $("#position"), "f");
+        __classPrivateFieldSet(this, _Controls_positionOuter, $("#position_outer"), "f");
         __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
             coordinator.moveToStart();
             ev.stopPropagation();
@@ -65,6 +69,15 @@ class Controls {
             coordinator.downloadRequested();
             ev.stopPropagation();
         });
+        __classPrivateFieldGet(this, _Controls_position, "f").draggable({
+            addClasses: false,
+            axis: "x",
+            // containment: "parent", // Doesn't work because jquery takes into account the element width,
+            // making it impossible to drag to the end.
+        });
+        __classPrivateFieldGet(this, _Controls_position, "f").on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
+        __classPrivateFieldGet(this, _Controls_position, "f").on('drag', (ev, ui) => this.positionDrag(ev, ui));
+        __classPrivateFieldGet(this, _Controls_position, "f").on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
     }
     hide(control) {
         control.hide();
@@ -88,6 +101,7 @@ class Controls {
             this.enable(__classPrivateFieldGet(this, _Controls_recording, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
             return;
         }
         if (recorder.isPlaying) {
@@ -100,6 +114,7 @@ class Controls {
             this.hide(__classPrivateFieldGet(this, _Controls_recording, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
             return;
         }
         if (recorder.isPausing) {
@@ -112,6 +127,7 @@ class Controls {
             this.hide(__classPrivateFieldGet(this, _Controls_recording, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
             return;
         }
         this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
@@ -132,12 +148,47 @@ class Controls {
         }
     }
     setCurrentPosition(positionMillis, totalMillis) {
+        if (__classPrivateFieldGet(this, _Controls_isPositionDragging, "f")) {
+            // Dragging, ignore it.
+            return;
+        }
         let percent = 0;
         if (totalMillis > 0) {
             percent = Math.min(100, positionMillis / totalMillis * 100);
         }
         __classPrivateFieldGet(this, _Controls_position, "f").css('left', percent + '%');
     }
+    positionDragStart(_ev, _ui) {
+        console.log("Drag start");
+        __classPrivateFieldSet(this, _Controls_isPositionDragging, true, "f");
+        __classPrivateFieldSet(this, _Controls_wasPlayingBeforeDrag, false, "f");
+        if (recorder.isPlaying) {
+            __classPrivateFieldSet(this, _Controls_wasPlayingBeforeDrag, true, "f");
+            coordinator.pause();
+        }
+    }
+    positionDrag(_ev, ui) {
+        if (ui.position.left < 0) {
+            ui.position.left = 0;
+            return;
+        }
+        const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
+        if (ui.position.left > max) {
+            ui.position.left = max;
+        }
+        const left = ui.position.left;
+        coordinator.moveToPercent(left / max);
+    }
+    positionDragStop(_ev, ui) {
+        console.log("Drag stop: " + ui.position.left);
+        __classPrivateFieldSet(this, _Controls_isPositionDragging, false, "f");
+        const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
+        const left = ui.position.left;
+        coordinator.moveToPercent(left / max);
+        if (__classPrivateFieldGet(this, _Controls_wasPlayingBeforeDrag, "f")) {
+            coordinator.startPlayback();
+        }
+    }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
 const controls = new Controls();

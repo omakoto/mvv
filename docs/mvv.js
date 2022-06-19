@@ -666,9 +666,12 @@ class Coordinator {
         this.updateUi();
     }
     startPlayback() {
+        renderer.show();
         if (recorder.isIdle) {
-            renderer.show();
             recorder.startPlaying();
+        }
+        else if (recorder.isPausing) {
+            recorder.unpause();
         }
         this.updateUi();
     }
@@ -695,6 +698,16 @@ class Coordinator {
             this.resetMidi();
             recorder.moveToStart();
         }
+        this.updateUi();
+    }
+    moveToPercent(percent) {
+        if (recorder.isRecording) {
+            return;
+        }
+        const newTime = recorder.lastEventTimestamp * percent;
+        this.resetMidi();
+        recorder.moveToStart();
+        recorder.adjustPlaybackPosition(newTime);
         this.updateUi();
     }
     toggleFullScreen() {
