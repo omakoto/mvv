@@ -14,7 +14,7 @@ class Controls {
     #down;
     #position;
     #positionOuter;
-
+    #positionBar;
 
     constructor() {
         this.#top = $("#top");
@@ -32,6 +32,7 @@ class Controls {
 
         this.#position = $("#position");
         this.#positionOuter = $("#position_outer");
+        this.#positionBar = $("#position_bar");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -73,6 +74,7 @@ class Controls {
         this.#position.on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
         this.#position.on('drag', (ev, ui) => this.positionDrag(ev, ui));
         this.#position.on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
+        this.#positionBar.on('mousedown', (ev) => this.directJump(ev));
     }
 
     private hide(control: JQuery<HTMLElement>): void {
@@ -164,7 +166,7 @@ class Controls {
     #isPositionDragging = false;
     #wasPlayingBeforeDrag = false;
 
-    private positionDragStart(_ev: any, _ui: any): void {
+    private positionDragStart(_ev: any, _ui: any): void { // TODO: What's the type?
         console.log("Drag start");
         this.#isPositionDragging = true;
 
@@ -200,6 +202,11 @@ class Controls {
         if (this.#wasPlayingBeforeDrag) {
             coordinator.startPlayback();
         }
+    }
+
+    private directJump(ev: any): void { // TODO: What's the type?
+        const max: number = this.#positionBar.innerWidth()!;
+        console.log("jump to: " + ev.offsetX + " / " + max);
     }
 }
 
