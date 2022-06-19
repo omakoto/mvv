@@ -111,7 +111,8 @@ canvas#roll2 {
     filter: brightness(4);
 }
 
-.button-unclickable {
+.button-activated-unclickable {
+    filter: brightness(4);
     pointer-events: none;
 }
 
@@ -124,9 +125,6 @@ canvas#roll2 {
 #play {
     background-image: url("res/play.png");
 }
-#play-i {
-    background-image: url("res/play.png");
-}
 #pause {
     background-image: url("res/pause.png");
 }
@@ -137,9 +135,6 @@ canvas#roll2 {
     background-image: url("res/ff.png");
 }
 #record {
-    background-image: url("res/record.png");
-}
-#record-i {
     background-image: url("res/record.png");
 }
 #up {

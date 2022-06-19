@@ -4,12 +4,10 @@ class Controls {
     #top;
     #rewind;
     #play;
-    #playing;
     #pause;
     #ff;
     #stop;
     #record;
-    #recording;
     #up;
     #down;
     #position;
@@ -21,11 +19,9 @@ class Controls {
     constructor() {
         this.#top = $("#top");
         this.#play = $("#play");
-        this.#playing = $("#play-i");
         this.#pause = $("#pause");
         this.#stop = $("#stop");
         this.#record = $("#record");
-        this.#recording = $("#record-i");
         this.#rewind = $("#rewind");
         this.#ff = $("#ff");
 
@@ -70,20 +66,12 @@ class Controls {
         });
         this.#freeze.on('click', (ev) => {
             coordinator.toggleRollFrozen();
-            if (renderer.isRollFrozen) {
-                $(ev.target).addClass('button-activated')
-            } else {
-                $(ev.target).removeClass('button-activated')
-            }
+            this.update();
             ev.stopPropagation();
         });
         this.#videoMute.on('click', (ev) => {
             coordinator.toggleVideoMute();
-            if (renderer.isVideoMuted) {
-                $(ev.target).addClass('button-activated')
-            } else {
-                $(ev.target).removeClass('button-activated')
-            }
+            this.update();
             ev.stopPropagation();
         });
 
@@ -99,29 +87,42 @@ class Controls {
         this.#positionBar.on('mousedown', (ev) => this.directJump(ev));
     }
 
-    private hide(control: JQuery<HTMLElement>): void {
-        control.hide();
+    private removeClassses(control: JQuery<HTMLElement>): void {
+        control.removeClass('button-disabled')
+        control.removeClass('button-activated')
+        control.removeClass('button-activated-unclickable')
     }
 
     private disable(control: JQuery<HTMLElement>): void {
-        control.show();
+        this.removeClassses(control);
         control.addClass('button-disabled')
     }
 
     private enable(control: JQuery<HTMLElement>): void {
-        control.show();
-        control.removeClass('button-disabled')
+        this.removeClassses(control);
+    }
+
+    private activate(control: JQuery<HTMLElement>, activate = true): void {
+        this.removeClassses(control);
+        if (activate) {
+            control.addClass('button-activated')
+        }
+    }
+
+    private activateUnclickable(control: JQuery<HTMLElement>): void {
+        this.removeClassses(control);
+        control.addClass('button-activated-unclickable')
     }
 
     public update() {
+        this.activate(this.#freeze, renderer.isRollFrozen);
+        this.activate(this.#videoMute, renderer.isVideoMuted);
         if (recorder.isRecording) {
             this.disable(this.#top);
             this.disable(this.#play);
-            this.hide(this.#playing);
             this.disable(this.#pause);
             this.enable(this.#stop);
-            this.hide(this.#record);
-            this.enable(this.#recording);
+            this.activateUnclickable(this.#record);
             this.disable(this.#rewind);
             this.disable(this.#ff);
             this.disable(this.#position);
@@ -129,12 +130,10 @@ class Controls {
         }
         if (recorder.isPlaying) {
             this.enable(this.#top);
-            this.hide(this.#play);
-            this.enable(this.#playing);
+            this.activateUnclickable(this.#play);
             this.enable(this.#pause);
             this.enable(this.#stop);
             this.enable(this.#record);
-            this.hide(this.#recording);
             this.enable(this.#rewind);
             this.enable(this.#ff);
             this.enable(this.#position);
@@ -143,11 +142,9 @@ class Controls {
         if (recorder.isPausing) {
             this.enable(this.#top);
             this.enable(this.#play);
-            this.hide(this.#playing);
             this.enable(this.#pause);
             this.enable(this.#stop);
             this.enable(this.#record);
-            this.hide(this.#recording);
             this.enable(this.#rewind);
             this.enable(this.#ff);
             this.enable(this.#position);
@@ -155,11 +152,9 @@ class Controls {
         }
         this.disable(this.#top);
         this.disable(this.#play);
-        this.hide(this.#playing);
         this.disable(this.#pause);
         this.disable(this.#stop);
         this.enable(this.#record);
-        this.hide(this.#recording);
         this.disable(this.#rewind);
         this.disable(this.#ff);
 
