@@ -69,6 +69,7 @@ canvas#roll2 {
     display: inline-block;
     height: var(--icon-size);
     flex-grow: 1;
+    padding: 0pt 8pt 0pt 8pt;;
 }
 
 
@@ -150,6 +151,15 @@ canvas#roll2 {
     text-align: center;
     color: white;
     font-weight: 400;
+}
+
+#position_bar {
+    background-image: url("res/h-bar.png");
+    background-size: var(--icon-size);
+    background-repeat: repeat-x;
+    width: 100%;
+    height: 100%;
+    filter: brightness(0.6);
 }
 
 #fps {
