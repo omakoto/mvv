@@ -60,13 +60,17 @@ canvas#roll2 {
 #controls_middle {
     display: inline-block;
     height: var(--icon-size);
-    /* background-color: yellow; */
-    flex-grow: 1;
 }
 #controls_right {
     display: inline-block;
     height: var(--icon-size);
 }
+#control_position {
+    display: inline-block;
+    height: var(--icon-size);
+    flex-grow: 1;
+}
+
 
 .button {
     width: var(--icon-size);
@@ -127,13 +131,25 @@ canvas#roll2 {
 }
 #down {
     background-image: url("res/down.png");
+    margin-right: 12px;
 }
+
 #fullscreen {
     background-image: url("res/fullscreen.png");
     margin-left: 12px;
 }
 #source {
     background-image: url("res/source.png");
+}
+
+#timestamp {
+    display: inline-block;
+    font-size: 14pt;
+    padding-top: 4pt;
+    width: 4em;
+    text-align: center;
+    color: white;
+    font-weight: 400;
 }
 
 #fps {
@@ -151,7 +167,6 @@ canvas#roll2 {
     font-size: 12pt;
     font-weight: bold;
 }
-
 
 
 .popbox_container {
