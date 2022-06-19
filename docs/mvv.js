@@ -966,6 +966,9 @@ $('#fullscreen').on('click', (_ev) => {
 $('#source').on('click', (_ev) => {
     window.open("https://github.com/omakoto/mvv", "source");
 });
+$(function () {
+    $(document).tooltip();
+});
 // $("body").on('dblclick', (_ev) => {
 //     coordinator.toggleFullScreen();
 //     coordinator.extendWakelock();
