@@ -346,6 +346,7 @@ class Recorder {
     #playbackTimeAdjustment = 0;
     #pauseStartTimestamp = 0;
     #nextPlaybackIndex = 0;
+    #lastEventTimestamp = 0;
 
     #isDirty = false;
 
@@ -443,6 +444,10 @@ class Recorder {
         return this.#getCurrentPlaybackTimestamp();
     }
 
+    get lastEventTimestamp(): number {
+        return this.#lastEventTimestamp;
+    }
+
     #startRecording(): void {
         info("Recording started");
         this.#state = RecorderState.Recording;
@@ -496,7 +501,10 @@ class Recorder {
             // First event, remember the timestamp.
             this.#recordingStartTimestamp = ev.timeStamp;
         }
-        this.#events.push(ev.withTimestamp(ev.timeStamp - this.#recordingStartTimestamp));
+
+        const ts = ev.timeStamp - this.#recordingStartTimestamp;
+        this.#events.push(ev.withTimestamp(ts));
+        this.#lastEventTimestamp = ts;
 
         return true;
     }
@@ -611,6 +619,7 @@ class Recorder {
         }
 
         const lastEvent = events[events.length - 1]!;
+        this.#lastEventTimestamp = lastEvent.timeStamp;
 
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
         info(message);
@@ -928,10 +937,13 @@ class Coordinator {
                 this.#timestamp.text(timeStamp);
                 this.#onPlaybackTimer_lastShownPlaybackTimestamp = timeStamp;
             }
+            controls.setCurrentPosition(recorder.currentPlaybackTimestamp, recorder.lastEventTimestamp);
         } else if (recorder.isRecording) {
             this.#timestamp.text("-");
+            controls.setCurrentPosition(0, 0);
         } else {
             this.#timestamp.text("0.00");
+            controls.setCurrentPosition(0, 0);
         }
     }
 

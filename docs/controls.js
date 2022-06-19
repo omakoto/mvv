@@ -131,6 +131,13 @@ class Controls {
             this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
         }
     }
+    setCurrentPosition(positionMillis, totalMillis) {
+        let percent = 0;
+        if (totalMillis > 0) {
+            percent = Math.min(100, positionMillis / totalMillis * 100);
+        }
+        __classPrivateFieldGet(this, _Controls_position, "f").css('left', percent + '%');
+    }
 }
 _Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_playing = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_recording = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap();
 const controls = new Controls();

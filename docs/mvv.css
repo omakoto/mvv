@@ -173,7 +173,7 @@ canvas#roll2 {
     grid-column: 1 / 1;
     grid-row: 1 / 1;
     z-index: 1;
-    margin-right: calc(var(--icon-size) / 2);
+    margin-right: calc(var(--icon-size));
 }
 
 #position {

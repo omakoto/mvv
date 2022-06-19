@@ -133,8 +133,13 @@ class Controls {
         }
     }
 
-    // setCurrentPosition(positionMillis: number, totalMillis: number) {
-    // }
+    setCurrentPosition(positionMillis: number, totalMillis: number) {
+        let percent = 0;
+        if (totalMillis > 0) {
+            percent = Math.min(100, positionMillis / totalMillis * 100);
+        }
+        this.#position.css('left', percent + '%');
+    }
 }
 
 const controls = new Controls();
