@@ -1036,8 +1036,6 @@ worker.onmessage = (e) => {
 navigator.requestMIDIAccess()
     .then(onMIDISuccess, onMIDIFailure);
 
-const elink = $('#link');
-const efullscreen = $('#fullscreen');
 const ebody = $('body');
 
 $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
@@ -1070,16 +1068,6 @@ function loadMidiFile(file: File) {
 let clearCursorTimeout: number | null = null;
 
 $("body").on("mousemove", function(_ev) {
-    // Show the source link.
-    elink.stop(true, true);
-    elink.show();
-    elink.delay(3000).fadeOut(1000);
-
-    // Show the full screen action. TODO: merge it with the above code.
-    efullscreen.stop(true, true);
-    efullscreen.show();
-    efullscreen.delay(3000).fadeOut(1000);
-
     if (clearCursorTimeout !== null) {
         clearTimeout(clearCursorTimeout);
     }
@@ -1109,19 +1097,17 @@ $("#open_file").on("change", (ev) => {
     loadMidiFile(file);
 });
 
-$(efullscreen).on('click', (_ev) => {
+$('#fullscreen').on('click', (_ev) => {
     coordinator.toggleFullScreen();
 });
+$('#source').on('click', (_ev) => {
+    window.open("https://github.com/omakoto/mvv", "source");
+});
 
-// Try to prevent double-clkcing buttons from going to body. not working.
-// $("#buttons").on('dblclick', (ev) => {
-//     ev.preventDefault();
+// $("body").on('dblclick', (_ev) => {
+//     coordinator.toggleFullScreen();
+//     coordinator.extendWakelock();
 // });
-
-$("body").on('dblclick', (_ev) => {
-    coordinator.toggleFullScreen();
-    coordinator.extendWakelock();
-});
 
 
 // Start the timers.

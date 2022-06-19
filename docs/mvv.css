@@ -40,7 +40,7 @@ canvas#roll2 {
     display: block;
 }
 
-#buttons {
+#controls {
     position: fixed;
     top: 8px;
     left: 8px;
@@ -52,6 +52,7 @@ canvas#roll2 {
     background-size: var(--icon-size);
     background-repeat: no-repeat;
     display: inline-block;
+    filter: brightness(250%)
 }
 
 .button:hover {
@@ -64,7 +65,7 @@ canvas#roll2 {
 
 .button-disabled {
     pointer-events: none;
-    filter: grayscale(100%)
+    filter: grayscale(100%) brightness(80%)
 }
 
 .button-always-disabled {
@@ -100,29 +101,24 @@ canvas#roll2 {
 }
 #up {
     background-image: url("res/up.png");
+    margin-left: 24px;
 }
 #down {
     background-image: url("res/down.png");
+}
+#fullscreen {
+    background-image: url("res/fullscreen.png");
+    margin-left: 24px;
+}
+#source {
+    background-image: url("res/source.png");
+    margin-left: 24px;
 }
 
 #fps {
     position: fixed;
     left: 2px;
     top: 2px;
-    display: none;
-}
-
-#link {
-    position: fixed;
-    right: 2px;
-    bottom: 2px;
-    display: none;
-}
-
-#fullscreen {
-    position: fixed;
-    left: 2px;
-    bottom: 2px;
     display: none;
 }
 
