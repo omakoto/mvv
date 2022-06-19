@@ -629,10 +629,12 @@ class Coordinator {
     #nextDrawTime = 0;
     #wakelock : WakeLockSentinel | null = null;
     #wakelockTimer : number | null = 0;
+    #timestamp;
 
     constructor() {
         this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
+        this.#timestamp = $('#timestamp');
     }
 
     onKeyDown(ev: KeyboardEvent) {
@@ -789,6 +791,7 @@ class Coordinator {
     }
 
     updateUi(): void {
+        this.#updateTimestamp();
         controls.update();
     }
 
@@ -873,8 +876,8 @@ class Coordinator {
             this.#getHumanReadableCurrentPlaybackTimestamp_lastResult =
                 minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
         }
-        const isFinished = recorder.isAfterLast ? " (finished)" : "";
-        this.#getHumanReadableCurrentPlaybackTimestamp_lastResult += isFinished;
+        // const isFinished = recorder.isAfterLast ? " (finished)" : "";
+        // this.#getHumanReadableCurrentPlaybackTimestamp_lastResult += isFinished;
         return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
     }
 
@@ -914,15 +917,24 @@ class Coordinator {
         if (recorder.isPlaying) {
             recorder.playbackUpToNow();
         }
+        this.#updateTimestamp();
+    }
+
+    #updateTimestamp(): void {
         if (recorder.isPlaying || recorder.isPausing) {
             // Update the time indicator
             const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
             if (timeStamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
-                infoRaw(timeStamp);
+                this.#timestamp.text(timeStamp);
                 this.#onPlaybackTimer_lastShownPlaybackTimestamp = timeStamp;
             }
+        } else if (recorder.isRecording) {
+            this.#timestamp.text("-");
+        } else {
+            this.#timestamp.text("0.00");
         }
     }
+
 
     startDrawTimer(): void {
         this.#nextDrawTime = performance.now();

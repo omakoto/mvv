@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_scheduleDraw;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_updateTimestamp, _Coordinator_scheduleDraw;
 ;
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
@@ -538,6 +538,7 @@ class Coordinator {
         _Coordinator_nextDrawTime.set(this, 0);
         _Coordinator_wakelock.set(this, null);
         _Coordinator_wakelockTimer.set(this, 0);
+        _Coordinator_timestamp.set(this, void 0);
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
         _Coordinator_lastRewindPressTime.set(this, 0);
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds.set(this, -1);
@@ -545,6 +546,7 @@ class Coordinator {
         _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp.set(this, "");
         __classPrivateFieldSet(this, _Coordinator_nextSecond, performance.now() + 1000, "f");
         __classPrivateFieldSet(this, _Coordinator_efps, $("#fps"), "f");
+        __classPrivateFieldSet(this, _Coordinator_timestamp, $('#timestamp'), "f");
     }
     onKeyDown(ev) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
@@ -700,6 +702,7 @@ class Coordinator {
         this.updateUi();
     }
     updateUi() {
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateTimestamp).call(this);
         controls.update();
     }
     onMidiMessage(ev) {
@@ -735,8 +738,8 @@ class Coordinator {
             __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, totalSeconds, "f");
             __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, minutes + ":" + (seconds < 10 ? "0" + seconds : seconds), "f");
         }
-        const isFinished = recorder.isAfterLast ? " (finished)" : "";
-        __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f") + isFinished, "f");
+        // const isFinished = recorder.isAfterLast ? " (finished)" : "";
+        // this.#getHumanReadableCurrentPlaybackTimestamp_lastResult += isFinished;
         return __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f");
     }
     onDraw() {
@@ -772,14 +775,7 @@ class Coordinator {
         if (recorder.isPlaying) {
             recorder.playbackUpToNow();
         }
-        if (recorder.isPlaying || recorder.isPausing) {
-            // Update the time indicator
-            const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
-            if (timeStamp != __classPrivateFieldGet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, "f")) {
-                infoRaw(timeStamp);
-                __classPrivateFieldSet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, timeStamp, "f");
-            }
-        }
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateTimestamp).call(this);
     }
     startDrawTimer() {
         __classPrivateFieldSet(this, _Coordinator_nextDrawTime, performance.now(), "f");
@@ -833,7 +829,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
+_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_nextDrawTime = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (!(recorder.isPlaying || recorder.isPausing)) {
         return;
     }
@@ -863,6 +859,21 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
         if (ev.data0 === 176 && ev.data1 === 20) {
             ev.replaceData(1, 64);
         }
+    }
+}, _Coordinator_updateTimestamp = function _Coordinator_updateTimestamp() {
+    if (recorder.isPlaying || recorder.isPausing) {
+        // Update the time indicator
+        const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
+        if (timeStamp != __classPrivateFieldGet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, "f")) {
+            __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text(timeStamp);
+            __classPrivateFieldSet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, timeStamp, "f");
+        }
+    }
+    else if (recorder.isRecording) {
+        __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text("-");
+    }
+    else {
+        __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text("0.00");
     }
 }, _Coordinator_scheduleDraw = function _Coordinator_scheduleDraw() {
     __classPrivateFieldSet(this, _Coordinator_nextDrawTime, __classPrivateFieldGet(this, _Coordinator_nextDrawTime, "f") + (1000.0 / FPS), "f");
