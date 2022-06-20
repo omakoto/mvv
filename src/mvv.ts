@@ -462,7 +462,7 @@ class Recorder {
     }
 
     #stopRecording(): void {
-        info("Recording stopped");
+        info("Recording stopped (" + this.#events.length + " events recorded)");
         this.#state = RecorderState.Idle;
 
         coordinator.onRecorderStatusChanged();

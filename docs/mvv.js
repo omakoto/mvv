@@ -494,7 +494,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     __classPrivateFieldSet(this, _Recorder_isDirty, true, "f");
     coordinator.onRecorderStatusChanged();
 }, _Recorder_stopRecording = function _Recorder_stopRecording() {
-    info("Recording stopped");
+    info("Recording stopped (" + __classPrivateFieldGet(this, _Recorder_events, "f").length + " events recorded)");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
     coordinator.onRecorderStatusChanged();
 }, _Recorder_startPlaying = function _Recorder_startPlaying() {
