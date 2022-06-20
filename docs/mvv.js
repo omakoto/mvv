@@ -930,9 +930,6 @@ function onMIDISuccess(midiAccess) {
         }
     }
 }
-function onMIDIFailure() {
-    info('Could not access your MIDI devices.');
-}
 coordinator.scheduleFlip();
 coordinator.updateUi();
 const PLAYBACK_TIMER = "playbackTimer";
@@ -949,8 +946,16 @@ worker.onmessage = (e) => {
         return;
     }
 };
-navigator.requestMIDIAccess()
-    .then(onMIDISuccess, onMIDIFailure);
+function onMIDIFailure() {
+    alert('Could not access your MIDI devices.');
+}
+if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess()
+        .then(onMIDISuccess, onMIDIFailure);
+}
+else {
+    alert("Your browser doesn't support WebMIDI. (Try Chrome instead.)");
+}
 const ebody = $('body');
 $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent));
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');

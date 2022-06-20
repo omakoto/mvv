@@ -1056,10 +1056,6 @@ function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
     }
 }
 
-function onMIDIFailure(): void {
-    info('Could not access your MIDI devices.');
-}
-
 coordinator.scheduleFlip();
 coordinator.updateUi();
 
@@ -1080,8 +1076,16 @@ worker.onmessage = (e) => {
     }
 };
 
-navigator.requestMIDIAccess()
-    .then(onMIDISuccess, onMIDIFailure);
+function onMIDIFailure(): void {
+    alert('Could not access your MIDI devices.');
+}
+
+if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess()
+        .then(onMIDISuccess, onMIDIFailure);
+} else {
+    alert("Your browser doesn't support WebMIDI. (Try Chrome instead.)");
+}
 
 const ebody = $('body');
 
