@@ -2,7 +2,11 @@
 
 ## Synopsys
 
-[MVV](https://omakoto.github.io/mvv/) is an online MIDI input visualizer, created for piano learners.
+[MVV](https://omakoto.github.io/mvv/) is an online MIDI input visualizer, recorder and player, created for piano learners.
+
+It visualizes:
+- Note events (which keys are pressed), with intencity (aka velocity)
+- Pedal depth (sosutenuto pedelanot supported yet)
 
 ![MVV Screenshot](mvv-screenshot.png "Screenshot")
 
@@ -26,10 +30,10 @@
 
 ## Bugs/TODOs
 
-- [ ] P4: Re-architect it
-- [ ] P1: Always recording
+- [ ] P4: Re-architect the entire thing
+- [ ] P1: Always recording mode
   - [ ] Estimate RAM consumption
-  - [ ] Throttle control (at least the pedal) changes if needed.
+  - [ ] Throttle control changes if needed.
   - [ ] Auto-detect between pieces
 - [ ] P3: Better playback (as a geneal MIDI player)
   - [ ] Fast-forward should send all skipped control changes
@@ -37,6 +41,7 @@
 - [ ] P4: Actually sync the renderer to vsync (how?)
 - [ ] P4: Support SMPTE time format in *.mid files
 - [ ] P4: Add help (not important now that we have buttons)
+- [ ] P3: Visualize sosutenuto pedal depth
 - [X] P1: On-screen playback/recording controls
   - [X] Play/Record/Stop/Pause/RewindToTop
   - [ ] ~~FF/Rewind -> not needed, now that we have the position bar~~
