@@ -10,14 +10,14 @@
 
 - `1` or `F1`: Hide screen
 - `2` or `F2`: Freeze roll pane
-- `3` or double tap anywhere : Toggle full-screen
+- `F` or double tap anywhere : Toggle full-screen
 - `R`: Record start/stop
 - `SPACE`: Playback start / pause
   - `Left`/`Right`: during playback -- Rewind/Fast-forward
 - `Z`: Stop playback
 - `S`: Save the last recording as a midi file
 - `L`: Load a `*.mid` file
-- `F`: Show FPS and playback timer resolution.
+- `3`: Show FPS and playback timer resolution.
 
 ## Supported midi events
 

@@ -580,12 +580,12 @@ class Coordinator {
                     break;
                 this.toggleRollFrozen();
                 break;
-            case 'Digit3':
+            case 'KeyF':
                 if (isRepeat)
                     break;
                 this.toggleFullScreen();
                 break;
-            case 'KeyF':
+            case 'Digit3':
                 if (isRepeat)
                     break;
                 __classPrivateFieldGet(this, _Coordinator_efps, "f").toggle();
@@ -608,9 +608,12 @@ class Coordinator {
             case 'KeyZ':
                 if (isRepeat)
                     break;
-                if (recorder.isPlaying || recorder.isPausing) {
-                    recorder.stopPlaying();
-                }
+                this.stop();
+                break;
+            case 'KeyT':
+                if (isRepeat)
+                    break;
+                this.moveToStart();
                 break;
             case 'Space':
                 if (isRepeat)
