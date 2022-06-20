@@ -12,6 +12,8 @@ It visualizes:
   <img src="mvv-screenshot.png" alt="MVV screenshot" style="width: 80%">
 </a>
 
+(Click image to open MVV)
+
 ## Keys
 
 - `1` or `F1`: Hide screen
