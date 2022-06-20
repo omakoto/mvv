@@ -8,8 +8,8 @@ It visualizes:
 - Note events (which keys are pressed), with intencity (aka velocity)
 - Pedal depth (sosutenuto pedelanot supported yet)
 
-<a href="https://omakoto.github.io/mvv/" target="mvv">
-  <img src="mvv-screenshot.png" alt="MVV screenshot"">
+<a href="https://omakoto.github.io/mvv/">
+  <img src="mvv-screenshot.png" alt="MVV screenshot" style="width: 80%">
 </a>
 
 ## Keys
