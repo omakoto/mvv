@@ -835,6 +835,10 @@ class Coordinator {
         if (__classPrivateFieldGet(this, _Coordinator_wakelock, "f") === null) {
             try {
                 __classPrivateFieldSet(this, _Coordinator_wakelock, await navigator.wakeLock.request('screen'), "f");
+                __classPrivateFieldGet(this, _Coordinator_wakelock, "f").addEventListener('release', () => {
+                    __classPrivateFieldSet(this, _Coordinator_wakelock, null, "f");
+                    console.log("Wake lock released by system");
+                });
                 console.log("Wake lock acquired");
             }
             catch (err) {
@@ -1013,13 +1017,14 @@ $('#fullscreen').on('click', (_ev) => {
 $('#source').on('click', (_ev) => {
     window.open("https://github.com/omakoto/mvv", "source");
 });
+$(document).on('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        coordinator.extendWakelock();
+    }
+});
 $(function () {
     $(document).tooltip();
 });
-// $("body").on('dblclick', (_ev) => {
-//     coordinator.toggleFullScreen();
-//     coordinator.extendWakelock();
-// });
 // Start the timers.
 worker.postMessage({ action: "setInterval", interval: 10, result: PLAYBACK_TIMER });
 worker.postMessage({ action: "setInterval", interval: 1000.0 / FPS, result: DRAW_TIMER });

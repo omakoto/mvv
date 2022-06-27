@@ -1014,6 +1014,10 @@ class Coordinator {
         if (this.#wakelock === null) {
             try {
                 this.#wakelock = await navigator.wakeLock.request('screen');
+                this.#wakelock.addEventListener('release', () => {
+                    this.#wakelock = null;
+                    console.log("Wake lock released by system");
+                });
                 console.log("Wake lock acquired");
             } catch (err) {
                 console.log("Failed to acquire wake lock", err);
@@ -1155,14 +1159,16 @@ $('#source').on('click', (_ev) => {
     window.open("https://github.com/omakoto/mvv", "source");
 });
 
+$(document).on('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        coordinator.extendWakelock();
+    }
+});
+
+
 $( function() {
     $( document ).tooltip();
 });
-
-// $("body").on('dblclick', (_ev) => {
-//     coordinator.toggleFullScreen();
-//     coordinator.extendWakelock();
-// });
 
 
 // Start the timers.
