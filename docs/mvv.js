@@ -15,6 +15,8 @@ var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
+const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
+const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : 100;
 const NOTES_COUNT = 128;
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
@@ -1026,5 +1028,5 @@ $(function () {
     $(document).tooltip();
 });
 // Start the timers.
-worker.postMessage({ action: "setInterval", interval: 10, result: PLAYBACK_TIMER });
+worker.postMessage({ action: "setInterval", interval: 1000.0 / PLAYBACK_RESOLUTION, result: PLAYBACK_TIMER });
 worker.postMessage({ action: "setInterval", interval: 1000.0 / FPS, result: DRAW_TIMER });
