@@ -16,7 +16,7 @@ const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search))
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
-const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : 100;
+const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : 60;
 const NOTES_COUNT = 128;
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
