@@ -698,7 +698,7 @@ class Coordinator {
         if (recorder.isRecording) {
             recorder.stopRecording();
         }
-        else if (recorder.isPlaying) {
+        else if (recorder.isPlaying || recorder.isPausing) {
             recorder.stopPlaying();
         }
         this.updateUi();
