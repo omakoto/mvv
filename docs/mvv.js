@@ -12,11 +12,15 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_nextDrawTime, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, _Coordinator_updateTimestamp, _Coordinator_scheduleDraw;
 ;
+const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
+if (!LOW_PERF_MODE) {
+    console.log("Low-perf is disabled. Use https://omakoto.github.io/mvv/?lp=1 to enable low-perf mode for slow devices");
+}
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
-const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : 60;
+const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120;
 const NOTES_COUNT = 128;
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
@@ -967,6 +971,10 @@ $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent));
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
 $(window).on('load', () => {
     $('.body').trigger('focus');
+    if (LOW_PERF_MODE) {
+        $('#bottom_mask').css('display', 'none');
+        $('#bottom_mask_opaque').css('display', 'block');
+    }
 });
 $(window).on('unload', () => {
     coordinator.close();

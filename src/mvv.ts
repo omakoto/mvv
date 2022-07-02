@@ -11,12 +11,18 @@ declare class Popbox {
 };
 
 
+const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
+if (!LOW_PERF_MODE) {
+    console.log("Low-perf is disabled. Use https://omakoto.github.io/mvv/?lp=1 to enable low-perf mode for slow devices")
+}
+
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
-const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : 60;
+const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120;
+
 
 const NOTES_COUNT = 128;
 
@@ -1102,6 +1108,10 @@ $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
 $(window).on('load', () => {
     $('.body').trigger('focus');
+    if (LOW_PERF_MODE) {
+        $('#bottom_mask').css('display', 'none');
+        $('#bottom_mask_opaque').css('display', 'block');
+    }
 });
 $(window).on('unload', () => {
     coordinator.close();
@@ -1168,7 +1178,6 @@ $(document).on('visibilitychange', () => {
         coordinator.extendWakelock();
     }
 });
-
 
 $( function() {
     $( document ).tooltip();

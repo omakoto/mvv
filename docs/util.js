@@ -1,7 +1,7 @@
 'use strict';
 const DEBUG = parseInt((new URLSearchParams(window.location.search)).get("debug") ?? "0") ? true : false;
 if (!DEBUG) {
-    console.log("Debug log is disabled. Use ?debug=1 to enable debug log.");
+    console.log("Debug log is disabled. Use https://omakoto.github.io/mvv/?debug=1 to enable debug log.");
 }
 // Log on console if DEBUG is true
 function debug(...args) {
