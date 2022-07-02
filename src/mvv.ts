@@ -1105,17 +1105,6 @@ const ebody = $('body');
 
 $(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent!));
 
-$(window).on('beforeunload', () => 'Are you sure you want to leave?');
-$(window).on('load', () => {
-    $('.body').trigger('focus');
-    if (LOW_PERF_MODE) {
-        $('#bottom_mask').css('display', 'none');
-        $('#bottom_mask_opaque').css('display', 'block');
-    }
-});
-$(window).on('unload', () => {
-    coordinator.close();
-});
 
 $("body").on("dragover", function(ev) {
     ev.preventDefault();
@@ -1179,8 +1168,17 @@ $(document).on('visibilitychange', () => {
     }
 });
 
-$( function() {
+$(window).on('beforeunload', () => 'Are you sure you want to leave?');
+$(window).on('load', () => {
+    $('.body').trigger('focus');
     $( document ).tooltip();
+    if (LOW_PERF_MODE) {
+        $('#bottom_mask').css('display', 'none');
+        $('#bottom_mask_opaque').css('display', 'block');
+    }
+});
+$(window).on('unload', () => {
+    coordinator.close();
 });
 
 
