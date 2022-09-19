@@ -133,6 +133,11 @@ class Renderer {
         [this.#croll, this.#roll] = Renderer.getCanvas("roll");
         [this.#croll2, this.#roll2] = Renderer.getCanvas("roll2");
 
+        this.#bar.imageSmoothingEnabled = false;
+        this.#bar2.imageSmoothingEnabled = false;
+        this.#roll.imageSmoothingEnabled = false;
+        this.#roll2.imageSmoothingEnabled = false;
+
         this.#cbar.width = this.#W;
         this.#cbar.height = this.#BAR_H;
         this.#cbar2.width = this.#W;

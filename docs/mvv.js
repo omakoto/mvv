@@ -117,6 +117,10 @@ class Renderer {
         _c = this, _d = this, [({ set value(_j) { __classPrivateFieldSet(_c, _Renderer_cbar2, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_d, _Renderer_bar2, _j, "f"); } }).value] = Renderer.getCanvas("bar2");
         _e = this, _f = this, [({ set value(_j) { __classPrivateFieldSet(_e, _Renderer_croll, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_f, _Renderer_roll, _j, "f"); } }).value] = Renderer.getCanvas("roll");
         _g = this, _h = this, [({ set value(_j) { __classPrivateFieldSet(_g, _Renderer_croll2, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_h, _Renderer_roll2, _j, "f"); } }).value] = Renderer.getCanvas("roll2");
+        __classPrivateFieldGet(this, _Renderer_bar, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_bar2, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_roll, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_roll2, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_cbar, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
         __classPrivateFieldGet(this, _Renderer_cbar, "f").height = __classPrivateFieldGet(this, _Renderer_BAR_H, "f");
         __classPrivateFieldGet(this, _Renderer_cbar2, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
