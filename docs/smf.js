@@ -246,7 +246,7 @@ class TickConverter {
         _TickConverter_lastTempoEvent.set(this, void 0);
         __classPrivateFieldSet(this, _TickConverter_ticksPerBeat, ticksPerBeat, "f");
         // Arbitrary initial tempo
-        __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, new TempoEvent(0, 500000, 0), "f");
+        __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, new TempoEvent(0, 500_000, 0), "f");
         __classPrivateFieldGet(this, _TickConverter_tempos, "f").push(__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f"));
     }
     setTempo(ticks, microsecondsPerBeat) {

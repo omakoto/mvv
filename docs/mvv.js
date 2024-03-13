@@ -86,6 +86,11 @@ function getCurrentTime() {
 }
 // Logic
 class Renderer {
+    static getCanvas(name) {
+        let canvas = document.getElementById(name);
+        let context = canvas.getContext("2d");
+        return [canvas, context];
+    }
     constructor() {
         var _a, _b, _c, _d, _e, _f, _g, _h;
         _Renderer_BAR_SUB_LINE_WIDTH.set(this, s(2));
@@ -129,11 +134,6 @@ class Renderer {
         __classPrivateFieldGet(this, _Renderer_croll, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
         __classPrivateFieldGet(this, _Renderer_croll2, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
         __classPrivateFieldGet(this, _Renderer_croll2, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
-    }
-    static getCanvas(name) {
-        let canvas = document.getElementById(name);
-        let context = canvas.getContext("2d");
-        return [canvas, context];
     }
     getBarColor(velocity) {
         let MAX_H = 0.4;
