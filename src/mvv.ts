@@ -112,6 +112,8 @@ class Renderer {
 
     #rollFrozen = false;
 
+    #drewOffLine = false;
+
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
         let context = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -193,6 +195,21 @@ class Renderer {
         // Individual bar width
         let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
 
+        // "Off" line
+        if (midiRenderingStatus.offNoteCount > 0) {
+            // We don't highlight off lines. Always same color.
+            // However, if we draw two off lines in a raw, it'll look brighter,
+            // so avoid doing so.
+            if (!this.#drewOffLine) {
+                this.#roll.fillStyle = "#008040";
+                this.#roll.fillRect(0, this.#ROLL_SCROLL_AMOUNT - s(2), this.#W, s(2));
+            }
+
+            this.#drewOffLine = true;
+        } else {
+            this.#drewOffLine = false;
+        }
+        
         // "On" line
         if (midiRenderingStatus.onNoteCount > 0) {
             this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
@@ -264,6 +281,7 @@ class MidiRenderingStatus {
     #notes: Array<[boolean, number]> = []; // note on/off, velocity
     #pedal = 0;
     #onNoteCount = 0;
+    #offNoteCount = 0;
 
     constructor() {
         this.reset();
@@ -279,6 +297,7 @@ class MidiRenderingStatus {
             this.#notes[data1]![0] = true;
             this.#notes[data1]![1] = data2;
         } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
+            this.#offNoteCount++;
             this.#notes[data1]![0] = false;
         } else if (status === 176 && data1 === 64) { // Pedal
             this.#pedal = data2;
@@ -292,14 +311,20 @@ class MidiRenderingStatus {
         }
         this.#pedal = 0;
         this.#onNoteCount = 0;
+        this.#offNoteCount = 0;
     }
 
     afterDraw(_now: number): void {
         this.#onNoteCount = 0;
+        this.#offNoteCount = 0;
     }
 
     get onNoteCount(): number {
         return this.#onNoteCount;
+    }
+
+    get offNoteCount(): number {
+        return this.#offNoteCount;
     }
 
     get pedal(): number {
