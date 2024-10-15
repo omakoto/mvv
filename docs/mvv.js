@@ -263,7 +263,7 @@ class MidiRenderingStatus {
             (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _b++, _b), "f");
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
         }
-        else if (status === 176 && data1 === 64) { // Pedal
+        else if (status === 176 && (data1 === 64 || data1 == 11)) { // Pedal and expression
             __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
         }
     }

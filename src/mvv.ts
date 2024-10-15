@@ -299,7 +299,7 @@ class MidiRenderingStatus {
         } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             this.#offNoteCount++;
             this.#notes[data1]![0] = false;
-        } else if (status === 176 && data1 === 64) { // Pedal
+        } else if (status === 176 && (data1 === 64 || data1 == 11)) { // Pedal and expression
             this.#pedal = data2;
         }
     }
