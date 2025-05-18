@@ -278,7 +278,8 @@ class Renderer {
 const renderer = new Renderer();
 
 class MidiRenderingStatus {
-    #notes: Array<[boolean, number]> = []; // note on/off, velocity
+    #tick = 0;
+    #notes: Array<[boolean, number, number]> = []; // note on/off, velocity, last on-tick
     #pedal = 0;
     #onNoteCount = 0;
     #offNoteCount = 0;
@@ -294,8 +295,10 @@ class MidiRenderingStatus {
 
         if (ev.isNoteOn) { // Note on
             this.#onNoteCount++;
-            this.#notes[data1]![0] = true;
-            this.#notes[data1]![1] = data2;
+            let ar = this.#notes[data1]!;
+            ar[0] = true;
+            ar[1] = data2;
+            ar[2] = this.#tick;
         } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             this.#offNoteCount++;
             this.#notes[data1]![0] = false;
@@ -305,9 +308,10 @@ class MidiRenderingStatus {
     }
 
     reset(): void {
+        this.#tick = 0;
         this.#notes = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
-            this.#notes[i] = [false, 0]; // note on/off, velocity
+            this.#notes[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
         }
         this.#pedal = 0;
         this.#onNoteCount = 0;
@@ -315,6 +319,7 @@ class MidiRenderingStatus {
     }
 
     afterDraw(_now: number): void {
+        this.#tick++;
         this.#onNoteCount = 0;
         this.#offNoteCount = 0;
     }
@@ -332,7 +337,16 @@ class MidiRenderingStatus {
     }
 
     getNote(noteIndex: number): [boolean, number] {
-        return this.#notes[noteIndex]!;
+        let ar = this.#notes[noteIndex]!
+        if (ar[0]) {
+            // Note on
+            return [true, ar[1]];
+        } else if ((this.#tick - ar[2]) < 2) {
+            // Recently turned off, still treat it as on
+            return [true, ar[1]];
+        } else {
+            return [false, 0];
+        }
     }
 }
 
