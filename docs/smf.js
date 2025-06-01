@@ -64,6 +64,9 @@ class MidiEvent {
         }
         __classPrivateFieldGet(this, _MidiEvent_data, "f")[index] = value;
     }
+    clearChannel() {
+        __classPrivateFieldGet(this, _MidiEvent_data, "f")[0] = this.data0 & 0xf0;
+    }
     get status() {
         return this.data0 & 0xf0;
     }

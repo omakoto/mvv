@@ -65,6 +65,10 @@ class MidiEvent {
         this.#data[index] = value;
     }
 
+    clearChannel() {
+        this.#data[0] = this.data0 & 0xf0;
+    }
+
     get status(): number {
         return this.data0 & 0xf0;
     }
