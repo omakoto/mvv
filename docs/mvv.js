@@ -448,9 +448,8 @@ class Recorder {
         if (!this.isRecording) {
             return false;
         }
-        ev.clearChannel(); // Make sure the channel is set to 0.
         // Only record certain events.
-        switch (ev.data0) {
+        switch (ev.status) {
             case 144: // Note on
             case 128: // Note off
             case 176: // Control
