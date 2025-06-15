@@ -233,7 +233,7 @@ canvas#roll2 {
 #note_display {
     position: fixed;
     right: 10px;
-    bottom: 45px; /* Position it above the bottom controls */
+    top: 8px; /* Position it above the bottom controls */
     font-size: 14pt;
     color: var(--main-text-color);
     text-shadow: 1px 1px 2px black;
