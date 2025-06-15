@@ -46,20 +46,25 @@ function midiNoteToName(note) {
 }
 // --- START: CHORD ANALYSIS LOGIC ---
 /**
- * A dictionary of chord definitions, where each chord is represented by an
- * array of intervals (in semitones) from the root note.
+ * Chord definitions are split into two groups for prioritization.
+ * Primary chords are checked first.
  */
-const CHORD_DEFINITIONS = {
+const CHORD_DEFINITIONS_PRIMARY = {
     'M': [0, 4, 7], // Major
     'm': [0, 3, 7], // Minor
     'dim': [0, 3, 6], // Diminished
-    'sus4': [0, 5, 7], // Sustained 4th
-    'sus2': [0, 2, 7], // Sustained 2nd
     '7': [0, 4, 7, 10], // Dominant 7th
     'M7': [0, 4, 7, 11], // Major 7th
     'm7': [0, 3, 7, 10], // Minor 7th
     'dim7': [0, 3, 6, 9], // Diminished 7th
     'm7b5': [0, 3, 6, 10], // Half-diminished 7th (Minor 7th flat 5)
+};
+/**
+ * Sus chords are checked only if no primary chord matches.
+ */
+const CHORD_DEFINITIONS_SUS = {
+    'sus4': [0, 5, 7], // Sustained 4th
+    'sus2': [0, 2, 7], // Sustained 2nd
 };
 /**
  * Generates all combinations of a given size from an array.
@@ -88,12 +93,12 @@ function getCombinations(array, size) {
     return combinations;
 }
 /**
- * Finds a chord match for a specific set of pitch classes (no dropping of notes).
- * This is a helper for the main analyzeChord function.
- * @param pitchClasses An array of unique, sorted pitch classes (0-11).
- * @returns The name of the chord if a direct match is found, otherwise null.
+ * A helper that checks a given combination of notes against a dictionary of chord definitions.
+ * @param pitchClasses A single combination of notes.
+ * @param definitions The chord dictionary to use for matching.
+ * @returns The name of the chord if a match is found, otherwise null.
  */
-function findDirectChordMatch(pitchClasses) {
+function findChordInDictionary(pitchClasses, definitions) {
     if (pitchClasses.length < 3) {
         return null;
     }
@@ -101,9 +106,8 @@ function findDirectChordMatch(pitchClasses) {
     for (let i = 0; i < pitchClasses.length; i++) {
         const root = pitchClasses[i];
         const intervals = pitchClasses.map(pc => (pc - root + 12) % 12).sort((a, b) => a - b);
-        // Check against the chord definitions.
-        for (const chordType in CHORD_DEFINITIONS) {
-            const definedIntervals = CHORD_DEFINITIONS[chordType];
+        for (const chordType in definitions) {
+            const definedIntervals = definitions[chordType];
             if (definedIntervals.length === intervals.length &&
                 definedIntervals.every((val, index) => val === intervals[index])) {
                 return NOTE_NAMES[root] + chordType;
@@ -113,8 +117,8 @@ function findDirectChordMatch(pitchClasses) {
     return null;
 }
 /**
- * Analyzes an array of MIDI notes to identify the best-fit chord, allowing for extra notes.
- * It prioritizes chords with more notes and includes performance optimizations.
+ * Analyzes an array of MIDI notes to identify the best-fit chord.
+ * It prioritizes primary chords over suspended chords, and larger chords over smaller ones.
  * @param notes An array of MIDI note numbers.
  * @returns The name of the chord (e.g., "CM", "Dm7") or null if no chord is recognized.
  */
@@ -122,25 +126,30 @@ function analyzeChord(notes) {
     if (notes.length < 3) {
         return null;
     }
-    // Get unique pitch classes (0-11) and sort them.
     const pitchClasses = [...new Set(notes.map(note => note % 12))].sort((a, b) => a - b);
     // Performance guardrail: Don't analyze overly complex note clusters.
     if (pitchClasses.length > 6) {
         return null;
     }
-    // --- Optimization 1: Check for a direct match first ---
-    const directMatch = findDirectChordMatch(pitchClasses);
-    if (directMatch) {
-        return directMatch;
-    }
-    // --- Optimization 2: If no direct match, then try dropping notes ---
-    // Iterate from one note less than the full set down to 3-note chords.
-    for (let size = pitchClasses.length - 1; size >= 3; size--) {
+    // --- Pass 1: Search for the best possible PRIMARY chord ---
+    // Iterate from largest to smallest combinations to prioritize bigger chords.
+    for (let size = pitchClasses.length; size >= 3; size--) {
         const combinations = getCombinations(pitchClasses, size);
         for (const combo of combinations) {
-            const chord = findDirectChordMatch(combo);
+            const chord = findChordInDictionary(combo, CHORD_DEFINITIONS_PRIMARY);
             if (chord) {
-                return chord; // Found the best possible match after dropping notes.
+                return chord; // Found the best possible primary chord.
+            }
+        }
+    }
+    // --- Pass 2: If no primary chord was found, search for the best SUS chord ---
+    // This part only runs if the first loop completes without returning.
+    for (let size = pitchClasses.length; size >= 3; size--) {
+        const combinations = getCombinations(pitchClasses, size);
+        for (const combo of combinations) {
+            const chord = findChordInDictionary(combo, CHORD_DEFINITIONS_SUS);
+            if (chord) {
+                return chord; // Found the best possible suspended chord.
             }
         }
     }
