@@ -54,6 +54,121 @@ function midiNoteToName(note: number): string {
     return name + octave;
 }
 
+// --- START: CHORD ANALYSIS LOGIC ---
+/**
+ * A dictionary of chord definitions, where each chord is represented by an
+ * array of intervals (in semitones) from the root note.
+ */
+const CHORD_DEFINITIONS: { [name: string]: number[] } = {
+    'M': [0, 4, 7],         // Major
+    'm': [0, 3, 7],         // Minor
+    'dim': [0, 3, 6],       // Diminished
+    'sus4': [0, 5, 7],      // Sustained 4th
+    'sus2': [0, 2, 7],      // Sustained 2nd
+    '7': [0, 4, 7, 10],     // Dominant 7th
+    'M7': [0, 4, 7, 11],    // Major 7th
+    'm7': [0, 3, 7, 10],    // Minor 7th
+    'dim7': [0, 3, 6, 9],   // Diminished 7th
+    'm7b5': [0, 3, 6, 10],  // Half-diminished 7th (Minor 7th flat 5)
+};
+
+/**
+ * Generates all combinations of a given size from an array.
+ * @param array The source array.
+ * @param size The size of each combination.
+ * @returns An array of arrays, where each inner array is a combination.
+ */
+function getCombinations<T>(array: T[], size: number): T[][] {
+    if (size > array.length || size <= 0) {
+        return [];
+    }
+    if (size === array.length) {
+        return [array];
+    }
+    if (size === 1) {
+        return array.map(item => [item]);
+    }
+
+    const combinations: T[][] = [];
+    for (let i = 0; i < array.length - size + 1; i++) {
+        const head = array.slice(i, i + 1);
+        const tailCombinations = getCombinations(array.slice(i + 1), size - 1);
+        for (const tail of tailCombinations) {
+            combinations.push(head.concat(tail));
+        }
+    }
+    return combinations;
+}
+
+/**
+ * Finds a chord match for a specific set of pitch classes (no dropping of notes).
+ * This is a helper for the main analyzeChord function.
+ * @param pitchClasses An array of unique, sorted pitch classes (0-11).
+ * @returns The name of the chord if a direct match is found, otherwise null.
+ */
+function findDirectChordMatch(pitchClasses: number[]): string | null {
+    if (pitchClasses.length < 3) {
+        return null;
+    }
+    // Try each note as a potential root to handle inversions.
+    for (let i = 0; i < pitchClasses.length; i++) {
+        const root = pitchClasses[i]!;
+        const intervals = pitchClasses.map(pc => (pc - root + 12) % 12).sort((a, b) => a - b);
+        
+        // Check against the chord definitions.
+        for (const chordType in CHORD_DEFINITIONS) {
+            const definedIntervals = CHORD_DEFINITIONS[chordType]!;
+            if (definedIntervals.length === intervals.length &&
+                definedIntervals.every((val, index) => val === intervals[index])) {
+                return NOTE_NAMES[root]! + chordType;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Analyzes an array of MIDI notes to identify the best-fit chord, allowing for extra notes.
+ * It prioritizes chords with more notes and includes performance optimizations.
+ * @param notes An array of MIDI note numbers.
+ * @returns The name of the chord (e.g., "CM", "Dm7") or null if no chord is recognized.
+ */
+function analyzeChord(notes: number[]): string | null {
+    if (notes.length < 3) {
+        return null;
+    }
+
+    // Get unique pitch classes (0-11) and sort them.
+    const pitchClasses = [...new Set(notes.map(note => note % 12))].sort((a, b) => a - b);
+    
+    // Performance guardrail: Don't analyze overly complex note clusters.
+    if (pitchClasses.length > 6) {
+        return null;
+    }
+
+    // --- Optimization 1: Check for a direct match first ---
+    const directMatch = findDirectChordMatch(pitchClasses);
+    if (directMatch) {
+        return directMatch;
+    }
+
+    // --- Optimization 2: If no direct match, then try dropping notes ---
+    // Iterate from one note less than the full set down to 3-note chords.
+    for (let size = pitchClasses.length - 1; size >= 3; size--) {
+        const combinations = getCombinations(pitchClasses, size);
+        for (const combo of combinations) {
+            const chord = findDirectChordMatch(combo);
+            if (chord) {
+                return chord; // Found the best possible match after dropping notes.
+            }
+        }
+    }
+
+    return null; // No matching chord found.
+}
+// --- END: CHORD ANALYSIS LOGIC ---
+
+
 // Utility functions
 
 function int(v: number): number {
@@ -1015,10 +1130,14 @@ class Coordinator {
             }
         }
 
-	// Show note names.
+        
         const pressedNotes = midiRenderingStatus.getPressedNotes();
         const noteNames = pressedNotes.map(midiNoteToName).join(' ');
-        this.#noteDisplay.text(noteNames);
+        const chordName = analyzeChord(pressedNotes);
+        
+        // Combine note names and chord name for display
+        const displayText = chordName ? `${noteNames}  (${chordName})` : noteNames;
+        this.#noteDisplay.text(displayText);
 
         this.#now = now;
 
@@ -1026,6 +1145,7 @@ class Coordinator {
         midiRenderingStatus.afterDraw(this.#now);
     }
     
+    // --- START: VSYNC-BASED ANIMATION LOOP ---
     #animationFrameId: number | null = null;
 
     /**
@@ -1265,4 +1385,3 @@ $(window).on('unload', () => {
 // Start the new vsync-based animation loop.
 coordinator.startAnimationLoop();
 coordinator.updateUi();
-
