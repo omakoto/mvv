@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_noteDisplay, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_noteDisplay, _Coordinator_lastChordDisplayText, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
@@ -128,7 +128,7 @@ function analyzeChord(notes) {
     }
     const pitchClasses = [...new Set(notes.map(note => note % 12))].sort((a, b) => a - b);
     // Performance guardrail: Don't analyze overly complex note clusters.
-    if (pitchClasses.length > 6) {
+    if (pitchClasses.length > 7) {
         return null;
     }
     // --- Pass 1: Search for the best possible PRIMARY chord ---
@@ -739,6 +739,7 @@ class Coordinator {
         _Coordinator_wakelockTimer.set(this, 0);
         _Coordinator_timestamp.set(this, void 0);
         _Coordinator_noteDisplay.set(this, void 0);
+        _Coordinator_lastChordDisplayText.set(this, null);
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
         _Coordinator_lastRewindPressTime.set(this, 0);
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds.set(this, -1);
@@ -754,11 +755,9 @@ class Coordinator {
     onKeyDown(ev) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
         this.extendWakelock();
-        // Don't respond if any modifier keys are pressed.
         if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
             return;
         }
-        // Ignore key repeats.
         const isRepeat = ev.repeat;
         switch (ev.code) {
             case 'F1':
@@ -930,6 +929,10 @@ class Coordinator {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
         this.extendWakelock();
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_normalizeMidiEvent).call(this, ev);
+        // Invalidate the cache whenever a note-on or note-off event occurs.
+        if (ev.status === 144 || ev.status === 128) {
+            __classPrivateFieldSet(this, _Coordinator_lastChordDisplayText, null, "f");
+        }
         midiRenderingStatus.onMidiMessage(ev);
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
@@ -978,12 +981,18 @@ class Coordinator {
                 __classPrivateFieldSet(this, _Coordinator_nextSecond, now + 1000, "f");
             }
         }
-        const pressedNotes = midiRenderingStatus.getPressedNotes();
-        const noteNames = pressedNotes.map(midiNoteToName).join(' ');
-        const chordName = analyzeChord(pressedNotes);
-        // Combine note names and chord name for display
-        const displayText = chordName ? `${noteNames}  (${chordName})` : noteNames;
-        __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(displayText);
+        // --- START: MODIFIED CACHING LOGIC ---
+        // If the cache is invalid (null), re-calculate the chord display text.
+        if (__classPrivateFieldGet(this, _Coordinator_lastChordDisplayText, "f") === null) {
+            const pressedNotes = midiRenderingStatus.getPressedNotes();
+            const noteNames = pressedNotes.map(midiNoteToName).join(' ');
+            const chordName = analyzeChord(pressedNotes);
+            // Update the cached display text.
+            __classPrivateFieldSet(this, _Coordinator_lastChordDisplayText, chordName ? `${noteNames}  (${chordName})` : noteNames, "f");
+        }
+        // Update the display with the (possibly cached) text.
+        __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(__classPrivateFieldGet(this, _Coordinator_lastChordDisplayText, "f"));
+        // --- END: MODIFIED CACHING LOGIC ---
         __classPrivateFieldSet(this, _Coordinator_now, now, "f");
         renderer.onDraw();
         midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
@@ -1081,7 +1090,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_noteDisplay = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
+_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_noteDisplay = new WeakMap(), _Coordinator_lastChordDisplayText = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (!(recorder.isPlaying || recorder.isPausing)) {
         return;
     }

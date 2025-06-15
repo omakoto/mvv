@@ -146,7 +146,7 @@ function analyzeChord(notes: number[]): string | null {
     const pitchClasses = [...new Set(notes.map(note => note % 12))].sort((a, b) => a - b);
     
     // Performance guardrail: Don't analyze overly complex note clusters.
-    if (pitchClasses.length > 6) {
+    if (pitchClasses.length > 7) {
         return null;
     }
 
@@ -855,6 +855,7 @@ class Coordinator {
     #timestamp;
     #noteDisplay;
 
+    #lastChordDisplayText: string | null = null;
     constructor() {
         this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
@@ -867,11 +868,9 @@ class Coordinator {
 
         this.extendWakelock();
 
-        // Don't respond if any modifier keys are pressed.
         if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
             return;
         }
-        // Ignore key repeats.
         const isRepeat = ev.repeat;
 
         switch (ev.code) {
@@ -1084,6 +1083,11 @@ class Coordinator {
 
         this.#normalizeMidiEvent(ev);
 
+        // Invalidate the cache whenever a note-on or note-off event occurs.
+        if (ev.status === 144 || ev.status === 128) {
+            this.#lastChordDisplayText = null;
+        }
+
         midiRenderingStatus.onMidiMessage(ev);
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
@@ -1140,14 +1144,18 @@ class Coordinator {
             }
         }
 
+        // If the cache is invalid (null), re-calculate the chord display text.
+        if (this.#lastChordDisplayText === null) {
+            const pressedNotes = midiRenderingStatus.getPressedNotes();
+            const noteNames = pressedNotes.map(midiNoteToName).join(' ');
+            const chordName = analyzeChord(pressedNotes);
+            
+            // Update the cached display text.
+            this.#lastChordDisplayText = chordName ? `${noteNames}  (${chordName})` : noteNames;
+        }
         
-        const pressedNotes = midiRenderingStatus.getPressedNotes();
-        const noteNames = pressedNotes.map(midiNoteToName).join(' ');
-        const chordName = analyzeChord(pressedNotes);
-        
-        // Combine note names and chord name for display
-        const displayText = chordName ? `${noteNames}  (${chordName})` : noteNames;
-        this.#noteDisplay.text(displayText);
+        // Update the display with the (possibly cached) text.
+        this.#noteDisplay.text(this.#lastChordDisplayText);
 
         this.#now = now;
 
