@@ -32,7 +32,7 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 
-const FPS = 60;
+const FPS = 60; // This is now only used for the FPS counter display, not for timing the loop.
 
 // Common values
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
@@ -725,7 +725,6 @@ class Coordinator {
     #flips = 0;
     #playbackTicks = 0;
     #efps;
-    #nextDrawTime = 0;
     #wakelock : WakeLockSentinel | null = null;
     #wakelockTimer : number | null = 0;
     #timestamp;
@@ -1002,7 +1001,7 @@ class Coordinator {
     }
 
     onDraw(): void {
-        // Update FPS
+        // Update FPS counter
         this.#frames++;
         let now = performance.now();
         if (now >= this.#nextSecond) {
@@ -1026,16 +1025,50 @@ class Coordinator {
         renderer.onDraw();
         midiRenderingStatus.afterDraw(this.#now);
     }
+    
+    #animationFrameId: number | null = null;
 
-    scheduleFlip(): void {
-        requestAnimationFrame(() => {
-            this.#flips++;
+    /**
+     * Starts the main animation loop, which is synchronized with the browser's
+     * rendering cycle for smooth visuals.
+     */
+    startAnimationLoop(): void {
+        if (this.#animationFrameId !== null) {
+            // Loop is already running.
+            return;
+        }
+
+        const loop = () => {
+            // #flips is for the FPS counter, representing screen updates.
+            this.#flips++; 
+            
+            // Run a playback tick to process MIDI events.
+            this.onPlaybackTimer();
+            
+            // Draw the current state to the off-screen canvas.
+            // This also updates the #frames count for the FPS counter.
+            this.onDraw();
+            
+            // Copy the off-screen canvas to the visible one.
             renderer.flip();
-            this.scheduleFlip();
-        });
+            
+            // Request the next frame.
+            this.#animationFrameId = requestAnimationFrame(loop);
+        };
+        
+        // Start the loop.
+        loop();
     }
 
-    #onPlaybackTimer_lastShownPlaybackTimestamp = "";
+    /**
+     * Stops the main animation loop.
+     */
+    stopAnimationLoop(): void {
+        if (this.#animationFrameId !== null) {
+            cancelAnimationFrame(this.#animationFrameId);
+            this.#animationFrameId = null;
+        }
+    }
 
     onPlaybackTimer(): void {
         this.#playbackTicks++;
@@ -1062,25 +1095,8 @@ class Coordinator {
             controls.setCurrentPosition(0, 0);
         }
     }
-
-
-    startDrawTimer(): void {
-        this.#nextDrawTime = performance.now();
-        this.#scheduleDraw();
-    }
-
-    #scheduleDraw(): void {
-        this.#nextDrawTime += (1000.0 / FPS);
-        const delay = (this.#nextDrawTime - performance.now());
-        setTimeout(() => {
-            this.onDraw(); // TODO Handle frame drop properly
-            this.#scheduleDraw();
-        }, delay);
-    }
-
-    startPlaybackTimer(): void {
-        setInterval(() => coordinator.onPlaybackTimer(), 5);
-    }
+    
+    #onPlaybackTimer_lastShownPlaybackTimestamp = "";
 
     downloadRequested(): void {
         saveAsBox.open();
@@ -1129,6 +1145,7 @@ class Coordinator {
     }
 
     close(): void {
+        this.stopAnimationLoop();
         recorder.stopPlaying();
         this.resetMidi();
     }
@@ -1152,26 +1169,6 @@ function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
         }
     }
 }
-
-coordinator.scheduleFlip();
-coordinator.updateUi();
-
-
-const PLAYBACK_TIMER = "playbackTimer";
-const DRAW_TIMER = "drawTimer";
-
-const worker = new Worker("timer-worker.js");
-worker.onmessage = (e) => {
-    const data = e.data;
-    if (data === PLAYBACK_TIMER) {
-        coordinator.onPlaybackTimer();
-        return;
-    }
-    if (data === DRAW_TIMER) {
-        coordinator.onDraw();
-        return;
-    }
-};
 
 function onMIDIFailure(): void {
     alert('Could not access your MIDI devices.');
@@ -1265,6 +1262,7 @@ $(window).on('unload', () => {
 });
 
 
-// Start the timers.
-worker.postMessage({action: "setInterval", interval: 1000.0 / PLAYBACK_RESOLUTION, result: PLAYBACK_TIMER});
-worker.postMessage({action: "setInterval", interval: 1000.0 / FPS, result: DRAW_TIMER});
+// Start the new vsync-based animation loop.
+coordinator.startAnimationLoop();
+coordinator.updateUi();
+
