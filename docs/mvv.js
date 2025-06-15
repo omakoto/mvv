@@ -29,6 +29,7 @@ const BAR_RATIO = 0.3; // Bar : Roll height
 const FPS = 60; // This is now only used for the FPS counter display, not for timing the loop.
 // Common values
 const RGB_BLACK = [0, 0, 0];
+// Note names
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 /**
  * Converts a MIDI note number to its common English name.
@@ -630,7 +631,6 @@ class Coordinator {
         _Coordinator_lastRewindPressTime.set(this, 0);
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds.set(this, -1);
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult.set(this, "");
-        // --- START: VSYNC-BASED ANIMATION LOOP ---
         _Coordinator_animationFrameId.set(this, null);
         _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp.set(this, "");
         __classPrivateFieldSet(this, _Coordinator_nextSecond, performance.now() + 1000, "f");
@@ -865,11 +865,11 @@ class Coordinator {
                 __classPrivateFieldSet(this, _Coordinator_nextSecond, now + 1000, "f");
             }
         }
-        __classPrivateFieldSet(this, _Coordinator_now, now, "f");
-        // Update the note display
+        // Show note names.
         const pressedNotes = midiRenderingStatus.getPressedNotes();
         const noteNames = pressedNotes.map(midiNoteToName).join(' ');
         __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(noteNames);
+        __classPrivateFieldSet(this, _Coordinator_now, now, "f");
         renderer.onDraw();
         midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
     }
@@ -908,7 +908,6 @@ class Coordinator {
             __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
         }
     }
-    // --- END: VSYNC-BASED ANIMATION LOOP ---
     onPlaybackTimer() {
         var _a;
         __classPrivateFieldSet(this, _Coordinator_playbackTicks, (_a = __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"), _a++, _a), "f");
