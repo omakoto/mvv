@@ -981,7 +981,6 @@ class Coordinator {
                 __classPrivateFieldSet(this, _Coordinator_nextSecond, now + 1000, "f");
             }
         }
-        // --- START: MODIFIED CACHING LOGIC ---
         // If the cache is invalid (null), re-calculate the chord display text.
         if (__classPrivateFieldGet(this, _Coordinator_lastChordDisplayText, "f") === null) {
             const pressedNotes = midiRenderingStatus.getPressedNotes();
@@ -992,7 +991,6 @@ class Coordinator {
         }
         // Update the display with the (possibly cached) text.
         __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(__classPrivateFieldGet(this, _Coordinator_lastChordDisplayText, "f"));
-        // --- END: MODIFIED CACHING LOGIC ---
         __classPrivateFieldSet(this, _Coordinator_now, now, "f");
         renderer.onDraw();
         midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
