@@ -1159,7 +1159,16 @@ function onMIDIFailure() {
 }
 if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess()
-        .then(onMIDISuccess, onMIDIFailure);
+        .then((midiAccess) => {
+        // Initial setup of MIDI devices
+        onMIDISuccess(midiAccess);
+        // Add a listener for when new devices are connected or existing ones are disconnected.
+        midiAccess.onstatechange = (event) => {
+            console.log("MIDI device state changed: ", event.port.name, event.port.state);
+            // Re-run the success handler to refresh the device list.
+            onMIDISuccess(midiAccess);
+        };
+    }, onMIDIFailure);
 }
 else {
     alert("Your browser doesn't support WebMIDI. (Try Chrome instead.)");
