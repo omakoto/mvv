@@ -37,6 +37,23 @@ const FPS = 60;
 // Common values
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
 
+// Note names
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+/**
+ * Converts a MIDI note number to its common English name.
+ * @param note The MIDI note number (0-127).
+ * @returns The note name string (e.g., "C4").
+ */
+function midiNoteToName(note: number): string {
+    if (note < 0 || note >= 128) {
+        return "";
+    }
+    const octave = Math.floor(note / 12) - 1;
+    const name = NOTE_NAMES[note % 12]!;
+    return name + octave;
+}
+
 // Utility functions
 
 function int(v: number): number {
@@ -347,6 +364,20 @@ class MidiRenderingStatus {
         } else {
             return [false, 0];
         }
+    }
+    
+    /**
+     * Returns an array of MIDI note numbers for all notes currently considered "on".
+     */
+    getPressedNotes(): number[] {
+        const pressed: number[] = [];
+        for (let i = 0; i < NOTES_COUNT; i++) {
+            const note = this.getNote(i);
+            if (note[0]) { // is on
+                pressed.push(i);
+            }
+        }
+        return pressed;
     }
 }
 
@@ -698,11 +729,13 @@ class Coordinator {
     #wakelock : WakeLockSentinel | null = null;
     #wakelockTimer : number | null = 0;
     #timestamp;
+    #noteDisplay;
 
     constructor() {
         this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
         this.#timestamp = $('#timestamp');
+        this.#noteDisplay = $('#note_display');
     }
 
     onKeyDown(ev: KeyboardEvent) {
@@ -982,6 +1015,11 @@ class Coordinator {
                 this.#nextSecond = now + 1000;
             }
         }
+
+	// Show note names.
+        const pressedNotes = midiRenderingStatus.getPressedNotes();
+        const noteNames = pressedNotes.map(midiNoteToName).join(' ');
+        this.#noteDisplay.text(noteNames);
 
         this.#now = now;
 

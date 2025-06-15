@@ -229,6 +229,16 @@ canvas#roll2 {
     font-weight: bold;
 }
 
+/* Style for the note display span */
+#note_display {
+    position: fixed;
+    right: 10px;
+    bottom: 45px; /* Position it above the bottom controls */
+    font-size: 14pt;
+    color: var(--main-text-color);
+    text-shadow: 1px 1px 2px black;
+    font-family: 'Courier New', Courier, monospace;
+}
 
 .popbox_container {
     color: #202020;
