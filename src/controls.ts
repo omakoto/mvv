@@ -15,6 +15,8 @@ class Controls {
     #positionBar;
     #freeze;
     #videoMute;
+    #sharp;
+    #flat;
 
     constructor() {
         this.#top = $("#top");
@@ -33,6 +35,9 @@ class Controls {
         this.#positionBar = $("#position_bar");
         this.#freeze = $("#freeze");
         this.#videoMute = $("#video-mute");
+
+        this.#sharp = $("#sharp");
+        this.#flat = $("#flat");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -71,6 +76,18 @@ class Controls {
         });
         this.#videoMute.on('click', (ev) => {
             coordinator.toggleVideoMute();
+            this.update();
+            ev.stopPropagation();
+        });
+
+        this.#sharp.on('click', (ev) => {
+            coordinator.setSharpMode(true);
+            this.update();
+            ev.stopPropagation();
+        });
+
+        this.#flat.on('click', (ev) => {
+            coordinator.setSharpMode(false);
             this.update();
             ev.stopPropagation();
         });
@@ -166,6 +183,8 @@ class Controls {
             this.enable(this.#down);
             this.enable(this.#position);
         }
+        this.activate(this.#sharp, coordinator.isSharpMode);
+        this.activate(this.#flat, !coordinator.isSharpMode);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {

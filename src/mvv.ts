@@ -750,6 +750,11 @@ class Coordinator {
                 if (isRepeat) break;
                 this.#efps.toggle();
                 break;
+            case 'Digit4':
+                if (isRepeat) break;
+                this.setSharpMode(!this.isSharpMode);
+                this.updateUi();
+                break;
             case 'KeyR':
                 if (isRepeat) break;
                 this.toggleRecording();
@@ -787,6 +792,15 @@ class Coordinator {
                 return; // Don't prevent the default behavior.
         }
         ev.preventDefault();
+    }
+
+    get isSharpMode(): boolean {
+        return this.#useSharp;
+    }
+
+    setSharpMode(useSharp: boolean): void {
+        info("Mode changed to " + (useSharp ? "sharp" : "flat"));
+        this.#useSharp = useSharp
     }
 
     toggleVideoMute(): void {
@@ -941,14 +955,12 @@ class Coordinator {
 
         this.#normalizeMidiEvent(ev);
 
-        // Invalidate the cache whenever a note-on or note-off event occurs.
-        if (ev.status === 144 || ev.status === 128) {
-            this.updateNoteInformation();
-        }
-
         midiRenderingStatus.onMidiMessage(ev);
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
+        }
+        if (ev.status === 144 || ev.status === 128) {
+            this.updateNoteInformation();
         }
     }
 

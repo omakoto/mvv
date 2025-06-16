@@ -166,6 +166,12 @@ canvas#roll2 {
 #freeze {
     background-image: url("res/freeze.png");
 }
+#sharp {
+    background-image: url("res/sharp.png");
+}
+#flat {
+    background-image: url("res/flat.png");
+}
 #source {
     background-image: url("res/source.png");
     margin-right: 12px;

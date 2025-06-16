@@ -655,6 +655,12 @@ class Coordinator {
                     break;
                 __classPrivateFieldGet(this, _Coordinator_efps, "f").toggle();
                 break;
+            case 'Digit4':
+                if (isRepeat)
+                    break;
+                this.setSharpMode(!this.isSharpMode);
+                this.updateUi();
+                break;
             case 'KeyR':
                 if (isRepeat)
                     break;
@@ -698,6 +704,13 @@ class Coordinator {
                 return; // Don't prevent the default behavior.
         }
         ev.preventDefault();
+    }
+    get isSharpMode() {
+        return __classPrivateFieldGet(this, _Coordinator_useSharp, "f");
+    }
+    setSharpMode(useSharp) {
+        info("Mode changed to " + (useSharp ? "sharp" : "flat"));
+        __classPrivateFieldSet(this, _Coordinator_useSharp, useSharp, "f");
     }
     toggleVideoMute() {
         info("Toggle video mute");
@@ -802,13 +815,12 @@ class Coordinator {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
         this.extendWakelock();
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_normalizeMidiEvent).call(this, ev);
-        // Invalidate the cache whenever a note-on or note-off event occurs.
-        if (ev.status === 144 || ev.status === 128) {
-            this.updateNoteInformation();
-        }
         midiRenderingStatus.onMidiMessage(ev);
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
+        }
+        if (ev.status === 144 || ev.status === 128) {
+            this.updateNoteInformation();
         }
     }
     reset() {
