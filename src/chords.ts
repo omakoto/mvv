@@ -17,8 +17,8 @@ function midiNoteToName(note: number): string {
 }
 
 /**
- * Chord definitions are split into two groups for prioritization.
- * Primary chords are checked first.
+ * Chord definitions are split into three groups for prioritization.
+ * Primary chords.
  */
 const CHORD_DEFINITIONS_PRIMARY: { [name: string]: number[] } = {
     'M': [0, 4, 7],         // Major
@@ -29,7 +29,12 @@ const CHORD_DEFINITIONS_PRIMARY: { [name: string]: number[] } = {
     'm7': [0, 3, 7, 10],    // Minor 7th
     'dim7': [0, 3, 6, 9],   // Diminished 7th
     'm7♭5': [0, 3, 6, 10],  // Half-diminished 7th (Minor 7th flat 5)
+};
 
+/**
+ * Secondary.
+ */
+const CHORD_DEFINITIONS_SECONDARY: { [name: string]: number[] } = {
     '7(omit3rd)': [0, 7, 10],     // Dominant 7th
     'M7(omit3rd)': [0, 7, 11],    // Major 7th
     'dim7(omit3rd)': [0, 6, 9],   // Diminished 7th
@@ -40,12 +45,14 @@ const CHORD_DEFINITIONS_PRIMARY: { [name: string]: number[] } = {
 };
 
 /**
- * Sus chords are checked only if no primary chord matches.
+ * Sus chords are checked only if no other chords matches.
  */
 const CHORD_DEFINITIONS_SUS: { [name: string]: number[] } = {
     'sus4': [0, 5, 7],      // Sustained 4th
     'sus2': [0, 2, 7],      // Sustained 2nd
 };
+
+const ALL_CHORDS = [CHORD_DEFINITIONS_PRIMARY, CHORD_DEFINITIONS_SECONDARY, CHORD_DEFINITIONS_SUS];
 
 /**
  * Generates all combinations of a given size from an array.
@@ -119,26 +126,14 @@ function analyzeChord(notes: number[]): string | null {
         return null;
     }
 
-    // --- Pass 1: Search for the best possible PRIMARY chord ---
-    // Iterate from largest to smallest combinations to prioritize bigger chords.
-    for (let size = pitchClasses.length; size >= 3; size--) {
-        const combinations = getCombinations(pitchClasses, size);
-        for (const combo of combinations) {
-            const chord = findChordInDictionary(combo, CHORD_DEFINITIONS_PRIMARY);
-            if (chord) {
-                return chord; // Found the best possible primary chord.
-            }
-        }
-    }
-
-    // --- Pass 2: If no primary chord was found, search for the best SUS chord ---
-    // This part only runs if the first loop completes without returning.
-    for (let size = pitchClasses.length; size >= 3; size--) {
-        const combinations = getCombinations(pitchClasses, size);
-        for (const combo of combinations) {
-            const chord = findChordInDictionary(combo, CHORD_DEFINITIONS_SUS);
-            if (chord) {
-                return chord; // Found the best possible suspended chord.
+    for (const chords of ALL_CHORDS) {
+        for (let size = pitchClasses.length; size >= 3; size--) {
+            const combinations = getCombinations(pitchClasses, size);
+            for (const combo of combinations) {
+                const chord = findChordInDictionary(combo, chords);
+                if (chord) {
+                    return chord;
+                }
             }
         }
     }
