@@ -714,7 +714,6 @@ class Coordinator {
     #noteDisplay;
     #useSharp = true;
 
-    #lastChordDisplayText: string | null = null;
     constructor() {
         this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
@@ -944,7 +943,7 @@ class Coordinator {
 
         // Invalidate the cache whenever a note-on or note-off event occurs.
         if (ev.status === 144 || ev.status === 128) {
-            this.#lastChordDisplayText = null;
+            this.updateNoteInformation();
         }
 
         midiRenderingStatus.onMidiMessage(ev);
@@ -1003,23 +1002,20 @@ class Coordinator {
             }
         }
 
-        // If the cache is invalid (null), re-calculate the chord display text.
-        if (this.#lastChordDisplayText === null) {
-            const pressedNotes = midiRenderingStatus.getPressedNotes();
-            const noteNames = pressedNotes.map((note) => getNoteFullName(note, this.#useSharp)).join(' ');
-            const chordName = analyzeChord(pressedNotes, this.#useSharp);
-            
-            // Update the cached display text.
-            this.#lastChordDisplayText = chordName ? `${noteNames}  [${chordName}]` : noteNames;
-
-            // Update the display with the (possibly cached) text.
-            this.#noteDisplay.text(this.#lastChordDisplayText);
-        }
-
         this.#now = now;
 
         renderer.onDraw();
         midiRenderingStatus.afterDraw(this.#now);
+    }
+
+    updateNoteInformation(): void {
+        const pressedNotes = midiRenderingStatus.getPressedNotes();
+        const noteNames = pressedNotes.map((note) => getNoteFullName(note, this.#useSharp)).join(' ');
+        const chordName = analyzeChord(pressedNotes, this.#useSharp);
+        
+        const text = chordName ? `${noteNames}  [${chordName}]` : noteNames;
+
+        this.#noteDisplay.text(text);
     }
     
     // --- START: VSYNC-BASED ANIMATION LOOP ---

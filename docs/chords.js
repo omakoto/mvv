@@ -58,7 +58,7 @@ const CHORD_DEFINITIONS_TWO_NOTES = {
     'M3': [0, 4],
     'P5': [0, 7],
 };
-const ALL_CHORDS = [CHORD_DEFINITIONS_1, CHORD_DEFINITIONS_2, CHORD_DEFINITIONS_3];
+const ALL_CHORDS = [CHORD_DEFINITIONS_1, CHORD_DEFINITIONS_2, CHORD_DEFINITIONS_3, CHORD_DEFINITIONS_TWO_NOTES];
 /**
  * Generates all combinations of a given size from an array.
  * @param array The source array.
@@ -127,11 +127,8 @@ function analyzeChord(notes, sharp) {
     if (pitchClasses.length > 7) {
         return null;
     }
-    if (pitchClasses.length == 2) {
-        return findChordInDictionary(pitchClasses, CHORD_DEFINITIONS_TWO_NOTES, sharp);
-    }
     for (const chords of ALL_CHORDS) {
-        for (let size = pitchClasses.length; size >= 3; size--) {
+        for (let size = pitchClasses.length; size >= 2; size--) {
             const combinations = getCombinations(pitchClasses, size);
             for (const combo of combinations) {
                 const chord = findChordInDictionary(combo, chords, sharp);
