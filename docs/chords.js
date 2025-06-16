@@ -19,7 +19,7 @@ function midiNoteToName(note) {
  * Chord definitions are split into three groups for prioritization.
  * Primary chords.
  */
-const CHORD_DEFINITIONS_PRIMARY = {
+const CHORD_DEFINITIONS_1 = {
     'M': [0, 4, 7], // Major
     'm': [0, 3, 7], // Minor
     'dim': [0, 3, 6], // Diminished
@@ -32,7 +32,7 @@ const CHORD_DEFINITIONS_PRIMARY = {
 /**
  * Secondary.
  */
-const CHORD_DEFINITIONS_SECONDARY = {
+const CHORD_DEFINITIONS_2 = {
     '7(omit3rd)': [0, 7, 10], // Dominant 7th
     'M7(omit3rd)': [0, 7, 11], // Major 7th
     'dim7(omit3rd)': [0, 6, 9], // Diminished 7th
@@ -43,11 +43,19 @@ const CHORD_DEFINITIONS_SECONDARY = {
 /**
  * Sus chords are checked only if no other chords matches.
  */
-const CHORD_DEFINITIONS_SUS = {
+const CHORD_DEFINITIONS_3 = {
     'sus4': [0, 5, 7], // Sustained 4th
     'sus2': [0, 2, 7], // Sustained 2nd
 };
-const ALL_CHORDS = [CHORD_DEFINITIONS_PRIMARY, CHORD_DEFINITIONS_SECONDARY, CHORD_DEFINITIONS_SUS];
+/**
+ * 2 note chords.
+ */
+const CHORD_DEFINITIONS_TWO_NOTES = {
+    'm3': [0, 3],
+    'M3': [0, 4],
+    'P5': [0, 7],
+};
+const ALL_CHORDS = [CHORD_DEFINITIONS_1, CHORD_DEFINITIONS_2, CHORD_DEFINITIONS_3];
 /**
  * Generates all combinations of a given size from an array.
  * @param array The source array.
@@ -81,7 +89,7 @@ function getCombinations(array, size) {
  * @returns The name of the chord if a match is found, otherwise null.
  */
 function findChordInDictionary(pitchClasses, definitions) {
-    if (pitchClasses.length < 3) {
+    if (pitchClasses.length < 2) {
         return null;
     }
     // Try each note as a potential root to handle inversions.
@@ -105,13 +113,19 @@ function findChordInDictionary(pitchClasses, definitions) {
  * @returns The name of the chord (e.g., "CM", "Dm7") or null if no chord is recognized.
  */
 function analyzeChord(notes) {
-    if (notes.length < 3) {
+    if (notes.length < 2) {
         return null;
     }
     const pitchClasses = [...new Set(notes.map(note => note % 12))].sort((a, b) => a - b);
+    if (pitchClasses.length < 2) {
+        return null;
+    }
     // Performance guardrail: Don't analyze overly complex note clusters.
     if (pitchClasses.length > 7) {
         return null;
+    }
+    if (pitchClasses.length == 2) {
+        return findChordInDictionary(pitchClasses, CHORD_DEFINITIONS_TWO_NOTES);
     }
     for (const chords of ALL_CHORDS) {
         for (let size = pitchClasses.length; size >= 3; size--) {
