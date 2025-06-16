@@ -1010,10 +1010,10 @@ class Coordinator {
             
             // Update the cached display text.
             this.#lastChordDisplayText = chordName ? `${noteNames}  [${chordName}]` : noteNames;
+
+            // Update the display with the (possibly cached) text.
+            this.#noteDisplay.text(this.#lastChordDisplayText);
         }
-        
-        // Update the display with the (possibly cached) text.
-        this.#noteDisplay.text(this.#lastChordDisplayText);
 
         this.#now = now;
 
