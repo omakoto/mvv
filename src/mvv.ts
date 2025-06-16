@@ -712,6 +712,7 @@ class Coordinator {
     #wakelockTimer : number | null = 0;
     #timestamp;
     #noteDisplay;
+    #useSharp = true;
 
     #lastChordDisplayText: string | null = null;
     constructor() {
@@ -1005,8 +1006,8 @@ class Coordinator {
         // If the cache is invalid (null), re-calculate the chord display text.
         if (this.#lastChordDisplayText === null) {
             const pressedNotes = midiRenderingStatus.getPressedNotes();
-            const noteNames = pressedNotes.map(midiNoteToName).join(' ');
-            const chordName = analyzeChord(pressedNotes);
+            const noteNames = pressedNotes.map((note) => getNoteFullName(note, this.#useSharp)).join(' ');
+            const chordName = analyzeChord(pressedNotes, this.#useSharp);
             
             // Update the cached display text.
             this.#lastChordDisplayText = chordName ? `${noteNames}  [${chordName}]` : noteNames;

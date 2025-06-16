@@ -1,19 +1,22 @@
 "use strict";
 // Note names
-// const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
-const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+//const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
+const NOTE_NAMES_SHARPS = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const NOTE_NAMES_FLATS = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+function getNoteName(note, sharp) {
+    return (sharp ? NOTE_NAMES_SHARPS : NOTE_NAMES_FLATS)[note % 12];
+}
 /**
- * Converts a MIDI note number to its common English name.
+ * Converts a MIDI note number to its common English name with its octave.
  * @param note The MIDI note number (0-127).
  * @returns The note name string (e.g., "C4").
  */
-function midiNoteToName(note) {
+function getNoteFullName(note, sharp) {
     if (note < 0 || note >= 128) {
         return "";
     }
     const octave = Math.floor(note / 12) - 1;
-    const name = NOTE_NAMES[note % 12];
-    return name + octave;
+    return getNoteName(note, sharp) + octave;
 }
 /**
  * Chord definitions are split into three groups for prioritization.
@@ -88,7 +91,7 @@ function getCombinations(array, size) {
  * @param definitions The chord dictionary to use for matching.
  * @returns The name of the chord if a match is found, otherwise null.
  */
-function findChordInDictionary(pitchClasses, definitions) {
+function findChordInDictionary(pitchClasses, definitions, sharp) {
     if (pitchClasses.length < 2) {
         return null;
     }
@@ -100,7 +103,7 @@ function findChordInDictionary(pitchClasses, definitions) {
             const definedIntervals = definitions[chordType];
             if (definedIntervals.length === intervals.length &&
                 definedIntervals.every((val, index) => val === intervals[index])) {
-                return NOTE_NAMES[root] + chordType;
+                return getNoteName(root % 12, sharp) + chordType;
             }
         }
     }
@@ -112,7 +115,7 @@ function findChordInDictionary(pitchClasses, definitions) {
  * @param notes An array of MIDI note numbers.
  * @returns The name of the chord (e.g., "CM", "Dm7") or null if no chord is recognized.
  */
-function analyzeChord(notes) {
+function analyzeChord(notes, sharp) {
     if (notes.length < 2) {
         return null;
     }
@@ -125,13 +128,13 @@ function analyzeChord(notes) {
         return null;
     }
     if (pitchClasses.length == 2) {
-        return findChordInDictionary(pitchClasses, CHORD_DEFINITIONS_TWO_NOTES);
+        return findChordInDictionary(pitchClasses, CHORD_DEFINITIONS_TWO_NOTES, sharp);
     }
     for (const chords of ALL_CHORDS) {
         for (let size = pitchClasses.length; size >= 3; size--) {
             const combinations = getCombinations(pitchClasses, size);
             for (const combo of combinations) {
-                const chord = findChordInDictionary(combo, chords);
+                const chord = findChordInDictionary(combo, chords, sharp);
                 if (chord) {
                     return chord;
                 }
