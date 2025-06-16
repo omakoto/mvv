@@ -875,7 +875,13 @@ class Coordinator {
         const noteNames = pressedNotes.map((note) => getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"))).join(' ');
         const chordName = analyzeChord(pressedNotes, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
         const text = chordName ? `${noteNames}  [${chordName}]` : noteNames;
-        __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(text);
+        if (text.length > 0) {
+            __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(text);
+            __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").stop(true, true).show();
+        }
+        else {
+            __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").fadeOut(800);
+        }
     }
     /**
      * Starts the main animation loop, which is synchronized with the browser's

@@ -1027,7 +1027,12 @@ class Coordinator {
         
         const text = chordName ? `${noteNames}  [${chordName}]` : noteNames;
 
-        this.#noteDisplay.text(text);
+        if (text.length > 0) {
+            this.#noteDisplay.text(text);
+            this.#noteDisplay.stop(true, true).show();
+        } else {
+            this.#noteDisplay.fadeOut(800);
+        }
     }
     
     // --- START: VSYNC-BASED ANIMATION LOOP ---
