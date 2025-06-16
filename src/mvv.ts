@@ -1009,7 +1009,7 @@ class Coordinator {
             const chordName = analyzeChord(pressedNotes);
             
             // Update the cached display text.
-            this.#lastChordDisplayText = chordName ? `${noteNames}  (${chordName})` : noteNames;
+            this.#lastChordDisplayText = chordName ? `${noteNames}  [${chordName}]` : noteNames;
         }
         
         // Update the display with the (possibly cached) text.

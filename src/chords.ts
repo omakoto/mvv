@@ -16,7 +16,6 @@ function midiNoteToName(note: number): string {
     return name + octave;
 }
 
-// --- START: CHORD ANALYSIS LOGIC ---
 /**
  * Chord definitions are split into two groups for prioritization.
  * Primary chords are checked first.
@@ -29,7 +28,15 @@ const CHORD_DEFINITIONS_PRIMARY: { [name: string]: number[] } = {
     'M7': [0, 4, 7, 11],    // Major 7th
     'm7': [0, 3, 7, 10],    // Minor 7th
     'dim7': [0, 3, 6, 9],   // Diminished 7th
-    'm7b5': [0, 3, 6, 10],  // Half-diminished 7th (Minor 7th flat 5)
+    'm7♭5': [0, 3, 6, 10],  // Half-diminished 7th (Minor 7th flat 5)
+
+    '7(omit3rd)': [0, 7, 10],     // Dominant 7th
+    'M7(omit3rd)': [0, 7, 11],    // Major 7th
+    'dim7(omit3rd)': [0, 6, 9],   // Diminished 7th
+
+    '7(omit5th)': [0, 4, 10],     // Dominant 7th
+    'M7(omit5th)': [0, 4, 11],    // Major 7th
+    'dim7(omit5th)': [0, 3, 9],   // Diminished 7th
 };
 
 /**

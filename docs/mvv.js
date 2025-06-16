@@ -860,7 +860,7 @@ class Coordinator {
             const noteNames = pressedNotes.map(midiNoteToName).join(' ');
             const chordName = analyzeChord(pressedNotes);
             // Update the cached display text.
-            __classPrivateFieldSet(this, _Coordinator_lastChordDisplayText, chordName ? `${noteNames}  (${chordName})` : noteNames, "f");
+            __classPrivateFieldSet(this, _Coordinator_lastChordDisplayText, chordName ? `${noteNames}  [${chordName}]` : noteNames, "f");
         }
         // Update the display with the (possibly cached) text.
         __classPrivateFieldGet(this, _Coordinator_noteDisplay, "f").text(__classPrivateFieldGet(this, _Coordinator_lastChordDisplayText, "f"));
