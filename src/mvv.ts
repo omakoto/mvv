@@ -850,15 +850,30 @@ class Coordinator {
     #wakelockTimer : number | null = 0;
     #timestamp;
     #noteDisplay;
-    #useSharp = true;
-    #showVines = true;
-    #scrollSpeedFactor = 1.0;
+    #useSharp: boolean;
+    #showVlines: boolean;
+    #scrollSpeedFactor: number;
+
+    // LocalStorage keys
+    static readonly #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
+    static readonly #STORAGE_KEY_SHOW_VLINES = 'mvv_showVlines';
+    static readonly #STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
 
     constructor() {
         this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
         this.#timestamp = $('#timestamp');
         this.#noteDisplay = $('#note_display');
+
+        // Load settings from localStorage
+        const storedSharp = localStorage.getItem(Coordinator.#STORAGE_KEY_USE_SHARP);
+        this.#useSharp = storedSharp === null ? true : storedSharp === 'true';
+
+        const storedVlines = localStorage.getItem(Coordinator.#STORAGE_KEY_SHOW_VLINES);
+        this.#showVlines = storedVlines === null ? true : storedVlines === 'true';
+
+        const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
+        this.#scrollSpeedFactor = storedSpeed ? parseFloat(storedSpeed) : 1.0;
     }
 
     onKeyDown(ev: KeyboardEvent) {
@@ -950,14 +965,16 @@ class Coordinator {
     setSharpMode(useSharp: boolean): void {
         info("Mode changed to " + (useSharp ? "sharp" : "flat"));
         this.#useSharp = useSharp
+        localStorage.setItem(Coordinator.#STORAGE_KEY_USE_SHARP, String(useSharp));
     }
 
     get isShowingVlines(): boolean {
-        return this.#showVines;
+        return this.#showVlines;
     }
 
     setShowingVlines(show: boolean): void {
-        this.#showVines = show
+        this.#showVlines = show
+        localStorage.setItem(Coordinator.#STORAGE_KEY_SHOW_VLINES, String(show));
     }
 
     get scrollSpeedFactor(): number {
@@ -966,10 +983,11 @@ class Coordinator {
 
     setScrollSpeedFactor(factor: number): void {
         this.#scrollSpeedFactor = factor;
+        localStorage.setItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED, String(factor));
     }
 
     toggleScrollSpeedFactor(): void {
-        this.#scrollSpeedFactor = 3.0 - this.#scrollSpeedFactor;
+        this.setScrollSpeedFactor(3.0 - this.#scrollSpeedFactor);
     }
 
     toggleVideoMute(): void {

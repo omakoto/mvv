@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_noteDisplay, _Coordinator_useSharp, _Coordinator_showVines, _Coordinator_scrollSpeedFactor, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_noteDisplay, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_scrollSpeedFactor, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
@@ -94,7 +94,7 @@ class Renderer {
         return [canvas, context];
     }
     constructor() {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _b, _c, _d, _e, _f, _g, _h, _j;
         _Renderer_BAR_SUB_LINE_WIDTH.set(this, s(2));
         _Renderer_BAR_BASE_LINE_COLOR.set(this, [200, 255, 200]);
         _Renderer_ROLL_SCROLL_AMOUNT.set(this, s(2));
@@ -121,10 +121,10 @@ class Renderer {
         __classPrivateFieldSet(this, _Renderer_H, s(screen.height), "f");
         __classPrivateFieldSet(this, _Renderer_BAR_H, int(__classPrivateFieldGet(this, _Renderer_H, "f") * BAR_RATIO), "f");
         __classPrivateFieldSet(this, _Renderer_ROLL_H, __classPrivateFieldGet(this, _Renderer_H, "f") - __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), "f");
-        _a = this, _b = this, [({ set value(_j) { __classPrivateFieldSet(_a, _Renderer_cbar, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_b, _Renderer_bar, _j, "f"); } }).value] = Renderer.getCanvas("bar");
-        _c = this, _d = this, [({ set value(_j) { __classPrivateFieldSet(_c, _Renderer_cbar2, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_d, _Renderer_bar2, _j, "f"); } }).value] = Renderer.getCanvas("bar2");
-        _e = this, _f = this, [({ set value(_j) { __classPrivateFieldSet(_e, _Renderer_croll, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_f, _Renderer_roll, _j, "f"); } }).value] = Renderer.getCanvas("roll");
-        _g = this, _h = this, [({ set value(_j) { __classPrivateFieldSet(_g, _Renderer_croll2, _j, "f"); } }).value, ({ set value(_j) { __classPrivateFieldSet(_h, _Renderer_roll2, _j, "f"); } }).value] = Renderer.getCanvas("roll2");
+        _b = this, _c = this, [({ set value(_k) { __classPrivateFieldSet(_b, _Renderer_cbar, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_c, _Renderer_bar, _k, "f"); } }).value] = Renderer.getCanvas("bar");
+        _d = this, _e = this, [({ set value(_k) { __classPrivateFieldSet(_d, _Renderer_cbar2, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_e, _Renderer_bar2, _k, "f"); } }).value] = Renderer.getCanvas("bar2");
+        _f = this, _g = this, [({ set value(_k) { __classPrivateFieldSet(_f, _Renderer_croll, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_g, _Renderer_roll, _k, "f"); } }).value] = Renderer.getCanvas("roll");
+        _h = this, _j = this, [({ set value(_k) { __classPrivateFieldSet(_h, _Renderer_croll2, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_j, _Renderer_roll2, _k, "f"); } }).value] = Renderer.getCanvas("roll2");
         __classPrivateFieldGet(this, _Renderer_bar, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_bar2, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_roll, "f").imageSmoothingEnabled = false;
@@ -317,13 +317,13 @@ class MidiRenderingStatus {
         this.reset();
     }
     onMidiMessage(ev) {
-        var _a, _b;
+        var _b, _c;
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
         if (ev.isNoteOn) { // Note on
             __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, // Note on
-            (_a = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _a++, _a), "f");
+            (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _b++, _b), "f");
             let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
             ar[0] = true;
             ar[1] = data2;
@@ -331,7 +331,7 @@ class MidiRenderingStatus {
         }
         else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, // Note off
-            (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _b++, _b), "f");
+            (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _c++, _c), "f");
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
         }
         else if (status === 176) { // Control Change
@@ -358,8 +358,8 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
     }
     afterDraw(_now) {
-        var _a;
-        __classPrivateFieldSet(this, _MidiRenderingStatus_tick, (_a = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), _a++, _a), "f");
+        var _b;
+        __classPrivateFieldSet(this, _MidiRenderingStatus_tick, (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), _b++, _b), "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
     }
@@ -704,7 +704,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     return (performance.now() - __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f")) +
         __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") - __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this);
 }, _Recorder_moveUpToTimestamp = function _Recorder_moveUpToTimestamp(timeStamp, callback) {
-    var _a;
+    var _b;
     for (;;) {
         if (this.isAfterLast) {
             // No more events.
@@ -715,7 +715,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
         if (ev.timeStamp > timeStamp) {
             return true;
         }
-        __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, (_a = __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f"), _a++, _a), "f");
+        __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, (_b = __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f"), _b++, _b), "f");
         if (callback) {
             callback(ev);
         }
@@ -735,9 +735,9 @@ class Coordinator {
         _Coordinator_wakelockTimer.set(this, 0);
         _Coordinator_timestamp.set(this, void 0);
         _Coordinator_noteDisplay.set(this, void 0);
-        _Coordinator_useSharp.set(this, true);
-        _Coordinator_showVines.set(this, true);
-        _Coordinator_scrollSpeedFactor.set(this, 1.0);
+        _Coordinator_useSharp.set(this, void 0);
+        _Coordinator_showVlines.set(this, void 0);
+        _Coordinator_scrollSpeedFactor.set(this, void 0);
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
         _Coordinator_lastRewindPressTime.set(this, 0);
         _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds.set(this, -1);
@@ -749,6 +749,13 @@ class Coordinator {
         __classPrivateFieldSet(this, _Coordinator_efps, $("#fps"), "f");
         __classPrivateFieldSet(this, _Coordinator_timestamp, $('#timestamp'), "f");
         __classPrivateFieldSet(this, _Coordinator_noteDisplay, $('#note_display'), "f");
+        // Load settings from localStorage
+        const storedSharp = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_USE_SHARP));
+        __classPrivateFieldSet(this, _Coordinator_useSharp, storedSharp === null ? true : storedSharp === 'true', "f");
+        const storedVlines = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SHOW_VLINES));
+        __classPrivateFieldSet(this, _Coordinator_showVlines, storedVlines === null ? true : storedVlines === 'true', "f");
+        const storedSpeed = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED));
+        __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, storedSpeed ? parseFloat(storedSpeed) : 1.0, "f");
     }
     onKeyDown(ev) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
@@ -847,21 +854,24 @@ class Coordinator {
     setSharpMode(useSharp) {
         info("Mode changed to " + (useSharp ? "sharp" : "flat"));
         __classPrivateFieldSet(this, _Coordinator_useSharp, useSharp, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_USE_SHARP), String(useSharp));
     }
     get isShowingVlines() {
-        return __classPrivateFieldGet(this, _Coordinator_showVines, "f");
+        return __classPrivateFieldGet(this, _Coordinator_showVlines, "f");
     }
     setShowingVlines(show) {
-        __classPrivateFieldSet(this, _Coordinator_showVines, show, "f");
+        __classPrivateFieldSet(this, _Coordinator_showVlines, show, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SHOW_VLINES), String(show));
     }
     get scrollSpeedFactor() {
         return __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f");
     }
     setScrollSpeedFactor(factor) {
         __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, factor, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED), String(factor));
     }
     toggleScrollSpeedFactor() {
-        __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, 3.0 - __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f"), "f");
+        this.setScrollSpeedFactor(3.0 - __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f"));
     }
     toggleVideoMute() {
         info("Toggle video mute");
@@ -1001,9 +1011,9 @@ class Coordinator {
         return __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f");
     }
     onDraw() {
-        var _a;
+        var _b;
         // Update FPS counter
-        __classPrivateFieldSet(this, _Coordinator_frames, (_a = __classPrivateFieldGet(this, _Coordinator_frames, "f"), _a++, _a), "f");
+        __classPrivateFieldSet(this, _Coordinator_frames, (_b = __classPrivateFieldGet(this, _Coordinator_frames, "f"), _b++, _b), "f");
         let now = performance.now();
         if (now >= __classPrivateFieldGet(this, _Coordinator_nextSecond, "f")) {
             __classPrivateFieldGet(this, _Coordinator_efps, "f").text(__classPrivateFieldGet(this, _Coordinator_flips, "f") + "/" + __classPrivateFieldGet(this, _Coordinator_frames, "f") + "/" + __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"));
@@ -1042,9 +1052,9 @@ class Coordinator {
             return;
         }
         const loop = () => {
-            var _a;
+            var _b;
             // #flips is for the FPS counter, representing screen updates.
-            __classPrivateFieldSet(this, _Coordinator_flips, (_a = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _a++, _a), "f");
+            __classPrivateFieldSet(this, _Coordinator_flips, (_b = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _b++, _b), "f");
             // Run a playback tick to process MIDI events.
             this.onPlaybackTimer();
             // Draw the current state to the off-screen canvas.
@@ -1068,8 +1078,8 @@ class Coordinator {
         }
     }
     onPlaybackTimer() {
-        var _a;
-        __classPrivateFieldSet(this, _Coordinator_playbackTicks, (_a = __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"), _a++, _a), "f");
+        var _b;
+        __classPrivateFieldSet(this, _Coordinator_playbackTicks, (_b = __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"), _b++, _b), "f");
         if (recorder.isPlaying) {
             recorder.playbackUpToNow();
         }
@@ -1125,7 +1135,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_noteDisplay = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showVines = new WeakMap(), _Coordinator_scrollSpeedFactor = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
+_a = Coordinator, _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_noteDisplay = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showVlines = new WeakMap(), _Coordinator_scrollSpeedFactor = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (recorder.isRecording) {
         return;
     }
@@ -1177,6 +1187,10 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
         controls.setCurrentPosition(0, 0);
     }
 };
+// LocalStorage keys
+_Coordinator_STORAGE_KEY_USE_SHARP = { value: 'mvv_useSharp' };
+_Coordinator_STORAGE_KEY_SHOW_VLINES = { value: 'mvv_showVlines' };
+_Coordinator_STORAGE_KEY_SCROLL_SPEED = { value: 'mvv_scrollSpeed' };
 const coordinator = new Coordinator();
 function onMIDISuccess(midiAccess) {
     console.log("onMIDISuccess");
