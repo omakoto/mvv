@@ -1141,7 +1141,7 @@ $(window).on('load', () => {
                     // This hides the tooltip element. jQuery UI will create a new one
                     // for the next interaction.
                     $(ui.tooltip).fadeOut('fast');
-                }, 2000); // The tooltip will be visible for 2 seconds.
+                }, 1000); // The tooltip will be visible for 1 second.
             }
         },
         // The options below are for a slightly better visual effect and are not
