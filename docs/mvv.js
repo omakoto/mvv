@@ -29,6 +29,8 @@ const BAR_RATIO = 0.3; // Bar : Roll height
 const FPS = 60; // This is now only used for the FPS counter display, not for timing the loop.
 // Common values
 const RGB_BLACK = [0, 0, 0];
+// Dark yellow color for octave lines
+const RGB_OCTAVE_LINES = [50, 50, 0];
 // Utility functions
 function int(v) {
     return Math.floor(v);
@@ -95,7 +97,7 @@ class Renderer {
         var _a, _b, _c, _d, _e, _f, _g, _h;
         _Renderer_BAR_SUB_LINE_WIDTH.set(this, s(2));
         _Renderer_BAR_BASE_LINE_COLOR.set(this, [200, 255, 200]);
-        _Renderer_ROLL_SCROLL_AMOUNT.set(this, s(2));
+        _Renderer_ROLL_SCROLL_AMOUNT.set(this, s(4));
         _Renderer_W.set(this, void 0); // Width in canvas pixels
         _Renderer_H.set(this, void 0); // Height in canvas pixels
         _Renderer_BAR_H.set(this, void 0);
@@ -189,6 +191,36 @@ class Renderer {
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * percent, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));
     }
+    // Draws vertical lines between octaves (B to C).
+    drawOctaveLines() {
+        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(RGB_OCTAVE_LINES);
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle;
+        const OCTAVE_LINE_WIDTH = 2; // Width of the octave line
+        // Iterate through notes to find octave boundaries (B notes)
+        // MIDI notes 0-127. C0 is MIDI 12, B0 is MIDI 23, C1 is MIDI 24 etc.
+        // We want to draw a line *before* each C note (which means after each B note)
+        // So, we draw at note indices 11, 23, 35, ..., 107
+        for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
+            // Check if the current note is a B note (MIDI % 12 === 11)
+            // Or more precisely, the line should appear after the B and before the C of the next octave.
+            // So, for each C note (MIDI % 12 === 0), draw a line just before it.
+            if (i % 12 === 0 && i > __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) { // Only for C notes, and not the very first note
+                // Calculate the x position for the line.
+                // This will be at the left edge of the C note's visual block.
+                const x = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
+                // Draw the vertical line
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_ROLL_H, "f"));
+                // Hack -- draw the lines three times in #bar.
+                // Without this, the lines in #roll would look thicker because
+                // when we scroll it, we just draw itself on top of it with a slight
+                // offset, which would accumulate the subpixel artifacts.
+                // (or something like that.)
+                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
+                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
+                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
+            }
+        }
+    }
     onDraw() {
         // Scroll the roll.
         __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, __classPrivateFieldGet(this, _Renderer_ROLL_SCROLL_AMOUNT, "f"));
@@ -241,6 +273,8 @@ class Renderer {
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, __classPrivateFieldGet(this, _Renderer_ROLL_SCROLL_AMOUNT, "f"));
         }
+        // Draw octave lines.
+        this.drawOctaveLines();
         // Base line.
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(__classPrivateFieldGet(this, _Renderer_BAR_BASE_LINE_COLOR, "f"));
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), __classPrivateFieldGet(this, _Renderer_W, "f"), -__classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));

@@ -36,6 +36,8 @@ const FPS = 60; // This is now only used for the FPS counter display, not for ti
 
 // Common values
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
+// Dark yellow color for octave lines
+const RGB_OCTAVE_LINES: [number, number, number] = [50, 50, 0];
 
 // Utility functions
 
@@ -91,7 +93,7 @@ function getCurrentTime(): string {
 class Renderer {
     #BAR_SUB_LINE_WIDTH = s(2);
     #BAR_BASE_LINE_COLOR: [number, number, number] = [200, 255, 200];
-    #ROLL_SCROLL_AMOUNT = s(2);
+    #ROLL_SCROLL_AMOUNT = s(4);
 
     #W; // Width in canvas pixels
     #H; // Height in canvas pixels
@@ -209,6 +211,41 @@ class Renderer {
         this.#bar.fillRect(0, this.#BAR_H * percent, this.#W, this.#BAR_SUB_LINE_WIDTH)
     }
 
+    // Draws vertical lines between octaves (B to C).
+    drawOctaveLines(): void {
+        this.#roll.fillStyle = rgbToStr(RGB_OCTAVE_LINES);
+        this.#bar.fillStyle = this.#roll.fillStyle
+        const OCTAVE_LINE_WIDTH = 2; // Width of the octave line
+
+        // Iterate through notes to find octave boundaries (B notes)
+        // MIDI notes 0-127. C0 is MIDI 12, B0 is MIDI 23, C1 is MIDI 24 etc.
+        // We want to draw a line *before* each C note (which means after each B note)
+        // So, we draw at note indices 11, 23, 35, ..., 107
+        for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
+            // Check if the current note is a B note (MIDI % 12 === 11)
+            // Or more precisely, the line should appear after the B and before the C of the next octave.
+            // So, for each C note (MIDI % 12 === 0), draw a line just before it.
+            if (i % 12 === 0 && i > this.#MIN_NOTE) { // Only for C notes, and not the very first note
+                // Calculate the x position for the line.
+                // This will be at the left edge of the C note's visual block.
+                const x = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
+                
+                // Draw the vertical line
+                this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#ROLL_H);
+
+                // Hack -- draw the lines three times in #bar.
+                // Without this, the lines in #roll would look thicker because
+                // when we scroll it, we just draw itself on top of it with a slight
+                // offset, which would accumulate the subpixel artifacts.
+                // (or something like that.)
+                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
+                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
+                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
+            }
+        }
+    }
+
+
     onDraw(): void {
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, this.#ROLL_SCROLL_AMOUNT);
@@ -273,6 +310,9 @@ class Renderer {
             this.#roll.fillStyle = colorStr;
             this.#roll.fillRect(bl, 0, bw, this.#ROLL_SCROLL_AMOUNT);
         }
+
+        // Draw octave lines.
+        this.drawOctaveLines();
 
         // Base line.
         this.#bar.fillStyle = rgbToStr(this.#BAR_BASE_LINE_COLOR);
