@@ -25,12 +25,13 @@ It visualizes:
 - `Z`: Stop playback
 - `S`: Save the last recording as a midi file
 - `L`: Load a `*.mid` file
-- `3`: Show FPS and playback timer resolution.
+- `3`: Show FPS and playback timer resolution
+- `4`: Toggle between ♯ and ♭ for key/chord names
 
 ## Supported midi events
 
 - Only note ons/offs and the pedal depth will be visualized.
-- Other MIDI events are not visualized, but MVV will/should still record / play them; not tested though.
+- Other MIDI events are not visualized, but MVV will/should still record / play them; not well tested though.
 
 ## Bugs/TODOs
 
