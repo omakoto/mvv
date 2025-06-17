@@ -16,8 +16,9 @@ It visualizes:
 
 ## Keys
 
-- `1` or `F1`: Hide screen
-- `2` or `F2`: Freeze roll pane
+- `?` : Help
+- `1` : Hide screen
+- `2` : Freeze roll pane
 - `F` or double tap anywhere : Toggle full-screen
 - `R`: Record start/stop
 - `SPACE`: Playback start / pause
@@ -47,7 +48,7 @@ It visualizes:
   - [X] Rewind should replay all control changes
 - [X] P4: Actually sync the renderer to vsync
 - [ ] P4: Support SMPTE time format in *.mid files
-- [ ] P4: Add help (not important now that we have buttons)
+- [X] P4: Add help (not important now that we have buttons)
 - [X] P3: Visualize sosutenuto pedal depth
 - [X] P1: On-screen playback/recording controls
   - [X] Play/Record/Stop/Pause/RewindToTop

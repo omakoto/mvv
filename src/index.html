@@ -10,7 +10,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap" rel="stylesheet">
 
     <link href="popbox/popbox.css" rel="stylesheet">
     <script src="popbox/popbox.js"></script>
@@ -84,6 +84,31 @@
                 <button id="confirm_cancel" data-popbox-close="confirm_box">Cancel</button>
             </div>
         </div>
+    </div>
+    
+    <!-- Help Screen -->
+    <div id="help_overlay"></div>
+    <div id="help_box">
+        <div id="help_close">&times;</div>
+        <h2>Keyboard Shortcuts</h2>
+        <table>
+            <tbody>
+                <tr><td><kbd>1</kbd></td><td>Hide screen</td></tr>
+                <tr><td><kbd>2</kbd></td><td>Freeze roll pane</td></tr>
+                <tr><td><kbd>F</kbd> or double tap anywhere</td><td>Toggle full-screen</td></tr>
+                <tr><td><kbd>R</kbd></td><td>Record start/stop</td></tr>
+                <tr><td><kbd>Space</kbd></td><td>Playback start / pause</td></tr>
+                <tr><td><kbd>&larr;</kbd>/<kbd>&rarr;</kbd></td><td>Rewind/Fast-forward</td></tr>
+                <tr><td><kbd>Z</kbd></td><td>Stop playback</td></tr>
+                <tr><td><kbd>S</kbd></td><td>Save the last recording as a midi file</td></tr>
+                <tr><td><kbd>L</kbd></td><td>Load a *.mid file</td></tr>
+                <tr><td><kbd>3</kbd></td><td>Show FPS and playback timer resolution</td></tr>
+                <tr><td><kbd>4</kbd></td><td>Toggle between ♯ and ♭ for key/chord names</td></tr>
+                <tr><td><kbd>5</kbd></td><td>Toggle octave lines</td></tr>
+                <tr><td><kbd>6</kbd></td><td>Toggle scroll speed</td></tr>
+                <tr><td><kbd>?</kbd></td><td>Show this help screen</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <div id="canvases">

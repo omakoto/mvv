@@ -853,6 +853,8 @@ class Coordinator {
     #useSharp: boolean;
     #showVlines: boolean;
     #scrollSpeedFactor: number;
+    #isHelpVisible = false;
+
 
     // LocalStorage keys
     static readonly #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
@@ -878,6 +880,26 @@ class Coordinator {
 
     onKeyDown(ev: KeyboardEvent) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
+
+        // Always allow '?' and 'Escape' to control the help screen.
+        if (ev.key === '?') { // '?' key
+             if (ev.repeat) return;
+             this.toggleHelpScreen();
+             ev.preventDefault();
+             return;
+        }
+        if (ev.code === 'Escape') {
+            if (this.#isHelpVisible) {
+                this.toggleHelpScreen();
+                ev.preventDefault();
+                return;
+            }
+        }
+
+        // If help is visible, block all other shortcuts.
+        if (this.#isHelpVisible) {
+            return;
+        }
 
         this.extendWakelock();
 
@@ -988,6 +1010,17 @@ class Coordinator {
 
     toggleScrollSpeedFactor(): void {
         this.setScrollSpeedFactor(3.0 - this.#scrollSpeedFactor);
+    }
+
+    toggleHelpScreen(): void {
+        this.#isHelpVisible = !this.#isHelpVisible;
+        if (this.#isHelpVisible) {
+            $('#help_overlay').fadeIn('fast');
+            $('#help_box').fadeIn('fast');
+        } else {
+            $('#help_overlay').fadeOut('fast');
+            $('#help_box').fadeOut('fast');
+        }
     }
 
     toggleVideoMute(): void {
@@ -1445,6 +1478,11 @@ $('#fullscreen').on('click', (_ev) => {
 $('#source').on('click', (_ev) => {
     window.open("https://github.com/omakoto/mvv", "source");
 });
+
+$('#help_close, #help_overlay').on('click', (_ev) => {
+    coordinator.toggleHelpScreen();
+});
+
 
 $(document).on('visibilitychange', () => {
     if (document.visibilityState === 'visible') {

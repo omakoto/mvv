@@ -305,3 +305,97 @@ body .ui-tooltip {
     box-shadow: none;
     -webkit-box-shadow: none;
 }
+
+/* Help Screen Styles */
+#help_overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 998;
+}
+
+#help_box {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333;
+    color: #eee;
+    padding: 20px 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 999;
+    min-width: 450px;
+    max-width: 90vw;
+}
+
+#help_box h2 {
+    margin-top: 0;
+    text-align: center;
+    color: var(--main-text-color);
+    font-weight: 400;
+    font-size: 16pt;
+}
+
+#help_box table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14pt;
+}
+
+#help_box td {
+    padding: 10px 4px;
+    border-top: 1px solid #555;
+    vertical-align: middle;
+}
+
+#help_box tr:first-child td {
+    border-top: none;
+}
+
+#help_box td:first-child {
+    text-align: right;
+    padding-right: 20px;
+    white-space: nowrap;
+}
+
+kbd {
+    background-color: #222;
+    border: 1px solid #111;
+    border-bottom: 2px solid #111;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9em;
+    box-shadow: 0px 1px 0px rgba(255,255,255,0.2) inset;
+    margin: 0 2px;
+    display: inline-block;
+    color: #eee;
+    text-shadow: none;
+}
+
+kbd:active {
+    background-color: #444;
+    border-bottom-width: 1px;
+    margin-top: 1px;
+}
+
+#help_close {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 2em;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+}
+
+#help_close:hover {
+    color: #fff;
+}
