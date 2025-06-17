@@ -1268,10 +1268,43 @@ $(document).on('visibilitychange', () => {
     }
 });
 
+// By recording the timestamp of the last touch event, we can differentiate
+// between a mouse hover and a touch interaction that triggers a hover event.
+let lastTouchTime = 0;
+document.addEventListener('touchstart', () => {
+    lastTouchTime = Date.now();
+}, true); // Use capture phase to ensure this listener runs before others.
+
 $(window).on('beforeunload', () => 'Are you sure you want to leave?');
 $(window).on('load', () => {
     $('.body').trigger('focus');
-    $( document ).tooltip();
+    
+    // Initialize jQuery UI tooltips with a custom handler for touch interactions.
+    $(document).tooltip({
+        // The 'open' event fires just before a tooltip is shown.
+        open: function(_event, ui) {
+            // The problem on touchscreens is that a "tap" triggers a 'mouseover' event
+            // which shows the tooltip, but no 'mouseout' event follows to hide it.
+            // This leaves the tooltip "stuck" on the screen.
+
+            // Our solution is to check if a touch event happened very recently.
+            // If it did, we assume the tooltip was triggered by a tap, and we
+            // set a timer to automatically hide it.
+            if (Date.now() - lastTouchTime < 500) { // 500ms is a reasonable threshold
+                setTimeout(function() {
+                    // We use fadeOut() for a smooth visual effect.
+                    // This hides the tooltip element. jQuery UI will create a new one
+                    // for the next interaction.
+                    $(ui.tooltip).fadeOut('fast');
+                }, 2000); // The tooltip will be visible for 2 seconds.
+            }
+        },
+        // The options below are for a slightly better visual effect and are not
+        // essential for the fix itself.
+        show: { effect: "fade", duration: 100 },
+        hide: { effect: "fade", duration: 100 },
+    });
+
     if (LOW_PERF_MODE) {
         $('#bottom_mask').css('display', 'none');
         $('#bottom_mask_opaque').css('display', 'block');
