@@ -311,8 +311,10 @@ class Renderer {
             this.#roll.fillRect(bl, 0, bw, this.#ROLL_SCROLL_AMOUNT);
         }
 
-        // Draw octave lines.
-        this.drawOctaveLines();
+        if (coordinator.isShowingVlines) {
+            // Draw octave lines.
+            this.drawOctaveLines();
+        }
 
         // Base line.
         this.#bar.fillStyle = rgbToStr(this.#BAR_BASE_LINE_COLOR);
@@ -849,6 +851,7 @@ class Coordinator {
     #timestamp;
     #noteDisplay;
     #useSharp = true;
+    #showVines = true;
 
     constructor() {
         this.#nextSecond = performance.now() + 1000;
@@ -889,6 +892,11 @@ class Coordinator {
             case 'Digit4':
                 if (isRepeat) break;
                 this.setSharpMode(!this.isSharpMode);
+                this.updateUi();
+                break;
+            case 'Digit5':
+                if (isRepeat) break;
+                this.setShowingVlines(!this.isShowingVlines);
                 this.updateUi();
                 break;
             case 'KeyR':
@@ -936,6 +944,14 @@ class Coordinator {
     setSharpMode(useSharp: boolean): void {
         info("Mode changed to " + (useSharp ? "sharp" : "flat"));
         this.#useSharp = useSharp
+    }
+
+    get isShowingVlines(): boolean {
+        return this.#showVines;
+    }
+
+    setShowingVlines(show: boolean): void {
+        this.#showVines = show
     }
 
     toggleVideoMute(): void {

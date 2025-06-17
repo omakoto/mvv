@@ -17,6 +17,7 @@ class Controls {
     #videoMute;
     #sharp;
     #flat;
+    #vlines;
 
     constructor() {
         this.#top = $("#top");
@@ -38,6 +39,8 @@ class Controls {
 
         this.#sharp = $("#sharp");
         this.#flat = $("#flat");
+
+        this.#vlines = $("#vlines");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -88,6 +91,12 @@ class Controls {
 
         this.#flat.on('click', (ev) => {
             coordinator.setSharpMode(false);
+            this.update();
+            ev.stopPropagation();
+        });
+
+        this.#vlines.on('click', (ev) => {
+            coordinator.setShowingVlines(!coordinator.isShowingVlines);
             this.update();
             ev.stopPropagation();
         });
@@ -185,6 +194,7 @@ class Controls {
         }
         this.activate(this.#sharp, coordinator.isSharpMode);
         this.activate(this.#flat, !coordinator.isSharpMode);
+        this.activate(this.#vlines, coordinator.isShowingVlines);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {

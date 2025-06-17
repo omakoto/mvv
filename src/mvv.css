@@ -172,6 +172,9 @@ canvas#roll2 {
 #flat {
     background-image: url("res/flat.png");
 }
+#vlines {
+    background-image: url("res/triple-line.png");
+}
 #source {
     background-image: url("res/source.png");
     margin-right: 12px;
