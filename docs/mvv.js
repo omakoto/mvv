@@ -523,25 +523,63 @@ class Recorder {
         return true;
     }
     moveToStart() {
-        this.adjustPlaybackPosition(-9999999999);
-    }
-    // Fast-forward or rewind.
-    adjustPlaybackPosition(deltaMilliseconds) {
-        __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + deltaMilliseconds, "f");
-        let ts = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
-        // If rewound beyond the starting point, reset the relevant values.
-        if (ts <= 0) {
-            __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
-            if (this.isPausing) {
-                __classPrivateFieldSet(this, _Recorder_pauseStartTimestamp, __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f"), "f");
-            }
-            __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f");
-            ts = -1; // Special case: Move before the first note.
+        if (this.isRecording) {
+            return;
         }
-        // Find the next play event index.
+        // Jump from the current time back to time 0.
+        this.adjustPlaybackPosition(-this.currentPlaybackTimestamp);
+    }
+    /**
+     * This is the core seeking method for fast-forward, rewind, and scrubbing.
+     * It correctly establishes the state of all MIDI controllers at the destination.
+     * @param deltaMilliseconds The amount of time to jump, relative to the current position.
+     * @returns `true` if the new position is valid.
+     */
+    adjustPlaybackPosition(deltaMilliseconds) {
+        // This method should not be used when recording.
+        if (this.isRecording) {
+            return false;
+        }
+        const wasPlaying = this.isPlaying;
+        if (wasPlaying) {
+            this.pause(); // Pause playback to prevent race conditions during the seek.
+        }
+        const oldTimestamp = this.currentPlaybackTimestamp;
+        let newTimestamp = oldTimestamp + deltaMilliseconds;
+        // Clamp the new time to the valid bounds of the recording.
+        newTimestamp = Math.max(0, Math.min(newTimestamp, __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f")));
+        // Update the internal timekeeping to reflect the jump.
+        __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + (newTimestamp - oldTimestamp), "f");
+        // 1. Reset MIDI devices. This clears any hanging notes or stale controller states.
+        midiOutputManager.reset();
+        midiRenderingStatus.reset();
+        // 2. Calculate the definitive state of all controllers at the new timestamp.
+        // To do this, we iterate from the beginning of the recording and store the
+        // last seen value for each controller number.
+        const controllerState = new Map(); // Map<controller_number, value>
+        for (const ev of __classPrivateFieldGet(this, _Recorder_events, "f")) {
+            if (ev.timeStamp > newTimestamp) {
+                break; // Stop scanning once we've passed our target time.
+            }
+            if (ev.status === 176) { // It's a Control Change event.
+                controllerState.set(ev.data1, ev.data2);
+            }
+        }
+        // 3. Apply the final controller states by sending MIDI CC messages.
+        controllerState.forEach((value, controller) => {
+            const ccEvent = new MidiEvent(newTimestamp, [176, controller, value]);
+            midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
+            midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
+        });
+        // 4. Find the correct next event to play from the new position.
+        // We use a null callback because we have already handled the controller state.
         __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
-        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, ts, null);
-        return ts > 0;
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, newTimestamp, null);
+        // If playback was active before the seek, resume it.
+        if (wasPlaying) {
+            this.unpause();
+        }
+        return this.currentPlaybackTimestamp > 0;
     }
     playbackUpToNow() {
         if (!this.isPlaying) {
@@ -585,6 +623,7 @@ class Recorder {
         __classPrivateFieldSet(this, _Recorder_isDirty, false, "f");
         if (events.length === 0) {
             info("File contains no events.");
+            __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, 0, "f");
             return;
         }
         const lastEvent = events[events.length - 1];
@@ -607,17 +646,24 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     info("Playback started");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
     __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
-    __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f");
+    // Do not reset playbackTimeAdjustment. It contains the start offset.
+    // Find the next event from the current position
     __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
+    __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, this.currentPlaybackTimestamp, null);
     coordinator.onRecorderStatusChanged();
 }, _Recorder_stopPlaying = function _Recorder_stopPlaying() {
     info("Playback stopped");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
+    __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f"); // Reset position to start.
     coordinator.onRecorderStatusChanged();
     coordinator.resetMidi();
 }, _Recorder_getPausingDuration = function _Recorder_getPausingDuration() {
     return this.isPausing ? (performance.now() - __classPrivateFieldGet(this, _Recorder_pauseStartTimestamp, "f")) : 0;
 }, _Recorder_getCurrentPlaybackTimestamp = function _Recorder_getCurrentPlaybackTimestamp() {
+    if (this.isRecording)
+        return 0;
+    if (this.isIdle)
+        return __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f");
     return (performance.now() - __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f")) +
         __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") - __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this);
 }, _Recorder_moveUpToTimestamp = function _Recorder_moveUpToTimestamp(timeStamp, callback) {
@@ -626,9 +672,6 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
         if (this.isAfterLast) {
             // No more events.
             // But do not auto-stop; otherwise it'd be hard to listen to the last part.
-            // this.isPlaying = false;
-            // coordinator.onRecorderStatusChanged();
-            // return false;
             return true;
         }
         let ev = __classPrivateFieldGet(this, _Recorder_events, "f")[__classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f")];
@@ -738,8 +781,7 @@ class Coordinator {
                 __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_onRewindPressed).call(this, isRepeat);
                 break;
             case 'ArrowRight':
-                if (recorder.isPlaying || recorder.isPausing) {
-                    this.resetMidi();
+                if (!recorder.isRecording) {
                     recorder.adjustPlaybackPosition(1000);
                 }
                 break;
@@ -823,20 +865,20 @@ class Coordinator {
         this.updateUi();
     }
     moveToStart() {
-        if (recorder.isPlaying || recorder.isPausing) {
-            this.resetMidi();
-            recorder.moveToStart();
+        if (recorder.isRecording) {
+            return;
         }
+        recorder.moveToStart();
         this.updateUi();
     }
     moveToPercent(percent) {
         if (recorder.isRecording) {
             return;
         }
+        // Allow scrubbing from idle, paused, or playing states.
         const newTime = recorder.lastEventTimestamp * percent;
-        this.resetMidi();
-        recorder.moveToStart();
-        recorder.adjustPlaybackPosition(newTime);
+        const delta = newTime - recorder.currentPlaybackTimestamp;
+        recorder.adjustPlaybackPosition(delta);
         this.updateUi();
     }
     toggleFullScreen() {
@@ -890,8 +932,6 @@ class Coordinator {
             __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, totalSeconds, "f");
             __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, minutes + ":" + (seconds < 10 ? "0" + seconds : seconds), "f");
         }
-        // const isFinished = recorder.isAfterLast ? " (finished)" : "";
-        // this.#getHumanReadableCurrentPlaybackTimestamp_lastResult += isFinished;
         return __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f");
     }
     onDraw() {
@@ -1020,7 +1060,7 @@ class Coordinator {
     }
 }
 _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_noteDisplay = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
-    if (!(recorder.isPlaying || recorder.isPausing)) {
+    if (recorder.isRecording) {
         return;
     }
     // If non-repeat left is pressed twice within a timeout, move to start.
@@ -1038,7 +1078,6 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
     if (!isRepeat) {
         __classPrivateFieldSet(this, _Coordinator_ignoreRepeatedRewindKey, false, "f");
     }
-    this.resetMidi();
     if (!recorder.adjustPlaybackPosition(-1000)) {
         __classPrivateFieldSet(this, _Coordinator_ignoreRepeatedRewindKey, true, "f");
     }
@@ -1054,7 +1093,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
         }
     }
 }, _Coordinator_updateTimestamp = function _Coordinator_updateTimestamp() {
-    if (recorder.isPlaying || recorder.isPausing) {
+    if (recorder.isPlaying || recorder.isPausing || (recorder.isIdle && recorder.isAnythingRecorded)) {
         // Update the time indicator
         const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
         if (timeStamp != __classPrivateFieldGet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, "f")) {
@@ -1068,7 +1107,7 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
         controls.setCurrentPosition(0, 0);
     }
     else {
-        __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text("0.00");
+        __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text("0:00");
         controls.setCurrentPosition(0, 0);
     }
 };

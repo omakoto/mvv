@@ -586,16 +586,20 @@ class Recorder {
         info("Playback started");
         this.#state = RecorderState.Playing;
         this.#playbackStartTimestamp = performance.now();
-        this.#playbackTimeAdjustment = 0;
+        // Do not reset playbackTimeAdjustment. It contains the start offset.
+    
+        // Find the next event from the current position
         this.#nextPlaybackIndex = 0;
-
+        this.#moveUpToTimestamp(this.currentPlaybackTimestamp, null);
+    
         coordinator.onRecorderStatusChanged();
     }
 
     #stopPlaying(): void {
         info("Playback stopped");
         this.#state = RecorderState.Idle;
-
+        this.#playbackTimeAdjustment = 0; // Reset position to start.
+    
         coordinator.onRecorderStatusChanged();
         coordinator.resetMidi();
     }
@@ -606,7 +610,6 @@ class Recorder {
         }
 
         // Only record certain events.
-
         switch (ev.status) {
             case 144: // Note on
             case 128: // Note off
@@ -629,28 +632,75 @@ class Recorder {
     }
 
     moveToStart(): void {
-        this.adjustPlaybackPosition(-9999999999);
+        if (this.isRecording) {
+            return;
+        }
+        // Jump from the current time back to time 0.
+        this.adjustPlaybackPosition(-this.currentPlaybackTimestamp);
     }
 
-    // Fast-forward or rewind.
+    /**
+     * This is the core seeking method for fast-forward, rewind, and scrubbing.
+     * It correctly establishes the state of all MIDI controllers at the destination.
+     * @param deltaMilliseconds The amount of time to jump, relative to the current position.
+     * @returns `true` if the new position is valid.
+     */
     adjustPlaybackPosition(deltaMilliseconds: number): boolean {
-        this.#playbackTimeAdjustment += deltaMilliseconds;
-        let ts = this.#getCurrentPlaybackTimestamp();
-        // If rewound beyond the starting point, reset the relevant values.
-        if (ts <= 0) {
-            this.#playbackStartTimestamp = performance.now();
-            if (this.isPausing) {
-                this.#pauseStartTimestamp = this.#playbackStartTimestamp;
-            }
-            this.#playbackTimeAdjustment = 0;
-            ts = -1; // Special case: Move before the first note.
+        // This method should not be used when recording.
+        if (this.isRecording) {
+            return false;
         }
 
-        // Find the next play event index.
-        this.#nextPlaybackIndex = 0;
-        this.#moveUpToTimestamp(ts, null);
+        const wasPlaying = this.isPlaying;
+        if (wasPlaying) {
+            this.pause(); // Pause playback to prevent race conditions during the seek.
+        }
 
-        return ts > 0;
+        const oldTimestamp = this.currentPlaybackTimestamp;
+        let newTimestamp = oldTimestamp + deltaMilliseconds;
+
+        // Clamp the new time to the valid bounds of the recording.
+        newTimestamp = Math.max(0, Math.min(newTimestamp, this.#lastEventTimestamp));
+
+        // Update the internal timekeeping to reflect the jump.
+        this.#playbackTimeAdjustment += (newTimestamp - oldTimestamp);
+
+        // 1. Reset MIDI devices. This clears any hanging notes or stale controller states.
+        midiOutputManager.reset();
+        midiRenderingStatus.reset();
+
+        // 2. Calculate the definitive state of all controllers at the new timestamp.
+        // To do this, we iterate from the beginning of the recording and store the
+        // last seen value for each controller number.
+        const controllerState = new Map<number, number>(); // Map<controller_number, value>
+        
+        for (const ev of this.#events) {
+            if (ev.timeStamp > newTimestamp) {
+                break; // Stop scanning once we've passed our target time.
+            }
+            if (ev.status === 176) { // It's a Control Change event.
+                controllerState.set(ev.data1, ev.data2);
+            }
+        }
+        
+        // 3. Apply the final controller states by sending MIDI CC messages.
+        controllerState.forEach((value, controller) => {
+            const ccEvent = new MidiEvent(newTimestamp, [176, controller, value]);
+            midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
+            midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
+        });
+
+        // 4. Find the correct next event to play from the new position.
+        // We use a null callback because we have already handled the controller state.
+        this.#nextPlaybackIndex = 0;
+        this.#moveUpToTimestamp(newTimestamp, null);
+        
+        // If playback was active before the seek, resume it.
+        if (wasPlaying) {
+            this.unpause();
+        }
+
+        return this.currentPlaybackTimestamp > 0;
     }
 
     #getPausingDuration(): number {
@@ -658,6 +708,9 @@ class Recorder {
     }
 
     #getCurrentPlaybackTimestamp(): number {
+        if (this.isRecording) return 0;
+        if (this.isIdle) return this.#playbackTimeAdjustment;
+    
         return (performance.now() - this.#playbackStartTimestamp) +
                 this.#playbackTimeAdjustment - this.#getPausingDuration();
     }
@@ -687,11 +740,7 @@ class Recorder {
         for (;;) {
             if (this.isAfterLast) {
                 // No more events.
-
                 // But do not auto-stop; otherwise it'd be hard to listen to the last part.
-                // this.isPlaying = false;
-                // coordinator.onRecorderStatusChanged();
-                // return false;
                 return true;
             }
             let ev = this.#events[this.#nextPlaybackIndex]!;
@@ -734,6 +783,7 @@ class Recorder {
 
         if (events.length === 0) {
             info("File contains no events.");
+            this.#lastEventTimestamp = 0;
             return;
         }
 
@@ -829,8 +879,7 @@ class Coordinator {
                 this.#onRewindPressed(isRepeat);
                 break;
             case 'ArrowRight':
-                if (recorder.isPlaying || recorder.isPausing) {
-                    this.resetMidi();
+                if (!recorder.isRecording) {
                     recorder.adjustPlaybackPosition(1000);
                 }
                 break;
@@ -919,10 +968,10 @@ class Coordinator {
     }
 
     moveToStart(): void {
-        if (recorder.isPlaying || recorder.isPausing) {
-            this.resetMidi();
-            recorder.moveToStart();
+        if (recorder.isRecording) {
+            return;
         }
+        recorder.moveToStart();
         this.updateUi();
     }
 
@@ -930,12 +979,10 @@ class Coordinator {
         if (recorder.isRecording) {
             return;
         }
+        // Allow scrubbing from idle, paused, or playing states.
         const newTime = recorder.lastEventTimestamp * percent;
-
-        this.resetMidi();
-        recorder.moveToStart();
-        recorder.adjustPlaybackPosition(newTime);
-
+        const delta = newTime - recorder.currentPlaybackTimestamp;
+        recorder.adjustPlaybackPosition(delta);
         this.updateUi();
     }
 
@@ -960,7 +1007,7 @@ class Coordinator {
     #lastRewindPressTime = 0;
 
     #onRewindPressed(isRepeat: boolean): void {
-        if (!(recorder.isPlaying || recorder.isPausing)) {
+        if (recorder.isRecording) {
             return;
         }
         // If non-repeat left is pressed twice within a timeout, move to start.
@@ -978,7 +1025,6 @@ class Coordinator {
         if (!isRepeat) {
             this.#ignoreRepeatedRewindKey = false;
         }
-        this.resetMidi();
         if (!recorder.adjustPlaybackPosition(-1000)) {
             this.#ignoreRepeatedRewindKey = true;
         }
@@ -1042,8 +1088,6 @@ class Coordinator {
             this.#getHumanReadableCurrentPlaybackTimestamp_lastResult =
                 minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
         }
-        // const isFinished = recorder.isAfterLast ? " (finished)" : "";
-        // this.#getHumanReadableCurrentPlaybackTimestamp_lastResult += isFinished;
         return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
     }
 
@@ -1137,7 +1181,7 @@ class Coordinator {
     }
 
     #updateTimestamp(): void {
-        if (recorder.isPlaying || recorder.isPausing) {
+        if (recorder.isPlaying || recorder.isPausing || (recorder.isIdle && recorder.isAnythingRecorded)) {
             // Update the time indicator
             const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
             if (timeStamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
@@ -1149,7 +1193,7 @@ class Coordinator {
             this.#timestamp.text("-");
             controls.setCurrentPosition(0, 0);
         } else {
-            this.#timestamp.text("0.00");
+            this.#timestamp.text("0:00");
             controls.setCurrentPosition(0, 0);
         }
     }

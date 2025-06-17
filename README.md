@@ -39,9 +39,9 @@ It visualizes:
   - [ ] Estimate RAM consumption
   - [ ] Throttle control changes if needed.
   - [ ] Auto-detect between pieces
-- [ ] P3: Better playback (as a geneal MIDI player)
-  - [ ] Fast-forward should send all skipped control changes
-  - [ ] Rewind should replay all control changes
+- [X] P3: Better playback (as a geneal MIDI player)
+  - [X] Fast-forward should send all skipped control changes
+  - [X] Rewind should replay all control changes
 - [X] P4: Actually sync the renderer to vsync
 - [ ] P4: Support SMPTE time format in *.mid files
 - [ ] P4: Add help (not important now that we have buttons)
