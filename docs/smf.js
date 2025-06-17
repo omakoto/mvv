@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _MidiEvent_timeStamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
+var _MidiEvent_timeStamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_mode, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_millisPerTick, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
 // SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
 // https://www.music.mcgill.ca/~gary/306/week9/smf.html
 // https://midimusic.github.io/tech/midispec.html
@@ -240,19 +240,59 @@ class TempoEvent {
         this.timeOffset = timeOffset;
     }
 }
-// Converts "ticks" (not delta ticks, but absolute ticks) in a midi file to milliseconds.
+/**
+ * Converts MIDI file "ticks" into milliseconds. It supports both metrical time
+ * (ticks per beat) and SMPTE time (frames per second).
+ */
 class TickConverter {
-    constructor(ticksPerBeat) {
+    constructor(division) {
         _TickConverter_instances.add(this);
+        _TickConverter_mode.set(this, void 0);
+        // For metrical time
         _TickConverter_ticksPerBeat.set(this, void 0);
         _TickConverter_tempos.set(this, []);
         _TickConverter_lastTempoEvent.set(this, void 0);
-        __classPrivateFieldSet(this, _TickConverter_ticksPerBeat, ticksPerBeat, "f");
-        // Arbitrary initial tempo
-        __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, new TempoEvent(0, 500_000, 0), "f");
-        __classPrivateFieldGet(this, _TickConverter_tempos, "f").push(__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f"));
+        // For SMPTE time
+        _TickConverter_millisPerTick.set(this, void 0);
+        // The highest bit of the division word determines the time format.
+        if ((division & 0x8000) === 0) {
+            // --- Metrical Time (ticks per beat) ---
+            __classPrivateFieldSet(this, _TickConverter_mode, 'metrical', "f");
+            __classPrivateFieldSet(this, _TickConverter_ticksPerBeat, division, "f");
+            if (__classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f") === 0) {
+                // Handle case where division is zero to avoid divide-by-zero issues.
+                __classPrivateFieldSet(this, _TickConverter_ticksPerBeat, 480, "f"); // A common default.
+            }
+            // Set an arbitrary initial tempo (120 bpm).
+            __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, new TempoEvent(0, 500_000, 0), "f");
+            __classPrivateFieldGet(this, _TickConverter_tempos, "f").push(__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f"));
+            console.log(`TickConverter: Metrical time, ${__classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f")} ticks per beat.`);
+        }
+        else {
+            // --- SMPTE Time (frame-based) ---
+            __classPrivateFieldSet(this, _TickConverter_mode, 'smpte', "f");
+            // The top byte is a negative value representing frames per second.
+            // Valid values are -24, -25, -29 (for 29.97), and -30.
+            const framesPerSecond = 256 - (division >> 8);
+            const ticksPerFrame = division & 0x00FF;
+            // Handle 29.97 fps drop-frame by treating it as 30 fps, a common simplification.
+            const effectiveFps = framesPerSecond === 29 ? 29.97 : framesPerSecond;
+            if (effectiveFps === 0 || ticksPerFrame === 0) {
+                throw `Invalid SMPTE format: fps=${effectiveFps} tpf=${ticksPerFrame}`;
+            }
+            __classPrivateFieldSet(this, _TickConverter_millisPerTick, 1000 / (effectiveFps * ticksPerFrame), "f");
+            console.log(`TickConverter: SMPTE time, ${effectiveFps} fps, ${ticksPerFrame} ticks per frame.`);
+        }
     }
+    /**
+     * For metrical time, sets a new tempo. For SMPTE time, this is ignored.
+     * @param ticks The absolute tick position of this tempo change.
+     * @param microsecondsPerBeat The new number of microseconds per beat.
+     */
     setTempo(ticks, microsecondsPerBeat) {
+        if (__classPrivateFieldGet(this, _TickConverter_mode, "f") !== 'metrical' || !__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f")) {
+            return;
+        }
         const last = __classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f");
         const deltaTicks = ticks - last.ticks;
         const deltaTimeOffset = __classPrivateFieldGet(this, _TickConverter_instances, "m", _TickConverter_ticksToMilliseconds).call(this, deltaTicks, last.mspb);
@@ -260,12 +300,21 @@ class TickConverter {
         __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, { ticks: ticks, mspb: microsecondsPerBeat, timeOffset: timeOffset }, "f");
         __classPrivateFieldGet(this, _TickConverter_tempos, "f").push(__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f"));
     }
-    // Convert a "midi tick" number to a millisecond.
+    /**
+     * Converts an absolute "midi tick" number to a millisecond timestamp.
+     * @param ticks The absolute tick position from the start of the track.
+     * @returns The time in milliseconds.
+     */
     getTime(ticks) {
         if (ticks < 0) {
-            throw "ticks must not be negative";
+            throw "Ticks must not be negative";
         }
+        if (__classPrivateFieldGet(this, _TickConverter_mode, "f") === 'smpte') {
+            return ticks * __classPrivateFieldGet(this, _TickConverter_millisPerTick, "f");
+        }
+        // --- Metrical time logic ---
         let nearestTempo;
+        // Find the most recent tempo event before or at the given tick.
         for (let t of __classPrivateFieldGet(this, _TickConverter_tempos, "f")) {
             if (t.ticks > ticks) {
                 break;
@@ -278,7 +327,9 @@ class TickConverter {
         return nearestTempo.timeOffset + __classPrivateFieldGet(this, _TickConverter_instances, "m", _TickConverter_ticksToMilliseconds).call(this, ticks - nearestTempo.ticks, nearestTempo.mspb);
     }
 }
-_TickConverter_ticksPerBeat = new WeakMap(), _TickConverter_tempos = new WeakMap(), _TickConverter_lastTempoEvent = new WeakMap(), _TickConverter_instances = new WeakSet(), _TickConverter_ticksToMilliseconds = function _TickConverter_ticksToMilliseconds(ticks, mspb) {
+_TickConverter_mode = new WeakMap(), _TickConverter_ticksPerBeat = new WeakMap(), _TickConverter_tempos = new WeakMap(), _TickConverter_lastTempoEvent = new WeakMap(), _TickConverter_millisPerTick = new WeakMap(), _TickConverter_instances = new WeakSet(), _TickConverter_ticksToMilliseconds = function _TickConverter_ticksToMilliseconds(ticks, mspb) {
+    if (__classPrivateFieldGet(this, _TickConverter_mode, "f") !== 'metrical' || !__classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f"))
+        return 0; // Should not happen
     return ((ticks / __classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f")) * mspb) / 1000;
 };
 function hex8(v) {
@@ -353,16 +404,11 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
             throw "Invalid file format: " + type;
         }
         const numTracks = rd.readU16();
-        const ticksPerBeat = rd.readU16();
-        if (ticksPerBeat >= 0x8000) {
-            throw "SMPTE time format not supported";
-        }
-        console.log("Type", type, "numTracks", numTracks, "ticksPerBeat", ticksPerBeat);
-        const tc = new TickConverter(ticksPerBeat);
+        const division = rd.readU16();
+        const tc = new TickConverter(division);
         // Track start
         let track = 0;
         for (;;) {
-            console.log("Current tick converter status:", tc);
             if (track >= numTracks) {
                 break;
             }
@@ -383,6 +429,7 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                     // console.log("        Meta 0x" + hex8(type) + " len=" + len);
                     if (type === 0x2f) {
                         // end of track
+                        rd.skip(len); // Should be 0, but skip it just in case.
                         break;
                     }
                     if (type === 0x51) {
@@ -417,8 +464,9 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                 let data2 = 0;
                 switch (statusType) {
                     case 0xc0: // program change
-                        // Ignore all program changes!
-                        continue;
+                    case 0xd0: // channel pressure
+                        // These messages have only one data byte.
+                        break;
                     case 0x80: // note off
                     case 0x90: // note on
                     case 0xa0: // after touch

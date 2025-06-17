@@ -270,55 +270,106 @@ class TempoEvent {
     }
 }
 
-// Converts "ticks" (not delta ticks, but absolute ticks) in a midi file to milliseconds.
+/**
+ * Converts MIDI file "ticks" into milliseconds. It supports both metrical time
+ * (ticks per beat) and SMPTE time (frames per second).
+ */
 class TickConverter {
-
-    #ticksPerBeat: number;
-
+    #mode: 'metrical' | 'smpte';
+    
+    // For metrical time
+    #ticksPerBeat?: number;
     #tempos: Array<TempoEvent> = [];
+    #lastTempoEvent?: TempoEvent;
 
-    #lastTempoEvent: TempoEvent;
+    // For SMPTE time
+    #millisPerTick?: number;
 
-    constructor(ticksPerBeat: number) {
-        this.#ticksPerBeat = ticksPerBeat;
+    constructor(division: number) {
+        // The highest bit of the division word determines the time format.
+        if ((division & 0x8000) === 0) {
+            // --- Metrical Time (ticks per beat) ---
+            this.#mode = 'metrical';
+            this.#ticksPerBeat = division;
+            if (this.#ticksPerBeat === 0) {
+                // Handle case where division is zero to avoid divide-by-zero issues.
+                this.#ticksPerBeat = 480; // A common default.
+            }
 
-        // Arbitrary initial tempo
-        this.#lastTempoEvent = new TempoEvent(0, 500_000, 0);
-        this.#tempos.push(this.#lastTempoEvent);
+            // Set an arbitrary initial tempo (120 bpm).
+            this.#lastTempoEvent = new TempoEvent(0, 500_000, 0);
+            this.#tempos.push(this.#lastTempoEvent);
+            console.log(`TickConverter: Metrical time, ${this.#ticksPerBeat} ticks per beat.`);
+
+        } else {
+            // --- SMPTE Time (frame-based) ---
+            this.#mode = 'smpte';
+            // The top byte is a negative value representing frames per second.
+            // Valid values are -24, -25, -29 (for 29.97), and -30.
+            const framesPerSecond = 256 - (division >> 8);
+            const ticksPerFrame = division & 0x00FF;
+            
+            // Handle 29.97 fps drop-frame by treating it as 30 fps, a common simplification.
+            const effectiveFps = framesPerSecond === 29 ? 29.97 : framesPerSecond;
+
+            if (effectiveFps === 0 || ticksPerFrame === 0) {
+                 throw `Invalid SMPTE format: fps=${effectiveFps} tpf=${ticksPerFrame}`;
+            }
+
+            this.#millisPerTick = 1000 / (effectiveFps * ticksPerFrame);
+            console.log(`TickConverter: SMPTE time, ${effectiveFps} fps, ${ticksPerFrame} ticks per frame.`);
+        }
     }
 
-    #ticksToMilliseconds(ticks: number, mspb: number): number {
-        return ((ticks / this.#ticksPerBeat) * mspb) / 1000;
-    }
-
+    /**
+     * For metrical time, sets a new tempo. For SMPTE time, this is ignored.
+     * @param ticks The absolute tick position of this tempo change.
+     * @param microsecondsPerBeat The new number of microseconds per beat.
+     */
     setTempo(ticks: number, microsecondsPerBeat: number): void {
+        if (this.#mode !== 'metrical' || !this.#lastTempoEvent) {
+            return;
+        }
         const last = this.#lastTempoEvent;
         const deltaTicks = ticks - last.ticks;
         const deltaTimeOffset = this.#ticksToMilliseconds(deltaTicks, last.mspb);
         const timeOffset = last.timeOffset + deltaTimeOffset;
 
         this.#lastTempoEvent = {ticks: ticks, mspb: microsecondsPerBeat, timeOffset: timeOffset};
-
         this.#tempos.push(this.#lastTempoEvent);
     }
 
-    // Convert a "midi tick" number to a millisecond.
+    /**
+     * Converts an absolute "midi tick" number to a millisecond timestamp.
+     * @param ticks The absolute tick position from the start of the track.
+     * @returns The time in milliseconds.
+     */
     getTime(ticks: number): number {
         if (ticks < 0) {
-            throw "ticks must not be negative";
+            throw "Ticks must not be negative";
         }
+        if (this.#mode === 'smpte') {
+            return ticks * this.#millisPerTick!;
+        }
+
+        // --- Metrical time logic ---
         let nearestTempo;
+        // Find the most recent tempo event before or at the given tick.
         for (let t of this.#tempos) {
             if (t.ticks > ticks) {
                 break;
             }
-
             nearestTempo = t;
         }
         if (!nearestTempo) {
             throw "Internal error: nearestTempo not found.";
         }
         return nearestTempo.timeOffset + this.#ticksToMilliseconds(ticks - nearestTempo.ticks, nearestTempo.mspb);
+    }
+    
+    #ticksToMilliseconds(ticks: number, mspb: number): number {
+        if (this.#mode !== 'metrical' || !this.#ticksPerBeat) return 0; // Should not happen
+        return ((ticks / this.#ticksPerBeat) * mspb) / 1000;
     }
 }
 
@@ -417,20 +468,13 @@ class SmfReader {
                 throw "Invalid file format: " + type;
             }
             const numTracks = rd.readU16();
-            const ticksPerBeat = rd.readU16();
+            const division = rd.readU16();
 
-            if (ticksPerBeat >= 0x8000) {
-                throw "SMPTE time format not supported"
-            }
-
-            console.log("Type", type, "numTracks", numTracks, "ticksPerBeat", ticksPerBeat);
-
-            const tc = new TickConverter(ticksPerBeat);
+            const tc = new TickConverter(division);
 
             // Track start
             let track = 0;
             for (;;) {
-                console.log("Current tick converter status:", tc);
                 if (track >= numTracks) {
                     break;
                 }
@@ -456,6 +500,7 @@ class SmfReader {
                         // console.log("        Meta 0x" + hex8(type) + " len=" + len);
                         if (type === 0x2f) {
                             // end of track
+                            rd.skip(len); // Should be 0, but skip it just in case.
                             break;
                         }
                         if (type === 0x51) {
@@ -493,8 +538,9 @@ class SmfReader {
                     let data2 = 0;
                     switch (statusType) {
                         case 0xc0: // program change
-                            // Ignore all program changes!
-                            continue;
+                        case 0xd0: // channel pressure
+                            // These messages have only one data byte.
+                            break;
                         case 0x80: // note off
                         case 0x90: // note on
                         case 0xa0: // after touch
@@ -672,4 +718,3 @@ function loadMidi(file: Blob): Promise<Array<MidiEvent>> {
 function t() {
     (new SmfWriter()).download();
 }
-
