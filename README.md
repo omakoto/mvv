@@ -27,6 +27,8 @@ It visualizes:
 - `L`: Load a `*.mid` file
 - `3`: Show FPS and playback timer resolution
 - `4`: Toggle between ♯ and ♭ for key/chord names
+- `5`: Toggle octave lines
+- `6`: Toggle scroll speed
 
 ## Supported midi events
 

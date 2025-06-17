@@ -93,7 +93,7 @@ function getCurrentTime(): string {
 class Renderer {
     #BAR_SUB_LINE_WIDTH = s(2);
     #BAR_BASE_LINE_COLOR: [number, number, number] = [200, 255, 200];
-    #ROLL_SCROLL_AMOUNT = s(4);
+    #ROLL_SCROLL_AMOUNT = s(2);
 
     #W; // Width in canvas pixels
     #H; // Height in canvas pixels
@@ -245,17 +245,17 @@ class Renderer {
         }
     }
 
-
     onDraw(): void {
+        const scrollAmount = this.#ROLL_SCROLL_AMOUNT * coordinator.scrollSpeedFactor;
         // Scroll the roll.
-        this.#roll.drawImage(this.#croll, 0, this.#ROLL_SCROLL_AMOUNT);
+        this.#roll.drawImage(this.#croll, 0, scrollAmount);
 
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
         const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
         const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
 
         this.#roll.fillStyle = rgbToStr(pedalColor);
-        this.#roll.fillRect(0, 0, this.#W, this.#ROLL_SCROLL_AMOUNT);
+        this.#roll.fillRect(0, 0, this.#W, scrollAmount);
 
         // Clear the bar area.
         this.#bar.fillStyle = 'black';
@@ -271,7 +271,7 @@ class Renderer {
             // so avoid doing so.
             if (!this.#drewOffLine) {
                 this.#roll.fillStyle = "#008040";
-                this.#roll.fillRect(0, this.#ROLL_SCROLL_AMOUNT - s(2), this.#W, s(2));
+                this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
             }
 
             this.#drewOffLine = true;
@@ -282,7 +282,7 @@ class Renderer {
         // "On" line
         if (midiRenderingStatus.onNoteCount > 0) {
             this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
-            this.#roll.fillRect(0, this.#ROLL_SCROLL_AMOUNT - s(2), this.#W, s(2));
+            this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
         }
 
         // Sub lines.
@@ -308,7 +308,7 @@ class Renderer {
             this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
 
             this.#roll.fillStyle = colorStr;
-            this.#roll.fillRect(bl, 0, bw, this.#ROLL_SCROLL_AMOUNT);
+            this.#roll.fillRect(bl, 0, bw, scrollAmount);
         }
 
         if (coordinator.isShowingVlines) {
@@ -852,6 +852,7 @@ class Coordinator {
     #noteDisplay;
     #useSharp = true;
     #showVines = true;
+    #scrollSpeedFactor = 1.0;
 
     constructor() {
         this.#nextSecond = performance.now() + 1000;
@@ -897,6 +898,11 @@ class Coordinator {
             case 'Digit5':
                 if (isRepeat) break;
                 this.setShowingVlines(!this.isShowingVlines);
+                this.updateUi();
+                break;
+            case 'Digit6':
+                if (isRepeat) break;
+                this.toggleScrollSpeedFactor();
                 this.updateUi();
                 break;
             case 'KeyR':
@@ -952,6 +958,18 @@ class Coordinator {
 
     setShowingVlines(show: boolean): void {
         this.#showVines = show
+    }
+
+    get scrollSpeedFactor(): number {
+        return this.#scrollSpeedFactor;
+    }
+
+    setScrollSpeedFactor(factor: number): void {
+        this.#scrollSpeedFactor = factor;
+    }
+
+    toggleScrollSpeedFactor(): void {
+        this.#scrollSpeedFactor = 3.0 - this.#scrollSpeedFactor;
     }
 
     toggleVideoMute(): void {

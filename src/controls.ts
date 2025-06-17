@@ -18,6 +18,7 @@ class Controls {
     #sharp;
     #flat;
     #vlines;
+    #speedup;
 
     constructor() {
         this.#top = $("#top");
@@ -41,6 +42,7 @@ class Controls {
         this.#flat = $("#flat");
 
         this.#vlines = $("#vlines");
+        this.#speedup = $("#speedup");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -97,6 +99,11 @@ class Controls {
 
         this.#vlines.on('click', (ev) => {
             coordinator.setShowingVlines(!coordinator.isShowingVlines);
+            this.update();
+            ev.stopPropagation();
+        });
+        this.#speedup.on('click', (ev) => {
+            coordinator.toggleScrollSpeedFactor();
             this.update();
             ev.stopPropagation();
         });
@@ -195,6 +202,7 @@ class Controls {
         this.activate(this.#sharp, coordinator.isSharpMode);
         this.activate(this.#flat, !coordinator.isSharpMode);
         this.activate(this.#vlines, coordinator.isShowingVlines);
+        this.activate(this.#speedup, coordinator.scrollSpeedFactor > 1);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {

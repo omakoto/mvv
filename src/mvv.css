@@ -175,6 +175,9 @@ canvas#roll2 {
 #vlines {
     background-image: url("res/triple-line.png");
 }
+#speedup {
+    background-image: url("res/speed-up.png");
+}
 #source {
     background-image: url("res/source.png");
     margin-right: 12px;
