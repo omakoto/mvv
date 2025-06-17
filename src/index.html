@@ -19,7 +19,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="mvv.css?x=1"> <!-- Sometimes chrome won't refresh it... -->
+    
+    <link rel="stylesheet" id="main-stylesheet">
+    <script>
+        // Use the current timestamp as a cache-busting query parameter.
+        document.getElementById('main-stylesheet').href = 'mvv.css?v=' + Date.now();
+    </script>
 </head>
 <body>
     <!-- This is used to open a "open file" system dialog box. -->
