@@ -45,7 +45,7 @@ It visualizes:
 - [X] P4: Actually sync the renderer to vsync
 - [ ] P4: Support SMPTE time format in *.mid files
 - [ ] P4: Add help (not important now that we have buttons)
-- [ ] P3: Visualize sosutenuto pedal depth
+- [X] P3: Visualize sosutenuto pedal depth
 - [X] P1: On-screen playback/recording controls
   - [X] Play/Record/Stop/Pause/RewindToTop
   - [ ] ~~FF/Rewind -> not needed, now that we have the position bar~~

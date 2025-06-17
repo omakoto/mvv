@@ -176,6 +176,33 @@ class Renderer {
         return hsvToRgb(h, s, l)
     }
 
+    getSostenutoPedalColor(value: number): [number, number, number] {
+        if (value <= 0) {
+            return RGB_BLACK;
+        }
+        // Dark Brown: H=~30deg (0.08), S=~0.66, V=~0.4
+        // We will vary the value (brightness) based on the pedal depth.
+        const h = 0.16;
+        const s = 0.96;
+        const v = 0.15 + (0.25 * value / 127); // from 0.15 to 0.4
+        return hsvToRgb(h, s, v);
+    }
+
+    mixRgb(rgb1: [number, number, number], rgb2: [number, number, number]): [number, number, number] {
+        const isBlack1 = rgb1[0] === 0 && rgb1[1] === 0 && rgb1[2] === 0;
+        const isBlack2 = rgb2[0] === 0 && rgb2[1] === 0 && rgb2[2] === 0;
+
+        if (isBlack1 && isBlack2) return RGB_BLACK;
+        if (isBlack1) return rgb2;
+        if (isBlack2) return rgb1;
+
+        // Average the colors for a mixed effect.
+        return [
+            int((rgb1[0] + rgb2[0]) / 2),
+            int((rgb1[1] + rgb2[1]) / 2),
+            int((rgb1[2] + rgb2[2]) / 2),
+        ];
+    }
 
     drawSubLine(percent: number): void {
         this.#bar.fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
@@ -185,7 +212,12 @@ class Renderer {
     onDraw(): void {
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, this.#ROLL_SCROLL_AMOUNT);
-        this.#roll.fillStyle = rgbToStr(this.getPedalColor(midiRenderingStatus.pedal));
+
+        const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+        const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
+        const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+
+        this.#roll.fillStyle = rgbToStr(pedalColor);
         this.#roll.fillRect(0, 0, this.#W, this.#ROLL_SCROLL_AMOUNT);
 
         // Clear the bar area.
@@ -281,6 +313,7 @@ class MidiRenderingStatus {
     #tick = 0;
     #notes: Array<[boolean, number, number]> = []; // note on/off, velocity, last on-tick
     #pedal = 0;
+    #sostenuto = 0;
     #onNoteCount = 0;
     #offNoteCount = 0;
 
@@ -302,8 +335,16 @@ class MidiRenderingStatus {
         } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             this.#offNoteCount++;
             this.#notes[data1]![0] = false;
-        } else if (status === 176 && (data1 === 64 || data1 == 11)) { // Pedal and expression
-            this.#pedal = data2;
+        } else if (status === 176) { // Control Change
+             switch (data1) {
+                case 64: // Damper pedal (sustain)
+                case 11: // Expression
+                    this.#pedal = data2;
+                    break;
+                case 66: // Sostenuto pedal
+                    this.#sostenuto = data2;
+                    break;
+            }
         }
     }
 
@@ -314,6 +355,7 @@ class MidiRenderingStatus {
             this.#notes[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
         }
         this.#pedal = 0;
+        this.#sostenuto = 0;
         this.#onNoteCount = 0;
         this.#offNoteCount = 0;
     }
@@ -334,6 +376,10 @@ class MidiRenderingStatus {
 
     get pedal(): number {
         return this.#pedal;
+    }
+    
+    get sostenuto(): number {
+        return this.#sostenuto;
     }
 
     getNote(noteIndex: number): [boolean, number] {
@@ -944,6 +990,8 @@ class Coordinator {
         if (ev.device.startsWith("V25")) {
             if (ev.data0 === 176 && ev.data1 === 20) {
                 ev.replaceData(1, 64);
+            } else if (ev.data0 === 176 && ev.data1 === 21) {
+                ev.replaceData(1, 66); // sostenuto
             }
         }
     }

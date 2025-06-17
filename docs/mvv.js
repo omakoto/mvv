@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_noteDisplay, _Coordinator_useSharp, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_noteDisplay, _Coordinator_useSharp, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
@@ -158,6 +158,33 @@ class Renderer {
         let l = 0.2;
         return hsvToRgb(h, s, l);
     }
+    getSostenutoPedalColor(value) {
+        if (value <= 0) {
+            return RGB_BLACK;
+        }
+        // Dark Brown: H=~30deg (0.08), S=~0.66, V=~0.4
+        // We will vary the value (brightness) based on the pedal depth.
+        const h = 0.16;
+        const s = 0.96;
+        const v = 0.15 + (0.25 * value / 127); // from 0.15 to 0.4
+        return hsvToRgb(h, s, v);
+    }
+    mixRgb(rgb1, rgb2) {
+        const isBlack1 = rgb1[0] === 0 && rgb1[1] === 0 && rgb1[2] === 0;
+        const isBlack2 = rgb2[0] === 0 && rgb2[1] === 0 && rgb2[2] === 0;
+        if (isBlack1 && isBlack2)
+            return RGB_BLACK;
+        if (isBlack1)
+            return rgb2;
+        if (isBlack2)
+            return rgb1;
+        // Average the colors for a mixed effect.
+        return [
+            int((rgb1[0] + rgb2[0]) / 2),
+            int((rgb1[1] + rgb2[1]) / 2),
+            int((rgb1[2] + rgb2[2]) / 2),
+        ];
+    }
     drawSubLine(percent) {
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * percent, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));
@@ -165,7 +192,10 @@ class Renderer {
     onDraw() {
         // Scroll the roll.
         __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, __classPrivateFieldGet(this, _Renderer_ROLL_SCROLL_AMOUNT, "f"));
-        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getPedalColor(midiRenderingStatus.pedal));
+        const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+        const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
+        const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(pedalColor);
         __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_ROLL_SCROLL_AMOUNT, "f"));
         // Clear the bar area.
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = 'black';
@@ -244,6 +274,7 @@ class MidiRenderingStatus {
         _MidiRenderingStatus_tick.set(this, 0);
         _MidiRenderingStatus_notes.set(this, []); // note on/off, velocity, last on-tick
         _MidiRenderingStatus_pedal.set(this, 0);
+        _MidiRenderingStatus_sostenuto.set(this, 0);
         _MidiRenderingStatus_onNoteCount.set(this, 0);
         _MidiRenderingStatus_offNoteCount.set(this, 0);
         this.reset();
@@ -266,8 +297,16 @@ class MidiRenderingStatus {
             (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _b++, _b), "f");
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
         }
-        else if (status === 176 && (data1 === 64 || data1 == 11)) { // Pedal and expression
-            __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
+        else if (status === 176) { // Control Change
+            switch (data1) {
+                case 64: // Damper pedal (sustain)
+                case 11: // Expression
+                    __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
+                    break;
+                case 66: // Sostenuto pedal
+                    __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, data2, "f");
+                    break;
+            }
         }
     }
     reset() {
@@ -277,6 +316,7 @@ class MidiRenderingStatus {
             __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
         }
         __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
     }
@@ -294,6 +334,9 @@ class MidiRenderingStatus {
     }
     get pedal() {
         return __classPrivateFieldGet(this, _MidiRenderingStatus_pedal, "f");
+    }
+    get sostenuto() {
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_sostenuto, "f");
     }
     getNote(noteIndex) {
         let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
@@ -323,7 +366,7 @@ class MidiRenderingStatus {
         return pressed;
     }
 }
-_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_pedal = new WeakMap(), _MidiRenderingStatus_onNoteCount = new WeakMap(), _MidiRenderingStatus_offNoteCount = new WeakMap();
+_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_pedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCount = new WeakMap(), _MidiRenderingStatus_offNoteCount = new WeakMap();
 const midiRenderingStatus = new MidiRenderingStatus();
 class MidiOutputManager {
     constructor() {
@@ -1005,6 +1048,9 @@ _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coor
     if (ev.device.startsWith("V25")) {
         if (ev.data0 === 176 && ev.data1 === 20) {
             ev.replaceData(1, 64);
+        }
+        else if (ev.data0 === 176 && ev.data1 === 21) {
+            ev.replaceData(1, 66); // sostenuto
         }
     }
 }, _Coordinator_updateTimestamp = function _Coordinator_updateTimestamp() {
