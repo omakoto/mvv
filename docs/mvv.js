@@ -1,11 +1,30 @@
 'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.coordinator = exports.recorder = exports.midiOutputManager = exports.midiRenderingStatus = exports.renderer = void 0;
-const util_js_1 = require("./util.js");
-const smf_js_1 = require("./smf.js");
-const controls_js_1 = require("./controls.js");
-const dialogs_js_1 = require("./dialogs.js");
-const chords_js_1 = require("./chords.js");
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_scrollSpeedFactor, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+import { info, debug, DEBUG } from './util.js';
+import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
+import { controls } from './controls.js';
+import { saveAsBox, confirmBox } from './dialogs.js';
+import { getNoteFullName, analyzeChord } from './chords.js';
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
@@ -75,54 +94,55 @@ function rgbToStr(rgb) {
 }
 // Logic
 class Renderer {
-    #BAR_SUB_LINE_WIDTH = s(2);
-    #BAR_BASE_LINE_COLOR = [200, 255, 200];
-    #ROLL_SCROLL_AMOUNT = s(2);
-    #W; // Width in canvas pixels
-    #H; // Height in canvas pixels
-    #BAR_H;
-    #ROLL_H;
-    #MIN_NOTE = 21;
-    #MAX_NOTE = 108;
-    #cbar;
-    #bar;
-    #croll;
-    #roll;
-    #cbar2;
-    #bar2;
-    #croll2;
-    #roll2;
-    #rollFrozen = false;
-    #drewOffLine = false;
     static getCanvas(name) {
         let canvas = document.getElementById(name);
         let context = canvas.getContext("2d");
         return [canvas, context];
     }
     constructor() {
+        var _b, _c, _d, _e, _f, _g, _h, _j;
+        _Renderer_BAR_SUB_LINE_WIDTH.set(this, s(2));
+        _Renderer_BAR_BASE_LINE_COLOR.set(this, [200, 255, 200]);
+        _Renderer_ROLL_SCROLL_AMOUNT.set(this, s(2));
+        _Renderer_W.set(this, void 0); // Width in canvas pixels
+        _Renderer_H.set(this, void 0); // Height in canvas pixels
+        _Renderer_BAR_H.set(this, void 0);
+        _Renderer_ROLL_H.set(this, void 0);
+        _Renderer_MIN_NOTE.set(this, 21);
+        _Renderer_MAX_NOTE.set(this, 108);
+        _Renderer_cbar.set(this, void 0);
+        _Renderer_bar.set(this, void 0);
+        _Renderer_croll.set(this, void 0);
+        _Renderer_roll.set(this, void 0);
+        _Renderer_cbar2.set(this, void 0);
+        _Renderer_bar2.set(this, void 0);
+        _Renderer_croll2.set(this, void 0);
+        _Renderer_roll2.set(this, void 0);
+        _Renderer_rollFrozen.set(this, false);
+        _Renderer_drewOffLine.set(this, false);
         // Adjust CSS with the constants.
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");
-        this.#W = s(screen.width);
-        this.#H = s(screen.height);
-        this.#BAR_H = int(this.#H * BAR_RATIO);
-        this.#ROLL_H = this.#H - this.#BAR_H;
-        [this.#cbar, this.#bar] = Renderer.getCanvas("bar");
-        [this.#cbar2, this.#bar2] = Renderer.getCanvas("bar2");
-        [this.#croll, this.#roll] = Renderer.getCanvas("roll");
-        [this.#croll2, this.#roll2] = Renderer.getCanvas("roll2");
-        this.#bar.imageSmoothingEnabled = false;
-        this.#bar2.imageSmoothingEnabled = false;
-        this.#roll.imageSmoothingEnabled = false;
-        this.#roll2.imageSmoothingEnabled = false;
-        this.#cbar.width = this.#W;
-        this.#cbar.height = this.#BAR_H;
-        this.#cbar2.width = this.#W;
-        this.#cbar2.height = this.#BAR_H;
-        this.#croll.width = this.#W;
-        this.#croll.height = this.#ROLL_H;
-        this.#croll2.width = this.#W;
-        this.#croll2.height = this.#ROLL_H;
+        __classPrivateFieldSet(this, _Renderer_W, s(screen.width), "f");
+        __classPrivateFieldSet(this, _Renderer_H, s(screen.height), "f");
+        __classPrivateFieldSet(this, _Renderer_BAR_H, int(__classPrivateFieldGet(this, _Renderer_H, "f") * BAR_RATIO), "f");
+        __classPrivateFieldSet(this, _Renderer_ROLL_H, __classPrivateFieldGet(this, _Renderer_H, "f") - __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), "f");
+        _b = this, _c = this, [({ set value(_k) { __classPrivateFieldSet(_b, _Renderer_cbar, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_c, _Renderer_bar, _k, "f"); } }).value] = Renderer.getCanvas("bar");
+        _d = this, _e = this, [({ set value(_k) { __classPrivateFieldSet(_d, _Renderer_cbar2, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_e, _Renderer_bar2, _k, "f"); } }).value] = Renderer.getCanvas("bar2");
+        _f = this, _g = this, [({ set value(_k) { __classPrivateFieldSet(_f, _Renderer_croll, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_g, _Renderer_roll, _k, "f"); } }).value] = Renderer.getCanvas("roll");
+        _h = this, _j = this, [({ set value(_k) { __classPrivateFieldSet(_h, _Renderer_croll2, _k, "f"); } }).value, ({ set value(_k) { __classPrivateFieldSet(_j, _Renderer_roll2, _k, "f"); } }).value] = Renderer.getCanvas("roll2");
+        __classPrivateFieldGet(this, _Renderer_bar, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_bar2, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_roll, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_roll2, "f").imageSmoothingEnabled = false;
+        __classPrivateFieldGet(this, _Renderer_cbar, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
+        __classPrivateFieldGet(this, _Renderer_cbar, "f").height = __classPrivateFieldGet(this, _Renderer_BAR_H, "f");
+        __classPrivateFieldGet(this, _Renderer_cbar2, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
+        __classPrivateFieldGet(this, _Renderer_cbar2, "f").height = __classPrivateFieldGet(this, _Renderer_BAR_H, "f");
+        __classPrivateFieldGet(this, _Renderer_croll, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
+        __classPrivateFieldGet(this, _Renderer_croll, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
+        __classPrivateFieldGet(this, _Renderer_croll2, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
+        __classPrivateFieldGet(this, _Renderer_croll2, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
     }
     getBarColor(velocity) {
         let MAX_H = 0.4;
@@ -174,104 +194,104 @@ class Renderer {
         ];
     }
     drawSubLine(percent) {
-        this.#bar.fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
-        this.#bar.fillRect(0, this.#BAR_H * percent, this.#W, this.#BAR_SUB_LINE_WIDTH);
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * percent, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));
     }
     // Draws vertical lines between octaves (B to C).
     drawOctaveLines() {
-        this.#roll.fillStyle = rgbToStr(RGB_OCTAVE_LINES);
-        this.#bar.fillStyle = this.#roll.fillStyle;
+        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(RGB_OCTAVE_LINES);
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle;
         const OCTAVE_LINE_WIDTH = 2; // Width of the octave line
         // Iterate through notes to find octave boundaries (B notes)
         // MIDI notes 0-127. C0 is MIDI 12, B0 is MIDI 23, C1 is MIDI 24 etc.
         // We want to draw a line *before* each C note (which means after each B note)
         // So, we draw at note indices 11, 23, 35, ..., 107
-        for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
+        for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
             // Check if the current note is a B note (MIDI % 12 === 11)
             // Or more precisely, the line should appear after the B and before the C of the next octave.
             // So, for each C note (MIDI % 12 === 0), draw a line just before it.
-            if (i % 12 === 0 && i > this.#MIN_NOTE) { // Only for C notes, and not the very first note
+            if (i % 12 === 0 && i > __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) { // Only for C notes, and not the very first note
                 // Calculate the x position for the line.
                 // This will be at the left edge of the C note's visual block.
-                const x = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
+                const x = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
                 // Draw the vertical line
-                this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#ROLL_H);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_ROLL_H, "f"));
                 // Hack -- draw the lines three times in #bar.
                 // Without this, the lines in #roll would look thicker because
                 // when we scroll it, we just draw itself on top of it with a slight
                 // offset, which would accumulate the subpixel artifacts.
                 // (or something like that.)
-                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
-                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
-                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
+                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
+                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
+                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
             }
         }
     }
     onDraw() {
-        const scrollAmount = this.#ROLL_SCROLL_AMOUNT * exports.coordinator.scrollSpeedFactor;
+        const scrollAmount = __classPrivateFieldGet(this, _Renderer_ROLL_SCROLL_AMOUNT, "f") * coordinator.scrollSpeedFactor;
         // Scroll the roll.
-        this.#roll.drawImage(this.#croll, 0, scrollAmount);
-        const sustainColor = this.getPedalColor(exports.midiRenderingStatus.pedal);
-        const sostenutoColor = this.getSostenutoPedalColor(exports.midiRenderingStatus.sostenuto);
+        __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, scrollAmount);
+        const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+        const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
         const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
-        this.#roll.fillStyle = rgbToStr(pedalColor);
-        this.#roll.fillRect(0, 0, this.#W, scrollAmount);
+        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(pedalColor);
+        __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), scrollAmount);
         // Clear the bar area.
-        this.#bar.fillStyle = 'black';
-        this.#bar.fillRect(0, 0, this.#W, this.#H);
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = 'black';
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_H, "f"));
         // Individual bar width
-        let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
+        let bw = __classPrivateFieldGet(this, _Renderer_W, "f") / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1) - 1;
         // "Off" line
-        if (exports.midiRenderingStatus.offNoteCount > 0) {
+        if (midiRenderingStatus.offNoteCount > 0) {
             // We don't highlight off lines. Always same color.
             // However, if we draw two off lines in a raw, it'll look brighter,
             // so avoid doing so.
-            if (!this.#drewOffLine) {
-                this.#roll.fillStyle = "#008040";
-                this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
+            if (!__classPrivateFieldGet(this, _Renderer_drewOffLine, "f")) {
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = "#008040";
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, scrollAmount - s(2), __classPrivateFieldGet(this, _Renderer_W, "f"), s(2));
             }
-            this.#drewOffLine = true;
+            __classPrivateFieldSet(this, _Renderer_drewOffLine, true, "f");
         }
         else {
-            this.#drewOffLine = false;
+            __classPrivateFieldSet(this, _Renderer_drewOffLine, false, "f");
         }
         // "On" line
-        if (exports.midiRenderingStatus.onNoteCount > 0) {
-            this.#roll.fillStyle = rgbToStr(this.getOnColor(exports.midiRenderingStatus.onNoteCount));
-            this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
+        if (midiRenderingStatus.onNoteCount > 0) {
+            __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
+            __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, scrollAmount - s(2), __classPrivateFieldGet(this, _Renderer_W, "f"), s(2));
         }
         // Sub lines.
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
-        for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
-            let note = exports.midiRenderingStatus.getNote(i);
+        for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
+            let note = midiRenderingStatus.getNote(i);
             if (!note[0]) {
                 continue;
             }
             let color = this.getBarColor(note[1]);
             let colorStr = rgbToStr(color);
             // bar left
-            let bl = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
+            let bl = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
             // bar height
-            let bh = this.#BAR_H * note[1] / 127;
-            this.#bar.fillStyle = colorStr;
-            this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
-            this.#roll.fillStyle = colorStr;
-            this.#roll.fillRect(bl, 0, bw, scrollAmount);
+            let bh = __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * note[1] / 127;
+            __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = colorStr;
+            __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(bl, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), bw, -bh);
+            __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
+            __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, scrollAmount);
         }
-        if (exports.coordinator.isShowingVlines) {
+        if (coordinator.isShowingVlines) {
             // Draw octave lines.
             this.drawOctaveLines();
         }
         // Base line.
-        this.#bar.fillStyle = rgbToStr(this.#BAR_BASE_LINE_COLOR);
-        this.#bar.fillRect(0, this.#BAR_H, this.#W, -this.#BAR_SUB_LINE_WIDTH);
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(__classPrivateFieldGet(this, _Renderer_BAR_BASE_LINE_COLOR, "f"));
+        __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), __classPrivateFieldGet(this, _Renderer_W, "f"), -__classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));
     }
     flip() {
-        this.#bar2.drawImage(this.#cbar, 0, 0);
-        if (!this.#rollFrozen) {
-            this.#roll2.drawImage(this.#croll, 0, 0);
+        __classPrivateFieldGet(this, _Renderer_bar2, "f").drawImage(__classPrivateFieldGet(this, _Renderer_cbar, "f"), 0, 0);
+        if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
+            __classPrivateFieldGet(this, _Renderer_roll2, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, 0);
         }
     }
     toggleMute() {
@@ -281,88 +301,93 @@ class Renderer {
         $('#canvases').show();
     }
     toggleRollFrozen() {
-        this.#rollFrozen = !this.#rollFrozen;
+        __classPrivateFieldSet(this, _Renderer_rollFrozen, !__classPrivateFieldGet(this, _Renderer_rollFrozen, "f"), "f");
     }
     get isRollFrozen() {
-        return this.#rollFrozen;
+        return __classPrivateFieldGet(this, _Renderer_rollFrozen, "f");
     }
     get isVideoMuted() {
         return $('#canvases').css('display') === 'none';
     }
 }
-exports.renderer = new Renderer();
+_Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_ROLL_SCROLL_AMOUNT = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap(), _Renderer_drewOffLine = new WeakMap();
+export const renderer = new Renderer();
 class MidiRenderingStatus {
-    #tick = 0;
-    #notes = []; // note on/off, velocity, last on-tick
-    #pedal = 0;
-    #sostenuto = 0;
-    #onNoteCount = 0;
-    #offNoteCount = 0;
     constructor() {
+        _MidiRenderingStatus_tick.set(this, 0);
+        _MidiRenderingStatus_notes.set(this, []); // note on/off, velocity, last on-tick
+        _MidiRenderingStatus_pedal.set(this, 0);
+        _MidiRenderingStatus_sostenuto.set(this, 0);
+        _MidiRenderingStatus_onNoteCount.set(this, 0);
+        _MidiRenderingStatus_offNoteCount.set(this, 0);
         this.reset();
     }
     onMidiMessage(ev) {
+        var _b, _c;
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
         if (ev.isNoteOn) { // Note on
-            this.#onNoteCount++;
-            let ar = this.#notes[data1];
+            __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, // Note on
+            (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _b++, _b), "f");
+            let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
             ar[0] = true;
             ar[1] = data2;
-            ar[2] = this.#tick;
+            ar[2] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
         }
         else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
-            this.#offNoteCount++;
-            this.#notes[data1][0] = false;
+            __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, // Note off
+            (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _c++, _c), "f");
+            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
         }
         else if (status === 176) { // Control Change
             switch (data1) {
                 case 64: // Damper pedal (sustain)
                 case 11: // Expression
-                    this.#pedal = data2;
+                    __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
                     break;
                 case 66: // Sostenuto pedal
-                    this.#sostenuto = data2;
+                    __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, data2, "f");
                     break;
             }
         }
     }
     reset() {
-        this.#tick = 0;
-        this.#notes = [];
+        __classPrivateFieldSet(this, _MidiRenderingStatus_tick, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_notes, [], "f");
         for (let i = 0; i < NOTES_COUNT; i++) {
-            this.#notes[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
+            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
         }
-        this.#pedal = 0;
-        this.#sostenuto = 0;
-        this.#onNoteCount = 0;
-        this.#offNoteCount = 0;
+        __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
     }
     afterDraw(_now) {
-        this.#tick++;
-        this.#onNoteCount = 0;
-        this.#offNoteCount = 0;
+        var _b;
+        __classPrivateFieldSet(this, _MidiRenderingStatus_tick, (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), _b++, _b), "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
     }
     get onNoteCount() {
-        return this.#onNoteCount;
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f");
     }
     get offNoteCount() {
-        return this.#offNoteCount;
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f");
     }
     get pedal() {
-        return this.#pedal;
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_pedal, "f");
     }
     get sostenuto() {
-        return this.#sostenuto;
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_sostenuto, "f");
     }
     getNote(noteIndex) {
-        let ar = this.#notes[noteIndex];
+        let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
         if (ar[0]) {
             // Note on
             return [true, ar[1]];
         }
-        else if ((this.#tick - ar[2]) < 2) {
+        else if ((__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - ar[2]) < 2) {
             // Recently turned off, still treat it as on
             return [true, ar[1]];
         }
@@ -384,38 +409,40 @@ class MidiRenderingStatus {
         return pressed;
     }
 }
-exports.midiRenderingStatus = new MidiRenderingStatus();
+_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_pedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCount = new WeakMap(), _MidiRenderingStatus_offNoteCount = new WeakMap();
+export const midiRenderingStatus = new MidiRenderingStatus();
 class MidiOutputManager {
-    #device = null;
     constructor() {
+        _MidiOutputManager_device.set(this, null);
     }
     setMidiOut(device) {
         console.log("MIDI output dev: WebMidi.MIDIOutput set:", device);
-        this.#device = device;
-        exports.midiOutputManager.reset();
+        __classPrivateFieldSet(this, _MidiOutputManager_device, device, "f");
+        midiOutputManager.reset();
     }
     reset() {
-        if (!this.#device) {
+        if (!__classPrivateFieldGet(this, _MidiOutputManager_device, "f")) {
             return;
         }
-        if (this.#device.clear) {
-            this.#device.clear(); // Chrome doesn't support it yet.
+        if (__classPrivateFieldGet(this, _MidiOutputManager_device, "f").clear) {
+            __classPrivateFieldGet(this, _MidiOutputManager_device, "f").clear(); // Chrome doesn't support it yet.
         }
         for (let i = 0; i <= 15; i++) {
-            this.#device.send([176 + i, 123, 0], 0); // All notes off
-            this.#device.send([176 + i, 121, 0], 0); // Reset all controllers
+            __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([176 + i, 123, 0], 0); // All notes off
+            __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([176 + i, 121, 0], 0); // Reset all controllers
         }
-        this.#device.send([255], 0); // All reset
+        __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send([255], 0); // All reset
         // console.log("MIDI reset");
     }
     sendEvent(data, timeStamp) {
-        if (!this.#device) {
+        if (!__classPrivateFieldGet(this, _MidiOutputManager_device, "f")) {
             return;
         }
-        this.#device.send(data, timeStamp);
+        __classPrivateFieldGet(this, _MidiOutputManager_device, "f").send(data, timeStamp);
     }
 }
-exports.midiOutputManager = new MidiOutputManager();
+_MidiOutputManager_device = new WeakMap();
+export const midiOutputManager = new MidiOutputManager();
 var RecorderState;
 (function (RecorderState) {
     RecorderState[RecorderState["Idle"] = 0] = "Idle";
@@ -424,30 +451,31 @@ var RecorderState;
     RecorderState[RecorderState["Recording"] = 3] = "Recording";
 })(RecorderState || (RecorderState = {}));
 class Recorder {
-    #events = [];
-    #state = RecorderState.Idle;
-    #recordingStartTimestamp = 0;
-    #playbackStartTimestamp = 0;
-    #playbackTimeAdjustment = 0;
-    #pauseStartTimestamp = 0;
-    #nextPlaybackIndex = 0;
-    #lastEventTimestamp = 0;
-    #isDirty = false;
     constructor() {
+        _Recorder_instances.add(this);
+        _Recorder_events.set(this, []);
+        _Recorder_state.set(this, RecorderState.Idle);
+        _Recorder_recordingStartTimestamp.set(this, 0);
+        _Recorder_playbackStartTimestamp.set(this, 0);
+        _Recorder_playbackTimeAdjustment.set(this, 0);
+        _Recorder_pauseStartTimestamp.set(this, 0);
+        _Recorder_nextPlaybackIndex.set(this, 0);
+        _Recorder_lastEventTimestamp.set(this, 0);
+        _Recorder_isDirty.set(this, false);
     }
     startRecording() {
         if (this.isRecording) {
             return false;
         }
         this.stopPlaying();
-        this.#startRecording();
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startRecording).call(this);
         return true;
     }
     stopRecording() {
         if (!this.isRecording) {
             return false;
         }
-        this.#stopRecording();
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_stopRecording).call(this);
         return true;
     }
     startPlaying() {
@@ -455,26 +483,26 @@ class Recorder {
             return false;
         }
         if (!this.isAnythingRecorded) {
-            (0, util_js_1.info)("Nothing recorded yet");
+            info("Nothing recorded yet");
             return false;
         }
-        this.#startPlaying();
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startPlaying).call(this);
         return true;
     }
     stopPlaying() {
         if (!(this.isPlaying || this.isPausing)) {
             return false;
         }
-        this.#stopPlaying();
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_stopPlaying).call(this);
         return true;
     }
     pause() {
         if (!this.isPlaying) {
             return false;
         }
-        this.#pauseStartTimestamp = performance.now();
-        this.#state = RecorderState.Pausing;
-        exports.coordinator.onRecorderStatusChanged();
+        __classPrivateFieldSet(this, _Recorder_pauseStartTimestamp, performance.now(), "f");
+        __classPrivateFieldSet(this, _Recorder_state, RecorderState.Pausing, "f");
+        coordinator.onRecorderStatusChanged();
         return true;
     }
     unpause() {
@@ -482,67 +510,38 @@ class Recorder {
             return false;
         }
         // Shift the start timestamp by paused duration.
-        const pausedDuration = this.#getPausingDuration();
-        this.#playbackStartTimestamp += pausedDuration;
-        this.#state = RecorderState.Playing;
-        exports.coordinator.onRecorderStatusChanged();
+        const pausedDuration = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this);
+        __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f") + pausedDuration, "f");
+        __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
+        coordinator.onRecorderStatusChanged();
         return true;
     }
     get isDirty() {
-        return this.#isDirty && this.isAnythingRecorded;
+        return __classPrivateFieldGet(this, _Recorder_isDirty, "f") && this.isAnythingRecorded;
     }
     get isIdle() {
-        return this.#state === RecorderState.Idle;
+        return __classPrivateFieldGet(this, _Recorder_state, "f") === RecorderState.Idle;
     }
     get isRecording() {
-        return this.#state === RecorderState.Recording;
+        return __classPrivateFieldGet(this, _Recorder_state, "f") === RecorderState.Recording;
     }
     get isPlaying() {
-        return this.#state === RecorderState.Playing;
+        return __classPrivateFieldGet(this, _Recorder_state, "f") === RecorderState.Playing;
     }
     get isPausing() {
-        return this.#state === RecorderState.Pausing;
+        return __classPrivateFieldGet(this, _Recorder_state, "f") === RecorderState.Pausing;
     }
     get isAnythingRecorded() {
-        return this.#events.length > 0;
+        return __classPrivateFieldGet(this, _Recorder_events, "f").length > 0;
     }
     get isAfterLast() {
-        return this.#events.length <= this.#nextPlaybackIndex;
+        return __classPrivateFieldGet(this, _Recorder_events, "f").length <= __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f");
     }
     get currentPlaybackTimestamp() {
-        return this.#getCurrentPlaybackTimestamp();
+        return __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
     }
     get lastEventTimestamp() {
-        return this.#lastEventTimestamp;
-    }
-    #startRecording() {
-        (0, util_js_1.info)("Recording started");
-        this.#state = RecorderState.Recording;
-        this.#events = [];
-        this.#isDirty = true;
-        exports.coordinator.onRecorderStatusChanged();
-    }
-    #stopRecording() {
-        (0, util_js_1.info)("Recording stopped (" + this.#events.length + " events recorded)");
-        this.#state = RecorderState.Idle;
-        exports.coordinator.onRecorderStatusChanged();
-    }
-    #startPlaying() {
-        (0, util_js_1.info)("Playback started");
-        this.#state = RecorderState.Playing;
-        this.#playbackStartTimestamp = performance.now();
-        // Do not reset playbackTimeAdjustment. It contains the start offset.
-        // Find the next event from the current position
-        this.#nextPlaybackIndex = 0;
-        this.#moveUpToTimestamp(this.currentPlaybackTimestamp, null);
-        exports.coordinator.onRecorderStatusChanged();
-    }
-    #stopPlaying() {
-        (0, util_js_1.info)("Playback stopped");
-        this.#state = RecorderState.Idle;
-        this.#playbackTimeAdjustment = 0; // Reset position to start.
-        exports.coordinator.onRecorderStatusChanged();
-        exports.coordinator.resetMidi();
+        return __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f");
     }
     recordEvent(ev) {
         if (!this.isRecording) {
@@ -557,13 +556,13 @@ class Recorder {
             default:
                 return false;
         }
-        if (this.#events.length === 0) {
+        if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
             // First event, remember the timestamp.
-            this.#recordingStartTimestamp = ev.timeStamp;
+            __classPrivateFieldSet(this, _Recorder_recordingStartTimestamp, ev.timeStamp, "f");
         }
-        const ts = ev.timeStamp - this.#recordingStartTimestamp;
-        this.#events.push(ev.withTimestamp(ts));
-        this.#lastEventTimestamp = ts;
+        const ts = ev.timeStamp - __classPrivateFieldGet(this, _Recorder_recordingStartTimestamp, "f");
+        __classPrivateFieldGet(this, _Recorder_events, "f").push(ev.withTimestamp(ts));
+        __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, ts, "f");
         return true;
     }
     moveToStart() {
@@ -591,17 +590,17 @@ class Recorder {
         const oldTimestamp = this.currentPlaybackTimestamp;
         let newTimestamp = oldTimestamp + deltaMilliseconds;
         // Clamp the new time to the valid bounds of the recording.
-        newTimestamp = Math.max(0, Math.min(newTimestamp, this.#lastEventTimestamp));
+        newTimestamp = Math.max(0, Math.min(newTimestamp, __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f")));
         // Update the internal timekeeping to reflect the jump.
-        this.#playbackTimeAdjustment += (newTimestamp - oldTimestamp);
+        __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + (newTimestamp - oldTimestamp), "f");
         // 1. Reset MIDI devices. This clears any hanging notes or stale controller states.
-        exports.midiOutputManager.reset();
-        exports.midiRenderingStatus.reset();
+        midiOutputManager.reset();
+        midiRenderingStatus.reset();
         // 2. Calculate the definitive state of all controllers at the new timestamp.
         // To do this, we iterate from the beginning of the recording and store the
         // last seen value for each controller number.
         const controllerState = new Map(); // Map<controller_number, value>
-        for (const ev of this.#events) {
+        for (const ev of __classPrivateFieldGet(this, _Recorder_events, "f")) {
             if (ev.timeStamp > newTimestamp) {
                 break; // Stop scanning once we've passed our target time.
             }
@@ -611,137 +610,165 @@ class Recorder {
         }
         // 3. Apply the final controller states by sending MIDI CC messages.
         controllerState.forEach((value, controller) => {
-            const ccEvent = new smf_js_1.MidiEvent(newTimestamp, [176, controller, value]);
-            exports.midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
-            exports.midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
+            const ccEvent = new MidiEvent(newTimestamp, [176, controller, value]);
+            midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
+            midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
         });
         // 4. Find the correct next event to play from the new position.
         // We use a null callback because we have already handled the controller state.
-        this.#nextPlaybackIndex = 0;
-        this.#moveUpToTimestamp(newTimestamp, null);
+        __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, newTimestamp, null);
         // If playback was active before the seek, resume it.
         if (wasPlaying) {
             this.unpause();
         }
         return this.currentPlaybackTimestamp > 0;
     }
-    #getPausingDuration() {
-        return this.isPausing ? (performance.now() - this.#pauseStartTimestamp) : 0;
-    }
-    #getCurrentPlaybackTimestamp() {
-        if (this.isRecording)
-            return 0;
-        if (this.isIdle)
-            return this.#playbackTimeAdjustment;
-        return (performance.now() - this.#playbackStartTimestamp) +
-            this.#playbackTimeAdjustment - this.#getPausingDuration();
-    }
     playbackUpToNow() {
         if (!this.isPlaying) {
             return false;
         }
         // Current timestamp
-        let ts = this.#getCurrentPlaybackTimestamp();
-        if (util_js_1.DEBUG) {
-            (0, util_js_1.debug)(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
+        let ts = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
+        if (DEBUG) {
+            debug(__classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f"), performance.now(), __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f"), __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this));
         }
-        return this.#moveUpToTimestamp(ts, (ev) => {
-            if (util_js_1.DEBUG) {
-                (0, util_js_1.debug)("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
-                    " index=" + (this.#nextPlaybackIndex - 1), ev);
+        return __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, ts, (ev) => {
+            if (DEBUG) {
+                debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
+                    " index=" + (__classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f") - 1), ev);
             }
-            exports.midiRenderingStatus.onMidiMessage(ev);
-            exports.midiOutputManager.sendEvent(ev.getDataAsArray(), 0);
+            midiRenderingStatus.onMidiMessage(ev);
+            midiOutputManager.sendEvent(ev.getDataAsArray(), 0);
         });
-    }
-    #moveUpToTimestamp(timeStamp, callback) {
-        for (;;) {
-            if (this.isAfterLast) {
-                // No more events.
-                // But do not auto-stop; otherwise it'd be hard to listen to the last part.
-                return true;
-            }
-            let ev = this.#events[this.#nextPlaybackIndex];
-            if (ev.timeStamp > timeStamp) {
-                return true;
-            }
-            this.#nextPlaybackIndex++;
-            if (callback) {
-                callback(ev);
-            }
-        }
     }
     download(filename) {
         if (!this.isAnythingRecorded) {
-            (0, util_js_1.info)("Nothing recorded yet");
+            info("Nothing recorded yet");
             return;
         }
         console.log("Converting to the SMF format...");
-        let wr = new smf_js_1.SmfWriter();
-        let lastTimestamp = this.#events[0].timeStamp;
-        this.#events.forEach((ev) => {
-            (0, util_js_1.debug)(ev.timeStamp, ev.getDataAsArray());
+        let wr = new SmfWriter();
+        let lastTimestamp = __classPrivateFieldGet(this, _Recorder_events, "f")[0].timeStamp;
+        __classPrivateFieldGet(this, _Recorder_events, "f").forEach((ev) => {
+            debug(ev.timeStamp, ev.getDataAsArray());
             let delta = ev.timeStamp - lastTimestamp;
             wr.writeMessage(delta, ev.getDataAsArray());
             lastTimestamp = ev.timeStamp;
         });
         wr.download(filename);
-        this.#isDirty = false;
+        __classPrivateFieldSet(this, _Recorder_isDirty, false, "f");
     }
     setEvents(events) {
         this.stopPlaying();
         this.stopRecording();
-        this.#events = events;
-        this.#isDirty = false;
+        __classPrivateFieldSet(this, _Recorder_events, events, "f");
+        __classPrivateFieldSet(this, _Recorder_isDirty, false, "f");
         if (events.length === 0) {
-            (0, util_js_1.info)("File contains no events.");
-            this.#lastEventTimestamp = 0;
+            info("File contains no events.");
+            __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, 0, "f");
             return;
         }
         const lastEvent = events[events.length - 1];
-        this.#lastEventTimestamp = lastEvent.timeStamp;
+        __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, lastEvent.timeStamp, "f");
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
-        (0, util_js_1.info)(message);
+        info(message);
     }
 }
+_Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_recordingStartTimestamp = new WeakMap(), _Recorder_playbackStartTimestamp = new WeakMap(), _Recorder_playbackTimeAdjustment = new WeakMap(), _Recorder_pauseStartTimestamp = new WeakMap(), _Recorder_nextPlaybackIndex = new WeakMap(), _Recorder_lastEventTimestamp = new WeakMap(), _Recorder_isDirty = new WeakMap(), _Recorder_instances = new WeakSet(), _Recorder_startRecording = function _Recorder_startRecording() {
+    info("Recording started");
+    __classPrivateFieldSet(this, _Recorder_state, RecorderState.Recording, "f");
+    __classPrivateFieldSet(this, _Recorder_events, [], "f");
+    __classPrivateFieldSet(this, _Recorder_isDirty, true, "f");
+    coordinator.onRecorderStatusChanged();
+}, _Recorder_stopRecording = function _Recorder_stopRecording() {
+    info("Recording stopped (" + __classPrivateFieldGet(this, _Recorder_events, "f").length + " events recorded)");
+    __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
+    coordinator.onRecorderStatusChanged();
+}, _Recorder_startPlaying = function _Recorder_startPlaying() {
+    info("Playback started");
+    __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
+    __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
+    // Do not reset playbackTimeAdjustment. It contains the start offset.
+    // Find the next event from the current position
+    __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
+    __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, this.currentPlaybackTimestamp, null);
+    coordinator.onRecorderStatusChanged();
+}, _Recorder_stopPlaying = function _Recorder_stopPlaying() {
+    info("Playback stopped");
+    __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
+    __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f"); // Reset position to start.
+    coordinator.onRecorderStatusChanged();
+    coordinator.resetMidi();
+}, _Recorder_getPausingDuration = function _Recorder_getPausingDuration() {
+    return this.isPausing ? (performance.now() - __classPrivateFieldGet(this, _Recorder_pauseStartTimestamp, "f")) : 0;
+}, _Recorder_getCurrentPlaybackTimestamp = function _Recorder_getCurrentPlaybackTimestamp() {
+    if (this.isRecording)
+        return 0;
+    if (this.isIdle)
+        return __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f");
+    return (performance.now() - __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f")) +
+        __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") - __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this);
+}, _Recorder_moveUpToTimestamp = function _Recorder_moveUpToTimestamp(timeStamp, callback) {
+    var _b;
+    for (;;) {
+        if (this.isAfterLast) {
+            // No more events.
+            // But do not auto-stop; otherwise it'd be hard to listen to the last part.
+            return true;
+        }
+        let ev = __classPrivateFieldGet(this, _Recorder_events, "f")[__classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f")];
+        if (ev.timeStamp > timeStamp) {
+            return true;
+        }
+        __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, (_b = __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f"), _b++, _b), "f");
+        if (callback) {
+            callback(ev);
+        }
+    }
+};
 // ADDED: Export instance
-exports.recorder = new Recorder();
+export const recorder = new Recorder();
 class Coordinator {
-    #now = 0;
-    #nextSecond = 0;
-    #frames = 0;
-    #flips = 0;
-    #playbackTicks = 0;
-    #efps;
-    #wakelock = null;
-    #wakelockTimer = 0;
-    #timestamp;
-    #notes;
-    #chords;
-    #useSharp;
-    #showVlines;
-    #scrollSpeedFactor;
-    #isHelpVisible = false;
-    // LocalStorage keys
-    static #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
-    static #STORAGE_KEY_SHOW_VLINES = 'mvv_showVlines';
-    static #STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
     constructor() {
-        this.#nextSecond = performance.now() + 1000;
-        this.#efps = $("#fps");
-        this.#timestamp = $('#timestamp');
-        this.#notes = $('#notes');
-        this.#chords = $('#chords');
+        _Coordinator_instances.add(this);
+        _Coordinator_now.set(this, 0);
+        _Coordinator_nextSecond.set(this, 0);
+        _Coordinator_frames.set(this, 0);
+        _Coordinator_flips.set(this, 0);
+        _Coordinator_playbackTicks.set(this, 0);
+        _Coordinator_efps.set(this, void 0);
+        _Coordinator_wakelock.set(this, null);
+        _Coordinator_wakelockTimer.set(this, 0);
+        _Coordinator_timestamp.set(this, void 0);
+        _Coordinator_notes.set(this, void 0);
+        _Coordinator_chords.set(this, void 0);
+        _Coordinator_useSharp.set(this, void 0);
+        _Coordinator_showVlines.set(this, void 0);
+        _Coordinator_scrollSpeedFactor.set(this, void 0);
+        _Coordinator_isHelpVisible.set(this, false);
+        _Coordinator_ignoreRepeatedRewindKey.set(this, false);
+        _Coordinator_lastRewindPressTime.set(this, 0);
+        _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds.set(this, -1);
+        _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult.set(this, "");
+        // --- START: VSYNC-BASED ANIMATION LOOP ---
+        _Coordinator_animationFrameId.set(this, null);
+        _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp.set(this, "");
+        __classPrivateFieldSet(this, _Coordinator_nextSecond, performance.now() + 1000, "f");
+        __classPrivateFieldSet(this, _Coordinator_efps, $("#fps"), "f");
+        __classPrivateFieldSet(this, _Coordinator_timestamp, $('#timestamp'), "f");
+        __classPrivateFieldSet(this, _Coordinator_notes, $('#notes'), "f");
+        __classPrivateFieldSet(this, _Coordinator_chords, $('#chords'), "f");
         // Load settings from localStorage
-        const storedSharp = localStorage.getItem(Coordinator.#STORAGE_KEY_USE_SHARP);
-        this.#useSharp = storedSharp === null ? true : storedSharp === 'true';
-        const storedVlines = localStorage.getItem(Coordinator.#STORAGE_KEY_SHOW_VLINES);
-        this.#showVlines = storedVlines === null ? true : storedVlines === 'true';
-        const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
-        this.#scrollSpeedFactor = storedSpeed ? parseFloat(storedSpeed) : 1.0;
+        const storedSharp = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_USE_SHARP));
+        __classPrivateFieldSet(this, _Coordinator_useSharp, storedSharp === null ? true : storedSharp === 'true', "f");
+        const storedVlines = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SHOW_VLINES));
+        __classPrivateFieldSet(this, _Coordinator_showVlines, storedVlines === null ? true : storedVlines === 'true', "f");
+        const storedSpeed = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED));
+        __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, storedSpeed ? parseFloat(storedSpeed) : 1.0, "f");
     }
     onKeyDown(ev) {
-        (0, util_js_1.debug)("onKeyDown", ev.timeStamp, ev.code, ev);
+        debug("onKeyDown", ev.timeStamp, ev.code, ev);
         // Always allow '?' and 'Escape' to control the help screen.
         if (ev.key === '?') { // '?' key
             if (ev.repeat)
@@ -751,14 +778,14 @@ class Coordinator {
             return;
         }
         if (ev.code === 'Escape') {
-            if (this.#isHelpVisible) {
+            if (__classPrivateFieldGet(this, _Coordinator_isHelpVisible, "f")) {
                 this.toggleHelpScreen();
                 ev.preventDefault();
                 return;
             }
         }
         // If help is visible, block all other shortcuts.
-        if (this.#isHelpVisible) {
+        if (__classPrivateFieldGet(this, _Coordinator_isHelpVisible, "f")) {
             return;
         }
         this.extendWakelock();
@@ -787,7 +814,7 @@ class Coordinator {
             case 'Digit3':
                 if (isRepeat)
                     break;
-                this.#efps.toggle();
+                __classPrivateFieldGet(this, _Coordinator_efps, "f").toggle();
                 break;
             case 'Digit4':
                 if (isRepeat)
@@ -838,11 +865,11 @@ class Coordinator {
                 this.togglePlayback();
                 break;
             case 'ArrowLeft':
-                this.#onRewindPressed(isRepeat);
+                __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_onRewindPressed).call(this, isRepeat);
                 break;
             case 'ArrowRight':
-                if (!exports.recorder.isRecording) {
-                    exports.recorder.adjustPlaybackPosition(1000);
+                if (!recorder.isRecording) {
+                    recorder.adjustPlaybackPosition(1000);
                 }
                 break;
             default:
@@ -851,33 +878,33 @@ class Coordinator {
         ev.preventDefault();
     }
     get isSharpMode() {
-        return this.#useSharp;
+        return __classPrivateFieldGet(this, _Coordinator_useSharp, "f");
     }
     setSharpMode(useSharp) {
-        (0, util_js_1.info)("Mode changed to " + (useSharp ? "sharp" : "flat"));
-        this.#useSharp = useSharp;
-        localStorage.setItem(Coordinator.#STORAGE_KEY_USE_SHARP, String(useSharp));
+        info("Mode changed to " + (useSharp ? "sharp" : "flat"));
+        __classPrivateFieldSet(this, _Coordinator_useSharp, useSharp, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_USE_SHARP), String(useSharp));
     }
     get isShowingVlines() {
-        return this.#showVlines;
+        return __classPrivateFieldGet(this, _Coordinator_showVlines, "f");
     }
     setShowingVlines(show) {
-        this.#showVlines = show;
-        localStorage.setItem(Coordinator.#STORAGE_KEY_SHOW_VLINES, String(show));
+        __classPrivateFieldSet(this, _Coordinator_showVlines, show, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SHOW_VLINES), String(show));
     }
     get scrollSpeedFactor() {
-        return this.#scrollSpeedFactor;
+        return __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f");
     }
     setScrollSpeedFactor(factor) {
-        this.#scrollSpeedFactor = factor;
-        localStorage.setItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED, String(factor));
+        __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, factor, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED), String(factor));
     }
     toggleScrollSpeedFactor() {
-        this.setScrollSpeedFactor(3.0 - this.#scrollSpeedFactor);
+        this.setScrollSpeedFactor(3.0 - __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f"));
     }
     toggleHelpScreen() {
-        this.#isHelpVisible = !this.#isHelpVisible;
-        if (this.#isHelpVisible) {
+        __classPrivateFieldSet(this, _Coordinator_isHelpVisible, !__classPrivateFieldGet(this, _Coordinator_isHelpVisible, "f"), "f");
+        if (__classPrivateFieldGet(this, _Coordinator_isHelpVisible, "f")) {
             $('#help_overlay').fadeIn('fast');
             $('#help_box').fadeIn('fast');
         }
@@ -887,20 +914,20 @@ class Coordinator {
         }
     }
     toggleVideoMute() {
-        (0, util_js_1.info)("Toggle video mute");
-        exports.renderer.toggleMute();
+        info("Toggle video mute");
+        renderer.toggleMute();
         this.updateUi();
     }
     toggleRollFrozen() {
-        exports.renderer.toggleRollFrozen();
-        if (exports.renderer.isRollFrozen) {
-            (0, util_js_1.info)("Roll frozen");
+        renderer.toggleRollFrozen();
+        if (renderer.isRollFrozen) {
+            info("Roll frozen");
         }
         this.updateUi();
     }
     toggleRecording() {
-        if (exports.recorder.isRecording) {
-            exports.recorder.stopRecording();
+        if (recorder.isRecording) {
+            recorder.stopRecording();
         }
         else {
             this.startRecording();
@@ -908,66 +935,66 @@ class Coordinator {
         this.updateUi();
     }
     startRecording() {
-        if (!exports.recorder.isRecording) {
-            this.withOverwriteConfirm(() => exports.recorder.startRecording());
+        if (!recorder.isRecording) {
+            this.withOverwriteConfirm(() => recorder.startRecording());
         }
         this.updateUi();
     }
     togglePlayback() {
-        if (exports.recorder.isPausing) {
-            exports.recorder.unpause();
+        if (recorder.isPausing) {
+            recorder.unpause();
         }
-        else if (exports.recorder.isPlaying) {
-            exports.recorder.pause();
+        else if (recorder.isPlaying) {
+            recorder.pause();
         }
-        else if (exports.recorder.isIdle) {
+        else if (recorder.isIdle) {
             this.startPlayback();
         }
         this.updateUi();
     }
     startPlayback() {
-        exports.renderer.show();
-        if (exports.recorder.isIdle) {
-            exports.recorder.startPlaying();
+        renderer.show();
+        if (recorder.isIdle) {
+            recorder.startPlaying();
         }
-        else if (exports.recorder.isPausing) {
-            exports.recorder.unpause();
+        else if (recorder.isPausing) {
+            recorder.unpause();
         }
         this.updateUi();
     }
     pause() {
-        if (exports.recorder.isPlaying) {
-            exports.recorder.pause();
+        if (recorder.isPlaying) {
+            recorder.pause();
         }
-        else if (exports.recorder.isPausing) {
-            exports.recorder.unpause();
+        else if (recorder.isPausing) {
+            recorder.unpause();
         }
         this.updateUi();
     }
     stop() {
-        if (exports.recorder.isRecording) {
-            exports.recorder.stopRecording();
+        if (recorder.isRecording) {
+            recorder.stopRecording();
         }
-        else if (exports.recorder.isPlaying || exports.recorder.isPausing) {
-            exports.recorder.stopPlaying();
+        else if (recorder.isPlaying || recorder.isPausing) {
+            recorder.stopPlaying();
         }
         this.updateUi();
     }
     moveToStart() {
-        if (exports.recorder.isRecording) {
+        if (recorder.isRecording) {
             return;
         }
-        exports.recorder.moveToStart();
+        recorder.moveToStart();
         this.updateUi();
     }
     moveToPercent(percent) {
-        if (exports.recorder.isRecording) {
+        if (recorder.isRecording) {
             return;
         }
         // Allow scrubbing from idle, paused, or playing states.
-        const newTime = exports.recorder.lastEventTimestamp * percent;
-        const delta = newTime - exports.recorder.currentPlaybackTimestamp;
-        exports.recorder.adjustPlaybackPosition(delta);
+        const newTime = recorder.lastEventTimestamp * percent;
+        const delta = newTime - recorder.currentPlaybackTimestamp;
+        recorder.adjustPlaybackPosition(delta);
         this.updateUi();
     }
     toggleFullScreen() {
@@ -982,147 +1009,107 @@ class Coordinator {
         this.updateUi();
     }
     updateUi() {
-        this.#updateTimestamp();
-        controls_js_1.controls.update();
-    }
-    #ignoreRepeatedRewindKey = false;
-    #lastRewindPressTime = 0;
-    #onRewindPressed(isRepeat) {
-        if (exports.recorder.isRecording) {
-            return;
-        }
-        // If non-repeat left is pressed twice within a timeout, move to start.
-        if (!isRepeat) {
-            const now = performance.now();
-            if ((now - this.#lastRewindPressTime) <= 150) {
-                this.moveToStart();
-                return;
-            }
-            this.#lastRewindPressTime = now;
-        }
-        if (isRepeat && this.#ignoreRepeatedRewindKey) {
-            return;
-        }
-        if (!isRepeat) {
-            this.#ignoreRepeatedRewindKey = false;
-        }
-        if (!exports.recorder.adjustPlaybackPosition(-1000)) {
-            this.#ignoreRepeatedRewindKey = true;
-        }
-        this.updateUi();
-    }
-    #normalizeMidiEvent(ev) {
-        // Allow V25's leftmost knob to be used as the pedal.
-        if (ev.device.startsWith("V25")) {
-            if (ev.data0 === 176 && ev.data1 === 20) {
-                ev.replaceData(1, 64);
-            }
-            else if (ev.data0 === 176 && ev.data1 === 21) {
-                ev.replaceData(1, 66); // sostenuto
-            }
-        }
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateTimestamp).call(this);
+        controls.update();
     }
     onMidiMessage(ev) {
-        (0, util_js_1.debug)("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
+        debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
         this.extendWakelock();
-        this.#normalizeMidiEvent(ev);
-        exports.midiRenderingStatus.onMidiMessage(ev);
-        if (exports.recorder.isRecording) {
-            exports.recorder.recordEvent(ev);
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_normalizeMidiEvent).call(this, ev);
+        midiRenderingStatus.onMidiMessage(ev);
+        if (recorder.isRecording) {
+            recorder.recordEvent(ev);
         }
         if (ev.status === 144 || ev.status === 128) {
             this.updateNoteInformation();
         }
     }
     reset() {
-        exports.recorder.stopPlaying();
-        exports.recorder.stopRecording();
+        recorder.stopPlaying();
+        recorder.stopRecording();
         this.updateUi();
         this.resetMidi();
     }
     resetMidi() {
-        exports.midiRenderingStatus.reset();
-        exports.midiOutputManager.reset();
+        midiRenderingStatus.reset();
+        midiOutputManager.reset();
     }
-    #getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = -1;
-    #getHumanReadableCurrentPlaybackTimestamp_lastResult = "";
     getHumanReadableCurrentPlaybackTimestamp() {
-        const totalSeconds = int(exports.recorder.currentPlaybackTimestamp / 1000);
-        if (totalSeconds === this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds) {
-            return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
+        const totalSeconds = int(recorder.currentPlaybackTimestamp / 1000);
+        if (totalSeconds === __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, "f")) {
+            return __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f");
         }
         if (totalSeconds <= 0) {
-            this.#getHumanReadableCurrentPlaybackTimestamp_lastResult = "0:00";
+            __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "0:00", "f");
         }
         else {
             const minutes = int(totalSeconds / 60);
             const seconds = totalSeconds % 60;
-            this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = totalSeconds;
-            this.#getHumanReadableCurrentPlaybackTimestamp_lastResult =
-                minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, totalSeconds, "f");
+            __classPrivateFieldSet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, minutes + ":" + (seconds < 10 ? "0" + seconds : seconds), "f");
         }
-        return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
+        return __classPrivateFieldGet(this, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, "f");
     }
     onDraw() {
+        var _b;
         // Update FPS counter
-        this.#frames++;
+        __classPrivateFieldSet(this, _Coordinator_frames, (_b = __classPrivateFieldGet(this, _Coordinator_frames, "f"), _b++, _b), "f");
         let now = performance.now();
-        if (now >= this.#nextSecond) {
-            this.#efps.text(this.#flips + "/" + this.#frames + "/" + this.#playbackTicks);
-            this.#flips = 0;
-            this.#frames = 0;
-            this.#playbackTicks = 0;
-            this.#nextSecond += 1000;
-            if (this.#nextSecond < now) {
-                this.#nextSecond = now + 1000;
+        if (now >= __classPrivateFieldGet(this, _Coordinator_nextSecond, "f")) {
+            __classPrivateFieldGet(this, _Coordinator_efps, "f").text(__classPrivateFieldGet(this, _Coordinator_flips, "f") + "/" + __classPrivateFieldGet(this, _Coordinator_frames, "f") + "/" + __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"));
+            __classPrivateFieldSet(this, _Coordinator_flips, 0, "f");
+            __classPrivateFieldSet(this, _Coordinator_frames, 0, "f");
+            __classPrivateFieldSet(this, _Coordinator_playbackTicks, 0, "f");
+            __classPrivateFieldSet(this, _Coordinator_nextSecond, __classPrivateFieldGet(this, _Coordinator_nextSecond, "f") + 1000, "f");
+            if (__classPrivateFieldGet(this, _Coordinator_nextSecond, "f") < now) {
+                __classPrivateFieldSet(this, _Coordinator_nextSecond, now + 1000, "f");
             }
         }
-        this.#now = now;
-        exports.renderer.onDraw();
-        exports.midiRenderingStatus.afterDraw(this.#now);
+        __classPrivateFieldSet(this, _Coordinator_now, now, "f");
+        renderer.onDraw();
+        midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
     }
     updateNoteInformation() {
-        const pressedNotes = exports.midiRenderingStatus.getPressedNotes();
-        const noteNames = pressedNotes.map((note) => (0, chords_js_1.getNoteFullName)(note, this.#useSharp)).join(' ');
-        const chordName = (0, chords_js_1.analyzeChord)(pressedNotes, this.#useSharp);
+        const pressedNotes = midiRenderingStatus.getPressedNotes();
+        const noteNames = pressedNotes.map((note) => getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"))).join(' ');
+        const chordName = analyzeChord(pressedNotes, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
         if (noteNames.length > 0) {
-            this.#notes.text(noteNames);
-            this.#notes.stop(true, true).show();
+            __classPrivateFieldGet(this, _Coordinator_notes, "f").text(noteNames);
+            __classPrivateFieldGet(this, _Coordinator_notes, "f").stop(true, true).show();
         }
         else {
-            this.#notes.fadeOut(800);
+            __classPrivateFieldGet(this, _Coordinator_notes, "f").fadeOut(800);
         }
         if (chordName != null) {
-            this.#chords.text(chordName);
-            this.#chords.stop(true, true).show();
+            __classPrivateFieldGet(this, _Coordinator_chords, "f").text(chordName);
+            __classPrivateFieldGet(this, _Coordinator_chords, "f").stop(true, true).show();
         }
         else {
-            this.#chords.fadeOut(800);
+            __classPrivateFieldGet(this, _Coordinator_chords, "f").fadeOut(800);
         }
     }
-    // --- START: VSYNC-BASED ANIMATION LOOP ---
-    #animationFrameId = null;
     /**
      * Starts the main animation loop, which is synchronized with the browser's
      * rendering cycle for smooth visuals.
      */
     startAnimationLoop() {
-        if (this.#animationFrameId !== null) {
+        if (__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") !== null) {
             // Loop is already running.
             return;
         }
         const loop = () => {
+            var _b;
             // #flips is for the FPS counter, representing screen updates.
-            this.#flips++;
+            __classPrivateFieldSet(this, _Coordinator_flips, (_b = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _b++, _b), "f");
             // Run a playback tick to process MIDI events.
             this.onPlaybackTimer();
             // Draw the current state to the off-screen canvas.
             // This also updates the #frames count for the FPS counter.
             this.onDraw();
             // Copy the off-screen canvas to the visible one.
-            exports.renderer.flip();
+            renderer.flip();
             // Request the next frame.
-            this.#animationFrameId = requestAnimationFrame(loop);
+            __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(loop), "f");
         };
         // Start the loop.
         loop();
@@ -1131,101 +1118,141 @@ class Coordinator {
      * Stops the main animation loop.
      */
     stopAnimationLoop() {
-        if (this.#animationFrameId !== null) {
-            cancelAnimationFrame(this.#animationFrameId);
-            this.#animationFrameId = null;
+        if (__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") !== null) {
+            cancelAnimationFrame(__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f"));
+            __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
         }
     }
     onPlaybackTimer() {
-        this.#playbackTicks++;
-        if (exports.recorder.isPlaying) {
-            exports.recorder.playbackUpToNow();
+        var _b;
+        __classPrivateFieldSet(this, _Coordinator_playbackTicks, (_b = __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"), _b++, _b), "f");
+        if (recorder.isPlaying) {
+            recorder.playbackUpToNow();
         }
-        this.#updateTimestamp();
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateTimestamp).call(this);
     }
-    #updateTimestamp() {
-        if (exports.recorder.isPlaying || exports.recorder.isPausing || (exports.recorder.isIdle && exports.recorder.isAnythingRecorded)) {
-            // Update the time indicator
-            const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
-            if (timeStamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
-                this.#timestamp.text(timeStamp);
-                this.#onPlaybackTimer_lastShownPlaybackTimestamp = timeStamp;
-            }
-            controls_js_1.controls.setCurrentPosition(exports.recorder.currentPlaybackTimestamp, exports.recorder.lastEventTimestamp);
-        }
-        else if (exports.recorder.isRecording) {
-            this.#timestamp.text("-");
-            controls_js_1.controls.setCurrentPosition(0, 0);
-        }
-        else {
-            this.#timestamp.text("0:00");
-            controls_js_1.controls.setCurrentPosition(0, 0);
-        }
-    }
-    #onPlaybackTimer_lastShownPlaybackTimestamp = "";
     downloadRequested() {
-        dialogs_js_1.saveAsBox.open();
+        saveAsBox.open();
     }
     uploadRequested() {
-        exports.coordinator.withOverwriteConfirm(() => {
+        coordinator.withOverwriteConfirm(() => {
             $('#open_file').trigger('click');
         });
     }
     withOverwriteConfirm(callback) {
-        if (exports.recorder.isDirty) {
-            dialogs_js_1.confirmBox.show("Discard recording?", () => callback());
+        if (recorder.isDirty) {
+            confirmBox.show("Discard recording?", () => callback());
         }
         else {
             callback();
         }
     }
-    async extendWakelock() {
-        // Got the wake lock type definition from:
-        // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
-        // npm i @types/dom-screen-wake-lock
-        if (this.#wakelock === null) {
-            try {
-                this.#wakelock = await navigator.wakeLock.request('screen');
-                this.#wakelock.addEventListener('release', () => {
-                    this.#wakelock = null;
-                    console.log("Wake lock released by system");
-                });
-                console.log("Wake lock acquired");
+    extendWakelock() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Got the wake lock type definition from:
+            // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
+            // npm i @types/dom-screen-wake-lock
+            if (__classPrivateFieldGet(this, _Coordinator_wakelock, "f") === null) {
+                try {
+                    __classPrivateFieldSet(this, _Coordinator_wakelock, yield navigator.wakeLock.request('screen'), "f");
+                    __classPrivateFieldGet(this, _Coordinator_wakelock, "f").addEventListener('release', () => {
+                        __classPrivateFieldSet(this, _Coordinator_wakelock, null, "f");
+                        console.log("Wake lock released by system");
+                    });
+                    console.log("Wake lock acquired");
+                }
+                catch (err) {
+                    console.log("Failed to acquire wake lock", err);
+                }
             }
-            catch (err) {
-                console.log("Failed to acquire wake lock", err);
+            if (__classPrivateFieldGet(this, _Coordinator_wakelockTimer, "f") !== null) {
+                clearTimeout(__classPrivateFieldGet(this, _Coordinator_wakelockTimer, "f"));
             }
-        }
-        if (this.#wakelockTimer !== null) {
-            clearTimeout(this.#wakelockTimer);
-        }
-        this.#wakelockTimer = setTimeout(() => {
-            if (this.#wakelock !== null) {
-                this.#wakelock.release();
-                this.#wakelock = null;
-                console.log("Wake lock released");
-            }
-        }, WAKE_LOCK_MILLIS);
+            __classPrivateFieldSet(this, _Coordinator_wakelockTimer, setTimeout(() => {
+                if (__classPrivateFieldGet(this, _Coordinator_wakelock, "f") !== null) {
+                    __classPrivateFieldGet(this, _Coordinator_wakelock, "f").release();
+                    __classPrivateFieldSet(this, _Coordinator_wakelock, null, "f");
+                    console.log("Wake lock released");
+                }
+            }, WAKE_LOCK_MILLIS), "f");
+        });
     }
     close() {
         this.stopAnimationLoop();
-        exports.recorder.stopPlaying();
+        recorder.stopPlaying();
         this.resetMidi();
     }
 }
-exports.coordinator = new Coordinator();
+_a = Coordinator, _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showVlines = new WeakMap(), _Coordinator_scrollSpeedFactor = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
+    if (recorder.isRecording) {
+        return;
+    }
+    // If non-repeat left is pressed twice within a timeout, move to start.
+    if (!isRepeat) {
+        const now = performance.now();
+        if ((now - __classPrivateFieldGet(this, _Coordinator_lastRewindPressTime, "f")) <= 150) {
+            this.moveToStart();
+            return;
+        }
+        __classPrivateFieldSet(this, _Coordinator_lastRewindPressTime, now, "f");
+    }
+    if (isRepeat && __classPrivateFieldGet(this, _Coordinator_ignoreRepeatedRewindKey, "f")) {
+        return;
+    }
+    if (!isRepeat) {
+        __classPrivateFieldSet(this, _Coordinator_ignoreRepeatedRewindKey, false, "f");
+    }
+    if (!recorder.adjustPlaybackPosition(-1000)) {
+        __classPrivateFieldSet(this, _Coordinator_ignoreRepeatedRewindKey, true, "f");
+    }
+    this.updateUi();
+}, _Coordinator_normalizeMidiEvent = function _Coordinator_normalizeMidiEvent(ev) {
+    // Allow V25's leftmost knob to be used as the pedal.
+    if (ev.device.startsWith("V25")) {
+        if (ev.data0 === 176 && ev.data1 === 20) {
+            ev.replaceData(1, 64);
+        }
+        else if (ev.data0 === 176 && ev.data1 === 21) {
+            ev.replaceData(1, 66); // sostenuto
+        }
+    }
+}, _Coordinator_updateTimestamp = function _Coordinator_updateTimestamp() {
+    if (recorder.isPlaying || recorder.isPausing || (recorder.isIdle && recorder.isAnythingRecorded)) {
+        // Update the time indicator
+        const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
+        if (timeStamp != __classPrivateFieldGet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, "f")) {
+            __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text(timeStamp);
+            __classPrivateFieldSet(this, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp, timeStamp, "f");
+        }
+        controls.setCurrentPosition(recorder.currentPlaybackTimestamp, recorder.lastEventTimestamp);
+    }
+    else if (recorder.isRecording) {
+        __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text("-");
+        controls.setCurrentPosition(0, 0);
+    }
+    else {
+        __classPrivateFieldGet(this, _Coordinator_timestamp, "f").text("0:00");
+        controls.setCurrentPosition(0, 0);
+    }
+};
+// LocalStorage keys
+_Coordinator_STORAGE_KEY_USE_SHARP = { value: 'mvv_useSharp' };
+_Coordinator_STORAGE_KEY_SHOW_VLINES = { value: 'mvv_showVlines' };
+_Coordinator_STORAGE_KEY_SCROLL_SPEED = { value: 'mvv_scrollSpeed' };
+export const coordinator = new Coordinator();
 function onMIDISuccess(midiAccess) {
+    var _b;
     console.log("onMIDISuccess");
     for (let input of midiAccess.inputs.values()) {
         console.log("Input: ", input);
         input.onmidimessage = (ev) => {
-            exports.coordinator.onMidiMessage(smf_js_1.MidiEvent.fromNativeEvent(ev));
+            coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         };
     }
     for (let output of midiAccess.outputs.values()) {
         console.log("Output: ", output);
-        if (!/midi through/i.test(output.name ?? "")) {
-            exports.midiOutputManager.setMidiOut(output);
+        if (!/midi through/i.test((_b = output.name) !== null && _b !== void 0 ? _b : "")) {
+            midiOutputManager.setMidiOut(output);
         }
     }
 }
@@ -1249,19 +1276,19 @@ else {
     alert("Your browser doesn't support WebMIDI. (Try Chrome instead.)");
 }
 const ebody = $('body');
-$(window).on('keydown', (ev) => exports.coordinator.onKeyDown(ev.originalEvent));
+$(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent));
 $("body").on("dragover", function (ev) {
     ev.preventDefault();
 });
 function loadMidiFile(file) {
-    (0, util_js_1.info)("loading from: " + file.name);
-    exports.coordinator.reset();
-    (0, smf_js_1.loadMidi)(file).then((events) => {
-        (0, util_js_1.debug)("File loaded", events);
-        exports.recorder.setEvents(events);
-        exports.coordinator.updateUi();
+    info("loading from: " + file.name);
+    coordinator.reset();
+    loadMidi(file).then((events) => {
+        debug("File loaded", events);
+        recorder.setEvents(events);
+        coordinator.updateUi();
     }).catch((error) => {
-        (0, util_js_1.info)("Failed loading from " + file.name + ": " + error);
+        info("Failed loading from " + file.name + ": " + error);
         console.log(error);
     });
 }
@@ -1274,13 +1301,13 @@ $("body").on("mousemove", function (_ev) {
     clearCursorTimeout = setTimeout(() => {
         ebody.css('cursor', 'none');
     }, 3000);
-    exports.coordinator.extendWakelock();
+    coordinator.extendWakelock();
 });
 $("body").on("drop", function (ev) {
     ev.preventDefault();
     let oev = ev.originalEvent;
     console.log("File dropped", oev.dataTransfer.files[0], oev.dataTransfer);
-    exports.coordinator.withOverwriteConfirm(() => {
+    coordinator.withOverwriteConfirm(() => {
         loadMidiFile(oev.dataTransfer.files[0]);
     });
 });
@@ -1293,17 +1320,17 @@ $("#open_file").on("change", (ev) => {
     loadMidiFile(file);
 });
 $('#fullscreen').on('click', (_ev) => {
-    exports.coordinator.toggleFullScreen();
+    coordinator.toggleFullScreen();
 });
 $('#source').on('click', (_ev) => {
     window.open("https://github.com/omakoto/mvv", "source");
 });
 $('#help_close, #help_overlay').on('click', (_ev) => {
-    exports.coordinator.toggleHelpScreen();
+    coordinator.toggleHelpScreen();
 });
 $(document).on('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-        exports.coordinator.extendWakelock();
+        coordinator.extendWakelock();
     }
 });
 // By recording the timestamp of the last touch event, we can differentiate
@@ -1345,8 +1372,8 @@ $(window).on('load', () => {
     }
 });
 $(window).on('unload', () => {
-    exports.coordinator.close();
+    coordinator.close();
 });
 // Start the new vsync-based animation loop.
-exports.coordinator.startAnimationLoop();
-exports.coordinator.updateUi();
+coordinator.startAnimationLoop();
+coordinator.updateUi();

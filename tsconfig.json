@@ -2,11 +2,11 @@
     "compilerOptions": {
         "baseUrl": "./src",
         "outDir": "./docs",
-        "target": "es2024",
-        "module": "NodeNext",                                /* Specify what module code is generated. */
-        "moduleResolution": "nodenext",                     /* Specify how TypeScript looks up a file from a given module specifier. */
+        "target": "es6",
+        "module": "es6",
+        "moduleResolution": "node",
         "lib": [
-            "es2024",
+            "es6",
             "dom",
         ],
     },

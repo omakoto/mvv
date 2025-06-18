@@ -68,7 +68,7 @@ function getCurrentTime(): string {
     const nowUtc = new Date();
     const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
     let ret = nowLocal.toISOString();
-    return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
+    return ret.replace("Z", "").replace(/[:T]/g, "-").replace(/\..*$/, "");
 }
 
 export { DEBUG, debug, info, infoRaw, w, LiteEvent, type ILiteEvent, getCurrentTime };

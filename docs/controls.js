@@ -1,113 +1,125 @@
 'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.controls = void 0;
-const mvv_js_1 = require("./mvv.js");
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
+import { coordinator, renderer, recorder } from './mvv.js';
 class Controls {
-    #top;
-    #rewind;
-    #play;
-    #pause;
-    #ff;
-    #stop;
-    #record;
-    #up;
-    #down;
-    #position;
-    #positionOuter;
-    #positionBar;
-    #freeze;
-    #videoMute;
-    #sharp;
-    #flat;
-    #vlines;
-    #speedup;
     constructor() {
-        this.#top = $("#top");
-        this.#play = $("#play");
-        this.#pause = $("#pause");
-        this.#stop = $("#stop");
-        this.#record = $("#record");
-        this.#rewind = $("#rewind");
-        this.#ff = $("#ff");
-        this.#up = $("#up");
-        this.#down = $("#down");
-        this.#position = $("#position");
-        this.#positionOuter = $("#position_outer");
-        this.#positionBar = $("#position_bar");
-        this.#freeze = $("#freeze");
-        this.#videoMute = $("#video-mute");
-        this.#sharp = $("#sharp");
-        this.#flat = $("#flat");
-        this.#vlines = $("#vlines");
-        this.#speedup = $("#speedup");
-        this.#top.on('click', (ev) => {
-            mvv_js_1.coordinator.moveToStart();
+        _Controls_top.set(this, void 0);
+        _Controls_rewind.set(this, void 0);
+        _Controls_play.set(this, void 0);
+        _Controls_pause.set(this, void 0);
+        _Controls_ff.set(this, void 0);
+        _Controls_stop.set(this, void 0);
+        _Controls_record.set(this, void 0);
+        _Controls_up.set(this, void 0);
+        _Controls_down.set(this, void 0);
+        _Controls_position.set(this, void 0);
+        _Controls_positionOuter.set(this, void 0);
+        _Controls_positionBar.set(this, void 0);
+        _Controls_freeze.set(this, void 0);
+        _Controls_videoMute.set(this, void 0);
+        _Controls_sharp.set(this, void 0);
+        _Controls_flat.set(this, void 0);
+        _Controls_vlines.set(this, void 0);
+        _Controls_speedup.set(this, void 0);
+        _Controls_isPositionDragging.set(this, false);
+        _Controls_wasPlayingBeforeDrag.set(this, false);
+        __classPrivateFieldSet(this, _Controls_top, $("#top"), "f");
+        __classPrivateFieldSet(this, _Controls_play, $("#play"), "f");
+        __classPrivateFieldSet(this, _Controls_pause, $("#pause"), "f");
+        __classPrivateFieldSet(this, _Controls_stop, $("#stop"), "f");
+        __classPrivateFieldSet(this, _Controls_record, $("#record"), "f");
+        __classPrivateFieldSet(this, _Controls_rewind, $("#rewind"), "f");
+        __classPrivateFieldSet(this, _Controls_ff, $("#ff"), "f");
+        __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
+        __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
+        __classPrivateFieldSet(this, _Controls_position, $("#position"), "f");
+        __classPrivateFieldSet(this, _Controls_positionOuter, $("#position_outer"), "f");
+        __classPrivateFieldSet(this, _Controls_positionBar, $("#position_bar"), "f");
+        __classPrivateFieldSet(this, _Controls_freeze, $("#freeze"), "f");
+        __classPrivateFieldSet(this, _Controls_videoMute, $("#video-mute"), "f");
+        __classPrivateFieldSet(this, _Controls_sharp, $("#sharp"), "f");
+        __classPrivateFieldSet(this, _Controls_flat, $("#flat"), "f");
+        __classPrivateFieldSet(this, _Controls_vlines, $("#vlines"), "f");
+        __classPrivateFieldSet(this, _Controls_speedup, $("#speedup"), "f");
+        __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
+            coordinator.moveToStart();
             ev.stopPropagation();
         });
-        this.#play.on('click', (ev) => {
-            mvv_js_1.coordinator.togglePlayback();
+        __classPrivateFieldGet(this, _Controls_play, "f").on('click', (ev) => {
+            coordinator.togglePlayback();
             ev.stopPropagation();
         });
-        this.#pause.on('click', (ev) => {
-            mvv_js_1.coordinator.pause();
+        __classPrivateFieldGet(this, _Controls_pause, "f").on('click', (ev) => {
+            coordinator.pause();
             ev.stopPropagation();
         });
-        this.#stop.on('click', (ev) => {
-            mvv_js_1.coordinator.stop();
+        __classPrivateFieldGet(this, _Controls_stop, "f").on('click', (ev) => {
+            coordinator.stop();
             ev.stopPropagation();
         });
-        this.#record.on('click', (ev) => {
-            mvv_js_1.coordinator.startRecording();
+        __classPrivateFieldGet(this, _Controls_record, "f").on('click', (ev) => {
+            coordinator.startRecording();
             ev.stopPropagation();
         });
-        this.#up.on('click', (ev) => {
-            mvv_js_1.coordinator.uploadRequested();
+        __classPrivateFieldGet(this, _Controls_up, "f").on('click', (ev) => {
+            coordinator.uploadRequested();
             ev.stopPropagation();
         });
-        this.#down.on('click', (ev) => {
-            mvv_js_1.coordinator.downloadRequested();
+        __classPrivateFieldGet(this, _Controls_down, "f").on('click', (ev) => {
+            coordinator.downloadRequested();
             ev.stopPropagation();
         });
-        this.#freeze.on('click', (ev) => {
-            mvv_js_1.coordinator.toggleRollFrozen();
+        __classPrivateFieldGet(this, _Controls_freeze, "f").on('click', (ev) => {
+            coordinator.toggleRollFrozen();
             this.update();
             ev.stopPropagation();
         });
-        this.#videoMute.on('click', (ev) => {
-            mvv_js_1.coordinator.toggleVideoMute();
+        __classPrivateFieldGet(this, _Controls_videoMute, "f").on('click', (ev) => {
+            coordinator.toggleVideoMute();
             this.update();
             ev.stopPropagation();
         });
-        this.#sharp.on('click', (ev) => {
-            mvv_js_1.coordinator.setSharpMode(true);
+        __classPrivateFieldGet(this, _Controls_sharp, "f").on('click', (ev) => {
+            coordinator.setSharpMode(true);
             this.update();
             ev.stopPropagation();
         });
-        this.#flat.on('click', (ev) => {
-            mvv_js_1.coordinator.setSharpMode(false);
+        __classPrivateFieldGet(this, _Controls_flat, "f").on('click', (ev) => {
+            coordinator.setSharpMode(false);
             this.update();
             ev.stopPropagation();
         });
-        this.#vlines.on('click', (ev) => {
-            mvv_js_1.coordinator.setShowingVlines(!mvv_js_1.coordinator.isShowingVlines);
+        __classPrivateFieldGet(this, _Controls_vlines, "f").on('click', (ev) => {
+            coordinator.setShowingVlines(!coordinator.isShowingVlines);
             this.update();
             ev.stopPropagation();
         });
-        this.#speedup.on('click', (ev) => {
-            mvv_js_1.coordinator.toggleScrollSpeedFactor();
+        __classPrivateFieldGet(this, _Controls_speedup, "f").on('click', (ev) => {
+            coordinator.toggleScrollSpeedFactor();
             this.update();
             ev.stopPropagation();
         });
-        this.#position.draggable({
+        __classPrivateFieldGet(this, _Controls_position, "f").draggable({
             addClasses: false,
             axis: "x",
             // containment: "parent", // Doesn't work because jquery takes into account the element width,
             // making it impossible to drag to the end.
         });
-        this.#position.on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
-        this.#position.on('drag', (ev, ui) => this.positionDrag(ev, ui));
-        this.#position.on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
-        this.#positionBar.on('mousedown', (ev) => this.directJump(ev));
+        __classPrivateFieldGet(this, _Controls_position, "f").on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
+        __classPrivateFieldGet(this, _Controls_position, "f").on('drag', (ev, ui) => this.positionDrag(ev, ui));
+        __classPrivateFieldGet(this, _Controls_position, "f").on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
+        __classPrivateFieldGet(this, _Controls_positionBar, "f").on('mousedown', (ev) => this.directJump(ev));
     }
     removeClassses(control) {
         control.removeClass('button-disabled');
@@ -132,62 +144,62 @@ class Controls {
         control.addClass('button-activated-unclickable');
     }
     update() {
-        this.activate(this.#freeze, mvv_js_1.renderer.isRollFrozen);
-        this.activate(this.#videoMute, mvv_js_1.renderer.isVideoMuted);
-        if (mvv_js_1.recorder.isRecording) {
-            this.disable(this.#top);
-            this.disable(this.#play);
-            this.disable(this.#pause);
-            this.enable(this.#stop);
-            this.activateUnclickable(this.#record);
-            this.disable(this.#rewind);
-            this.disable(this.#ff);
-            this.disable(this.#position);
+        this.activate(__classPrivateFieldGet(this, _Controls_freeze, "f"), renderer.isRollFrozen);
+        this.activate(__classPrivateFieldGet(this, _Controls_videoMute, "f"), renderer.isVideoMuted);
+        if (recorder.isRecording) {
+            this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_pause, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
+            this.activateUnclickable(__classPrivateFieldGet(this, _Controls_record, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
             return;
         }
-        if (mvv_js_1.recorder.isPlaying) {
-            this.enable(this.#top);
-            this.activateUnclickable(this.#play);
-            this.enable(this.#pause);
-            this.enable(this.#stop);
-            this.enable(this.#record);
-            this.enable(this.#rewind);
-            this.enable(this.#ff);
-            this.enable(this.#position);
+        if (recorder.isPlaying) {
+            this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
+            this.activateUnclickable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
             return;
         }
-        if (mvv_js_1.recorder.isPausing) {
-            this.enable(this.#top);
-            this.enable(this.#play);
-            this.enable(this.#pause);
-            this.enable(this.#stop);
-            this.enable(this.#record);
-            this.enable(this.#rewind);
-            this.enable(this.#ff);
-            this.enable(this.#position);
+        if (recorder.isPausing) {
+            this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
             return;
         }
-        this.disable(this.#top);
-        this.disable(this.#play);
-        this.disable(this.#pause);
-        this.disable(this.#stop);
-        this.enable(this.#record);
-        this.disable(this.#rewind);
-        this.disable(this.#ff);
-        this.disable(this.#down);
-        this.disable(this.#position);
-        if (mvv_js_1.recorder.isAnythingRecorded) {
-            this.enable(this.#play);
-            this.enable(this.#down);
-            this.enable(this.#position);
+        this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_play, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_pause, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_stop, "f"));
+        this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_down, "f"));
+        this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
+        if (recorder.isAnythingRecorded) {
+            this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_down, "f"));
+            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
         }
-        this.activate(this.#sharp, mvv_js_1.coordinator.isSharpMode);
-        this.activate(this.#flat, !mvv_js_1.coordinator.isSharpMode);
-        this.activate(this.#vlines, mvv_js_1.coordinator.isShowingVlines);
-        this.activate(this.#speedup, mvv_js_1.coordinator.scrollSpeedFactor > 1);
+        this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), coordinator.isSharpMode);
+        this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
+        this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingVlines);
+        this.activate(__classPrivateFieldGet(this, _Controls_speedup, "f"), coordinator.scrollSpeedFactor > 1);
     }
     setCurrentPosition(positionMillis, totalMillis) {
-        if (this.#isPositionDragging) {
+        if (__classPrivateFieldGet(this, _Controls_isPositionDragging, "f")) {
             // Dragging, ignore it.
             return;
         }
@@ -195,17 +207,15 @@ class Controls {
         if (totalMillis > 0) {
             percent = Math.min(100, positionMillis / totalMillis * 100);
         }
-        this.#position.css('left', percent + '%');
+        __classPrivateFieldGet(this, _Controls_position, "f").css('left', percent + '%');
     }
-    #isPositionDragging = false;
-    #wasPlayingBeforeDrag = false;
     positionDragStart(_ev, _ui) {
         console.log("Drag start");
-        this.#isPositionDragging = true;
-        this.#wasPlayingBeforeDrag = false;
-        if (mvv_js_1.recorder.isPlaying) {
-            this.#wasPlayingBeforeDrag = true;
-            mvv_js_1.coordinator.pause();
+        __classPrivateFieldSet(this, _Controls_isPositionDragging, true, "f");
+        __classPrivateFieldSet(this, _Controls_wasPlayingBeforeDrag, false, "f");
+        if (recorder.isPlaying) {
+            __classPrivateFieldSet(this, _Controls_wasPlayingBeforeDrag, true, "f");
+            coordinator.pause();
         }
     }
     positionDrag(_ev, ui) {
@@ -213,27 +223,28 @@ class Controls {
             ui.position.left = 0;
             return;
         }
-        const max = this.#positionOuter.innerWidth();
+        const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
         if (ui.position.left > max) {
             ui.position.left = max;
         }
         const left = ui.position.left;
-        mvv_js_1.coordinator.moveToPercent(left / max);
+        coordinator.moveToPercent(left / max);
     }
     positionDragStop(_ev, ui) {
         console.log("Drag stop: " + ui.position.left);
-        this.#isPositionDragging = false;
-        const max = this.#positionOuter.innerWidth();
+        __classPrivateFieldSet(this, _Controls_isPositionDragging, false, "f");
+        const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
         const left = ui.position.left;
-        mvv_js_1.coordinator.moveToPercent(left / max);
-        if (this.#wasPlayingBeforeDrag) {
-            mvv_js_1.coordinator.startPlayback();
+        coordinator.moveToPercent(left / max);
+        if (__classPrivateFieldGet(this, _Controls_wasPlayingBeforeDrag, "f")) {
+            coordinator.startPlayback();
         }
     }
     directJump(ev) {
-        const max = this.#positionBar.innerWidth();
+        const max = __classPrivateFieldGet(this, _Controls_positionBar, "f").innerWidth();
         console.log("jump to: " + ev.offsetX + " / " + max);
-        mvv_js_1.coordinator.moveToPercent(ev.offsetX / max);
+        coordinator.moveToPercent(ev.offsetX / max);
     }
 }
-exports.controls = new Controls();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_speedup = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
+export const controls = new Controls();
