@@ -246,20 +246,22 @@ canvas#roll2 {
     position: fixed;
     right: 10px;
     top: 24px;
-    height: 14em;
     font-size: 14pt;
     color: var(--main-text-color);
     text-shadow: 1px 1px 2px black;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 6px;
 }
 
 #chords {
     position: fixed;
     right: 10px;
     top: 50px;
-    height: 14em;
     font-size: 14pt;
     color: var(--main-text-color);
     text-shadow: 1px 1px 2px black;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 6px;
 }
 
 .popbox_container {
