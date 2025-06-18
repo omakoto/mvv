@@ -3,7 +3,8 @@
     "@types/dom-screen-wake-lock": "^1.0.3",
     "@types/jqueryui": "^1.12.24",
     "@types/webmidi": "^2.1.0",
-    "live-server": "^1.2.2"
+    "live-server": "^1.2.2",
+    "tonal": "^6.4.2"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.32"

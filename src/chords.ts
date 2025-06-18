@@ -1,4 +1,11 @@
 // Note names
+
+
+// TODO Use import. For that, I need to bundle tonal to the app.
+// import { Chord, Note } from "tonal";
+declare var Tonal: any;
+
+
 //const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
 const NOTE_NAMES_SHARPS = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 const NOTE_NAMES_FLATS = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];

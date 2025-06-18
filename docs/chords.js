@@ -140,3 +140,4 @@ function analyzeChord(notes, sharp) {
     return null; // No matching chord found.
 }
 export { getNoteFullName, analyzeChord };
+console.log(Tonal.Note.midi("C4"));
