@@ -28,9 +28,7 @@ function w(value, callback) {
 }
 // Light weight event handling
 class LiteEvent {
-    constructor() {
-        this.handlers = [];
-    }
+    handlers = [];
     on(handler) {
         this.handlers.push(handler);
     }

@@ -1,19 +1,7 @@
 'use strict';
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box;
 class SaveAsBox {
+    #save_as_box = null;
     constructor() {
-        _SaveAsBox_save_as_box.set(this, null);
         $("#save_as_filename").keydown((ev) => {
             console.log(ev);
             ev.stopPropagation();
@@ -37,18 +25,18 @@ class SaveAsBox {
         }
         let filename = "mvv-" + getCurrentTime();
         $('#save_as_filename').val(filename);
-        __classPrivateFieldSet(this, _SaveAsBox_save_as_box, new Popbox({
+        this.#save_as_box = new Popbox({
             blur: true,
             overlay: true,
-        }), "f");
-        __classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f").open('save_as_box');
+        });
+        this.#save_as_box.open('save_as_box');
         $('#save_as_filename').focus();
     }
     doDownload() {
-        if (!__classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f")) {
+        if (!this.#save_as_box) {
             return; // Shouldn't happen
         }
-        __classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f").clear();
+        this.#save_as_box.clear();
         let filename = $('#save_as_filename').val();
         if (!filename) {
             info("Empty filename");
@@ -59,11 +47,10 @@ class SaveAsBox {
         info("Saved as " + filename);
     }
 }
-_SaveAsBox_save_as_box = new WeakMap();
 var saveAsBox = new SaveAsBox();
 class ConfirmBox {
+    #confirm_box = null;
     constructor() {
-        _ConfirmBox_confirm_box.set(this, null);
         $("#confirm_box").on('popbox_closing', (_ev) => {
             $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
         });
@@ -80,13 +67,12 @@ class ConfirmBox {
             console.log("canceled");
             ev.preventDefault();
         });
-        __classPrivateFieldSet(this, _ConfirmBox_confirm_box, new Popbox({
+        this.#confirm_box = new Popbox({
             blur: true,
             overlay: true,
-        }), "f");
-        __classPrivateFieldGet(this, _ConfirmBox_confirm_box, "f").open('confirm_box');
+        });
+        this.#confirm_box.open('confirm_box');
         $('#confirm_box').focus();
     }
 }
-_ConfirmBox_confirm_box = new WeakMap();
 var confirmBox = new ConfirmBox();
