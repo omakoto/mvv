@@ -1,5 +1,12 @@
 'use strict';
 
+import { info, debug, DEBUG } from './util.js';
+import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
+import { controls } from './controls.js';
+import { saveAsBox, confirmBox } from './dialogs.js';
+import { getNoteFullName, analyzeChord } from './chords.js';
+
+
 // 2D game with canvas example: https://github.com/end3r/Gamedev-Canvas-workshop/blob/gh-pages/lesson10.html
 // Get screen size: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
 // and window.screen.{width,height{
@@ -77,15 +84,6 @@ function rgbToStr(rgb: [number, number, number]): string {
         return "black";
     }
     return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
-}
-
-// Return the current time in "yyyy-mm-dd-hh-mm-ss.mmm" format, which is used for
-// midi filenames.
-function getCurrentTime(): string {
-    const nowUtc = new Date();
-    const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
-    let ret = nowLocal.toISOString();
-    return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
 
 // Logic
@@ -349,7 +347,7 @@ class Renderer {
     }
 }
 
-const renderer = new Renderer();
+export const renderer = new Renderer();
 
 class MidiRenderingStatus {
     #tick = 0;
@@ -452,7 +450,7 @@ class MidiRenderingStatus {
     }
 }
 
-const midiRenderingStatus = new MidiRenderingStatus();
+export const midiRenderingStatus = new MidiRenderingStatus();
 
 class MidiOutputManager {
     #device: WebMidi.MIDIOutput | null = null;
@@ -488,7 +486,7 @@ class MidiOutputManager {
     }
 }
 
-const midiOutputManager = new MidiOutputManager();
+export const midiOutputManager = new MidiOutputManager();
 
 enum RecorderState {
     Idle,
@@ -837,7 +835,8 @@ class Recorder {
     }
 }
 
-const recorder = new Recorder();
+// ADDED: Export instance
+export const recorder = new Recorder();
 
 class Coordinator {
     #now = 0;
@@ -1384,7 +1383,7 @@ class Coordinator {
     }
 }
 
-const coordinator = new Coordinator();
+export const coordinator = new Coordinator();
 
 function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
     console.log("onMIDISuccess");

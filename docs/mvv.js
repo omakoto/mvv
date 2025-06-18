@@ -1,4 +1,11 @@
 'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.coordinator = exports.recorder = exports.midiOutputManager = exports.midiRenderingStatus = exports.renderer = void 0;
+const util_js_1 = require("./util.js");
+const smf_js_1 = require("./smf.js");
+const controls_js_1 = require("./controls.js");
+const dialogs_js_1 = require("./dialogs.js");
+const chords_js_1 = require("./chords.js");
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
@@ -65,14 +72,6 @@ function rgbToStr(rgb) {
         return "black";
     }
     return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
-}
-// Return the current time in "yyyy-mm-dd-hh-mm-ss.mmm" format, which is used for
-// midi filenames.
-function getCurrentTime() {
-    const nowUtc = new Date();
-    const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
-    let ret = nowLocal.toISOString();
-    return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
 // Logic
 class Renderer {
@@ -209,11 +208,11 @@ class Renderer {
         }
     }
     onDraw() {
-        const scrollAmount = this.#ROLL_SCROLL_AMOUNT * coordinator.scrollSpeedFactor;
+        const scrollAmount = this.#ROLL_SCROLL_AMOUNT * exports.coordinator.scrollSpeedFactor;
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, scrollAmount);
-        const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
-        const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
+        const sustainColor = this.getPedalColor(exports.midiRenderingStatus.pedal);
+        const sostenutoColor = this.getSostenutoPedalColor(exports.midiRenderingStatus.sostenuto);
         const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
         this.#roll.fillStyle = rgbToStr(pedalColor);
         this.#roll.fillRect(0, 0, this.#W, scrollAmount);
@@ -223,7 +222,7 @@ class Renderer {
         // Individual bar width
         let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
         // "Off" line
-        if (midiRenderingStatus.offNoteCount > 0) {
+        if (exports.midiRenderingStatus.offNoteCount > 0) {
             // We don't highlight off lines. Always same color.
             // However, if we draw two off lines in a raw, it'll look brighter,
             // so avoid doing so.
@@ -237,8 +236,8 @@ class Renderer {
             this.#drewOffLine = false;
         }
         // "On" line
-        if (midiRenderingStatus.onNoteCount > 0) {
-            this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
+        if (exports.midiRenderingStatus.onNoteCount > 0) {
+            this.#roll.fillStyle = rgbToStr(this.getOnColor(exports.midiRenderingStatus.onNoteCount));
             this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
         }
         // Sub lines.
@@ -246,7 +245,7 @@ class Renderer {
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
         for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
-            let note = midiRenderingStatus.getNote(i);
+            let note = exports.midiRenderingStatus.getNote(i);
             if (!note[0]) {
                 continue;
             }
@@ -261,7 +260,7 @@ class Renderer {
             this.#roll.fillStyle = colorStr;
             this.#roll.fillRect(bl, 0, bw, scrollAmount);
         }
-        if (coordinator.isShowingVlines) {
+        if (exports.coordinator.isShowingVlines) {
             // Draw octave lines.
             this.drawOctaveLines();
         }
@@ -291,7 +290,7 @@ class Renderer {
         return $('#canvases').css('display') === 'none';
     }
 }
-const renderer = new Renderer();
+exports.renderer = new Renderer();
 class MidiRenderingStatus {
     #tick = 0;
     #notes = []; // note on/off, velocity, last on-tick
@@ -385,7 +384,7 @@ class MidiRenderingStatus {
         return pressed;
     }
 }
-const midiRenderingStatus = new MidiRenderingStatus();
+exports.midiRenderingStatus = new MidiRenderingStatus();
 class MidiOutputManager {
     #device = null;
     constructor() {
@@ -393,7 +392,7 @@ class MidiOutputManager {
     setMidiOut(device) {
         console.log("MIDI output dev: WebMidi.MIDIOutput set:", device);
         this.#device = device;
-        midiOutputManager.reset();
+        exports.midiOutputManager.reset();
     }
     reset() {
         if (!this.#device) {
@@ -416,7 +415,7 @@ class MidiOutputManager {
         this.#device.send(data, timeStamp);
     }
 }
-const midiOutputManager = new MidiOutputManager();
+exports.midiOutputManager = new MidiOutputManager();
 var RecorderState;
 (function (RecorderState) {
     RecorderState[RecorderState["Idle"] = 0] = "Idle";
@@ -456,7 +455,7 @@ class Recorder {
             return false;
         }
         if (!this.isAnythingRecorded) {
-            info("Nothing recorded yet");
+            (0, util_js_1.info)("Nothing recorded yet");
             return false;
         }
         this.#startPlaying();
@@ -475,7 +474,7 @@ class Recorder {
         }
         this.#pauseStartTimestamp = performance.now();
         this.#state = RecorderState.Pausing;
-        coordinator.onRecorderStatusChanged();
+        exports.coordinator.onRecorderStatusChanged();
         return true;
     }
     unpause() {
@@ -486,7 +485,7 @@ class Recorder {
         const pausedDuration = this.#getPausingDuration();
         this.#playbackStartTimestamp += pausedDuration;
         this.#state = RecorderState.Playing;
-        coordinator.onRecorderStatusChanged();
+        exports.coordinator.onRecorderStatusChanged();
         return true;
     }
     get isDirty() {
@@ -517,33 +516,33 @@ class Recorder {
         return this.#lastEventTimestamp;
     }
     #startRecording() {
-        info("Recording started");
+        (0, util_js_1.info)("Recording started");
         this.#state = RecorderState.Recording;
         this.#events = [];
         this.#isDirty = true;
-        coordinator.onRecorderStatusChanged();
+        exports.coordinator.onRecorderStatusChanged();
     }
     #stopRecording() {
-        info("Recording stopped (" + this.#events.length + " events recorded)");
+        (0, util_js_1.info)("Recording stopped (" + this.#events.length + " events recorded)");
         this.#state = RecorderState.Idle;
-        coordinator.onRecorderStatusChanged();
+        exports.coordinator.onRecorderStatusChanged();
     }
     #startPlaying() {
-        info("Playback started");
+        (0, util_js_1.info)("Playback started");
         this.#state = RecorderState.Playing;
         this.#playbackStartTimestamp = performance.now();
         // Do not reset playbackTimeAdjustment. It contains the start offset.
         // Find the next event from the current position
         this.#nextPlaybackIndex = 0;
         this.#moveUpToTimestamp(this.currentPlaybackTimestamp, null);
-        coordinator.onRecorderStatusChanged();
+        exports.coordinator.onRecorderStatusChanged();
     }
     #stopPlaying() {
-        info("Playback stopped");
+        (0, util_js_1.info)("Playback stopped");
         this.#state = RecorderState.Idle;
         this.#playbackTimeAdjustment = 0; // Reset position to start.
-        coordinator.onRecorderStatusChanged();
-        coordinator.resetMidi();
+        exports.coordinator.onRecorderStatusChanged();
+        exports.coordinator.resetMidi();
     }
     recordEvent(ev) {
         if (!this.isRecording) {
@@ -596,8 +595,8 @@ class Recorder {
         // Update the internal timekeeping to reflect the jump.
         this.#playbackTimeAdjustment += (newTimestamp - oldTimestamp);
         // 1. Reset MIDI devices. This clears any hanging notes or stale controller states.
-        midiOutputManager.reset();
-        midiRenderingStatus.reset();
+        exports.midiOutputManager.reset();
+        exports.midiRenderingStatus.reset();
         // 2. Calculate the definitive state of all controllers at the new timestamp.
         // To do this, we iterate from the beginning of the recording and store the
         // last seen value for each controller number.
@@ -612,9 +611,9 @@ class Recorder {
         }
         // 3. Apply the final controller states by sending MIDI CC messages.
         controllerState.forEach((value, controller) => {
-            const ccEvent = new MidiEvent(newTimestamp, [176, controller, value]);
-            midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
-            midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
+            const ccEvent = new smf_js_1.MidiEvent(newTimestamp, [176, controller, value]);
+            exports.midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
+            exports.midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
         });
         // 4. Find the correct next event to play from the new position.
         // We use a null callback because we have already handled the controller state.
@@ -643,16 +642,16 @@ class Recorder {
         }
         // Current timestamp
         let ts = this.#getCurrentPlaybackTimestamp();
-        if (DEBUG) {
-            debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
+        if (util_js_1.DEBUG) {
+            (0, util_js_1.debug)(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
         return this.#moveUpToTimestamp(ts, (ev) => {
-            if (DEBUG) {
-                debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
+            if (util_js_1.DEBUG) {
+                (0, util_js_1.debug)("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
                     " index=" + (this.#nextPlaybackIndex - 1), ev);
             }
-            midiRenderingStatus.onMidiMessage(ev);
-            midiOutputManager.sendEvent(ev.getDataAsArray(), 0);
+            exports.midiRenderingStatus.onMidiMessage(ev);
+            exports.midiOutputManager.sendEvent(ev.getDataAsArray(), 0);
         });
     }
     #moveUpToTimestamp(timeStamp, callback) {
@@ -674,14 +673,14 @@ class Recorder {
     }
     download(filename) {
         if (!this.isAnythingRecorded) {
-            info("Nothing recorded yet");
+            (0, util_js_1.info)("Nothing recorded yet");
             return;
         }
         console.log("Converting to the SMF format...");
-        let wr = new SmfWriter();
+        let wr = new smf_js_1.SmfWriter();
         let lastTimestamp = this.#events[0].timeStamp;
         this.#events.forEach((ev) => {
-            debug(ev.timeStamp, ev.getDataAsArray());
+            (0, util_js_1.debug)(ev.timeStamp, ev.getDataAsArray());
             let delta = ev.timeStamp - lastTimestamp;
             wr.writeMessage(delta, ev.getDataAsArray());
             lastTimestamp = ev.timeStamp;
@@ -695,17 +694,18 @@ class Recorder {
         this.#events = events;
         this.#isDirty = false;
         if (events.length === 0) {
-            info("File contains no events.");
+            (0, util_js_1.info)("File contains no events.");
             this.#lastEventTimestamp = 0;
             return;
         }
         const lastEvent = events[events.length - 1];
         this.#lastEventTimestamp = lastEvent.timeStamp;
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
-        info(message);
+        (0, util_js_1.info)(message);
     }
 }
-const recorder = new Recorder();
+// ADDED: Export instance
+exports.recorder = new Recorder();
 class Coordinator {
     #now = 0;
     #nextSecond = 0;
@@ -741,7 +741,7 @@ class Coordinator {
         this.#scrollSpeedFactor = storedSpeed ? parseFloat(storedSpeed) : 1.0;
     }
     onKeyDown(ev) {
-        debug("onKeyDown", ev.timeStamp, ev.code, ev);
+        (0, util_js_1.debug)("onKeyDown", ev.timeStamp, ev.code, ev);
         // Always allow '?' and 'Escape' to control the help screen.
         if (ev.key === '?') { // '?' key
             if (ev.repeat)
@@ -841,8 +841,8 @@ class Coordinator {
                 this.#onRewindPressed(isRepeat);
                 break;
             case 'ArrowRight':
-                if (!recorder.isRecording) {
-                    recorder.adjustPlaybackPosition(1000);
+                if (!exports.recorder.isRecording) {
+                    exports.recorder.adjustPlaybackPosition(1000);
                 }
                 break;
             default:
@@ -854,7 +854,7 @@ class Coordinator {
         return this.#useSharp;
     }
     setSharpMode(useSharp) {
-        info("Mode changed to " + (useSharp ? "sharp" : "flat"));
+        (0, util_js_1.info)("Mode changed to " + (useSharp ? "sharp" : "flat"));
         this.#useSharp = useSharp;
         localStorage.setItem(Coordinator.#STORAGE_KEY_USE_SHARP, String(useSharp));
     }
@@ -887,20 +887,20 @@ class Coordinator {
         }
     }
     toggleVideoMute() {
-        info("Toggle video mute");
-        renderer.toggleMute();
+        (0, util_js_1.info)("Toggle video mute");
+        exports.renderer.toggleMute();
         this.updateUi();
     }
     toggleRollFrozen() {
-        renderer.toggleRollFrozen();
-        if (renderer.isRollFrozen) {
-            info("Roll frozen");
+        exports.renderer.toggleRollFrozen();
+        if (exports.renderer.isRollFrozen) {
+            (0, util_js_1.info)("Roll frozen");
         }
         this.updateUi();
     }
     toggleRecording() {
-        if (recorder.isRecording) {
-            recorder.stopRecording();
+        if (exports.recorder.isRecording) {
+            exports.recorder.stopRecording();
         }
         else {
             this.startRecording();
@@ -908,66 +908,66 @@ class Coordinator {
         this.updateUi();
     }
     startRecording() {
-        if (!recorder.isRecording) {
-            this.withOverwriteConfirm(() => recorder.startRecording());
+        if (!exports.recorder.isRecording) {
+            this.withOverwriteConfirm(() => exports.recorder.startRecording());
         }
         this.updateUi();
     }
     togglePlayback() {
-        if (recorder.isPausing) {
-            recorder.unpause();
+        if (exports.recorder.isPausing) {
+            exports.recorder.unpause();
         }
-        else if (recorder.isPlaying) {
-            recorder.pause();
+        else if (exports.recorder.isPlaying) {
+            exports.recorder.pause();
         }
-        else if (recorder.isIdle) {
+        else if (exports.recorder.isIdle) {
             this.startPlayback();
         }
         this.updateUi();
     }
     startPlayback() {
-        renderer.show();
-        if (recorder.isIdle) {
-            recorder.startPlaying();
+        exports.renderer.show();
+        if (exports.recorder.isIdle) {
+            exports.recorder.startPlaying();
         }
-        else if (recorder.isPausing) {
-            recorder.unpause();
+        else if (exports.recorder.isPausing) {
+            exports.recorder.unpause();
         }
         this.updateUi();
     }
     pause() {
-        if (recorder.isPlaying) {
-            recorder.pause();
+        if (exports.recorder.isPlaying) {
+            exports.recorder.pause();
         }
-        else if (recorder.isPausing) {
-            recorder.unpause();
+        else if (exports.recorder.isPausing) {
+            exports.recorder.unpause();
         }
         this.updateUi();
     }
     stop() {
-        if (recorder.isRecording) {
-            recorder.stopRecording();
+        if (exports.recorder.isRecording) {
+            exports.recorder.stopRecording();
         }
-        else if (recorder.isPlaying || recorder.isPausing) {
-            recorder.stopPlaying();
+        else if (exports.recorder.isPlaying || exports.recorder.isPausing) {
+            exports.recorder.stopPlaying();
         }
         this.updateUi();
     }
     moveToStart() {
-        if (recorder.isRecording) {
+        if (exports.recorder.isRecording) {
             return;
         }
-        recorder.moveToStart();
+        exports.recorder.moveToStart();
         this.updateUi();
     }
     moveToPercent(percent) {
-        if (recorder.isRecording) {
+        if (exports.recorder.isRecording) {
             return;
         }
         // Allow scrubbing from idle, paused, or playing states.
-        const newTime = recorder.lastEventTimestamp * percent;
-        const delta = newTime - recorder.currentPlaybackTimestamp;
-        recorder.adjustPlaybackPosition(delta);
+        const newTime = exports.recorder.lastEventTimestamp * percent;
+        const delta = newTime - exports.recorder.currentPlaybackTimestamp;
+        exports.recorder.adjustPlaybackPosition(delta);
         this.updateUi();
     }
     toggleFullScreen() {
@@ -983,12 +983,12 @@ class Coordinator {
     }
     updateUi() {
         this.#updateTimestamp();
-        controls.update();
+        controls_js_1.controls.update();
     }
     #ignoreRepeatedRewindKey = false;
     #lastRewindPressTime = 0;
     #onRewindPressed(isRepeat) {
-        if (recorder.isRecording) {
+        if (exports.recorder.isRecording) {
             return;
         }
         // If non-repeat left is pressed twice within a timeout, move to start.
@@ -1006,7 +1006,7 @@ class Coordinator {
         if (!isRepeat) {
             this.#ignoreRepeatedRewindKey = false;
         }
-        if (!recorder.adjustPlaybackPosition(-1000)) {
+        if (!exports.recorder.adjustPlaybackPosition(-1000)) {
             this.#ignoreRepeatedRewindKey = true;
         }
         this.updateUi();
@@ -1023,31 +1023,31 @@ class Coordinator {
         }
     }
     onMidiMessage(ev) {
-        debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
+        (0, util_js_1.debug)("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
         this.extendWakelock();
         this.#normalizeMidiEvent(ev);
-        midiRenderingStatus.onMidiMessage(ev);
-        if (recorder.isRecording) {
-            recorder.recordEvent(ev);
+        exports.midiRenderingStatus.onMidiMessage(ev);
+        if (exports.recorder.isRecording) {
+            exports.recorder.recordEvent(ev);
         }
         if (ev.status === 144 || ev.status === 128) {
             this.updateNoteInformation();
         }
     }
     reset() {
-        recorder.stopPlaying();
-        recorder.stopRecording();
+        exports.recorder.stopPlaying();
+        exports.recorder.stopRecording();
         this.updateUi();
         this.resetMidi();
     }
     resetMidi() {
-        midiRenderingStatus.reset();
-        midiOutputManager.reset();
+        exports.midiRenderingStatus.reset();
+        exports.midiOutputManager.reset();
     }
     #getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = -1;
     #getHumanReadableCurrentPlaybackTimestamp_lastResult = "";
     getHumanReadableCurrentPlaybackTimestamp() {
-        const totalSeconds = int(recorder.currentPlaybackTimestamp / 1000);
+        const totalSeconds = int(exports.recorder.currentPlaybackTimestamp / 1000);
         if (totalSeconds === this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds) {
             return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
         }
@@ -1078,13 +1078,13 @@ class Coordinator {
             }
         }
         this.#now = now;
-        renderer.onDraw();
-        midiRenderingStatus.afterDraw(this.#now);
+        exports.renderer.onDraw();
+        exports.midiRenderingStatus.afterDraw(this.#now);
     }
     updateNoteInformation() {
-        const pressedNotes = midiRenderingStatus.getPressedNotes();
-        const noteNames = pressedNotes.map((note) => getNoteFullName(note, this.#useSharp)).join(' ');
-        const chordName = analyzeChord(pressedNotes, this.#useSharp);
+        const pressedNotes = exports.midiRenderingStatus.getPressedNotes();
+        const noteNames = pressedNotes.map((note) => (0, chords_js_1.getNoteFullName)(note, this.#useSharp)).join(' ');
+        const chordName = (0, chords_js_1.analyzeChord)(pressedNotes, this.#useSharp);
         if (noteNames.length > 0) {
             this.#notes.text(noteNames);
             this.#notes.stop(true, true).show();
@@ -1120,7 +1120,7 @@ class Coordinator {
             // This also updates the #frames count for the FPS counter.
             this.onDraw();
             // Copy the off-screen canvas to the visible one.
-            renderer.flip();
+            exports.renderer.flip();
             // Request the next frame.
             this.#animationFrameId = requestAnimationFrame(loop);
         };
@@ -1138,42 +1138,42 @@ class Coordinator {
     }
     onPlaybackTimer() {
         this.#playbackTicks++;
-        if (recorder.isPlaying) {
-            recorder.playbackUpToNow();
+        if (exports.recorder.isPlaying) {
+            exports.recorder.playbackUpToNow();
         }
         this.#updateTimestamp();
     }
     #updateTimestamp() {
-        if (recorder.isPlaying || recorder.isPausing || (recorder.isIdle && recorder.isAnythingRecorded)) {
+        if (exports.recorder.isPlaying || exports.recorder.isPausing || (exports.recorder.isIdle && exports.recorder.isAnythingRecorded)) {
             // Update the time indicator
             const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
             if (timeStamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
                 this.#timestamp.text(timeStamp);
                 this.#onPlaybackTimer_lastShownPlaybackTimestamp = timeStamp;
             }
-            controls.setCurrentPosition(recorder.currentPlaybackTimestamp, recorder.lastEventTimestamp);
+            controls_js_1.controls.setCurrentPosition(exports.recorder.currentPlaybackTimestamp, exports.recorder.lastEventTimestamp);
         }
-        else if (recorder.isRecording) {
+        else if (exports.recorder.isRecording) {
             this.#timestamp.text("-");
-            controls.setCurrentPosition(0, 0);
+            controls_js_1.controls.setCurrentPosition(0, 0);
         }
         else {
             this.#timestamp.text("0:00");
-            controls.setCurrentPosition(0, 0);
+            controls_js_1.controls.setCurrentPosition(0, 0);
         }
     }
     #onPlaybackTimer_lastShownPlaybackTimestamp = "";
     downloadRequested() {
-        saveAsBox.open();
+        dialogs_js_1.saveAsBox.open();
     }
     uploadRequested() {
-        coordinator.withOverwriteConfirm(() => {
+        exports.coordinator.withOverwriteConfirm(() => {
             $('#open_file').trigger('click');
         });
     }
     withOverwriteConfirm(callback) {
-        if (recorder.isDirty) {
-            confirmBox.show("Discard recording?", () => callback());
+        if (exports.recorder.isDirty) {
+            dialogs_js_1.confirmBox.show("Discard recording?", () => callback());
         }
         else {
             callback();
@@ -1209,23 +1209,23 @@ class Coordinator {
     }
     close() {
         this.stopAnimationLoop();
-        recorder.stopPlaying();
+        exports.recorder.stopPlaying();
         this.resetMidi();
     }
 }
-const coordinator = new Coordinator();
+exports.coordinator = new Coordinator();
 function onMIDISuccess(midiAccess) {
     console.log("onMIDISuccess");
     for (let input of midiAccess.inputs.values()) {
         console.log("Input: ", input);
         input.onmidimessage = (ev) => {
-            coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
+            exports.coordinator.onMidiMessage(smf_js_1.MidiEvent.fromNativeEvent(ev));
         };
     }
     for (let output of midiAccess.outputs.values()) {
         console.log("Output: ", output);
         if (!/midi through/i.test(output.name ?? "")) {
-            midiOutputManager.setMidiOut(output);
+            exports.midiOutputManager.setMidiOut(output);
         }
     }
 }
@@ -1249,19 +1249,19 @@ else {
     alert("Your browser doesn't support WebMIDI. (Try Chrome instead.)");
 }
 const ebody = $('body');
-$(window).on('keydown', (ev) => coordinator.onKeyDown(ev.originalEvent));
+$(window).on('keydown', (ev) => exports.coordinator.onKeyDown(ev.originalEvent));
 $("body").on("dragover", function (ev) {
     ev.preventDefault();
 });
 function loadMidiFile(file) {
-    info("loading from: " + file.name);
-    coordinator.reset();
-    loadMidi(file).then((events) => {
-        debug("File loaded", events);
-        recorder.setEvents(events);
-        coordinator.updateUi();
+    (0, util_js_1.info)("loading from: " + file.name);
+    exports.coordinator.reset();
+    (0, smf_js_1.loadMidi)(file).then((events) => {
+        (0, util_js_1.debug)("File loaded", events);
+        exports.recorder.setEvents(events);
+        exports.coordinator.updateUi();
     }).catch((error) => {
-        info("Failed loading from " + file.name + ": " + error);
+        (0, util_js_1.info)("Failed loading from " + file.name + ": " + error);
         console.log(error);
     });
 }
@@ -1274,13 +1274,13 @@ $("body").on("mousemove", function (_ev) {
     clearCursorTimeout = setTimeout(() => {
         ebody.css('cursor', 'none');
     }, 3000);
-    coordinator.extendWakelock();
+    exports.coordinator.extendWakelock();
 });
 $("body").on("drop", function (ev) {
     ev.preventDefault();
     let oev = ev.originalEvent;
     console.log("File dropped", oev.dataTransfer.files[0], oev.dataTransfer);
-    coordinator.withOverwriteConfirm(() => {
+    exports.coordinator.withOverwriteConfirm(() => {
         loadMidiFile(oev.dataTransfer.files[0]);
     });
 });
@@ -1293,17 +1293,17 @@ $("#open_file").on("change", (ev) => {
     loadMidiFile(file);
 });
 $('#fullscreen').on('click', (_ev) => {
-    coordinator.toggleFullScreen();
+    exports.coordinator.toggleFullScreen();
 });
 $('#source').on('click', (_ev) => {
     window.open("https://github.com/omakoto/mvv", "source");
 });
 $('#help_close, #help_overlay').on('click', (_ev) => {
-    coordinator.toggleHelpScreen();
+    exports.coordinator.toggleHelpScreen();
 });
 $(document).on('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-        coordinator.extendWakelock();
+        exports.coordinator.extendWakelock();
     }
 });
 // By recording the timestamp of the last touch event, we can differentiate
@@ -1345,8 +1345,8 @@ $(window).on('load', () => {
     }
 });
 $(window).on('unload', () => {
-    coordinator.close();
+    exports.coordinator.close();
 });
 // Start the new vsync-based animation loop.
-coordinator.startAnimationLoop();
-coordinator.updateUi();
+exports.coordinator.startAnimationLoop();
+exports.coordinator.updateUi();

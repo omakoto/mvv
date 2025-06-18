@@ -1,8 +1,13 @@
 'use strict';
 
+import { recorder } from './mvv.js';
+import { info } from './util.js';
+import { getCurrentTime } from './util.js';
+
+declare var Popbox: any;
 
 class SaveAsBox {
-    #save_as_box: Popbox | null = null;
+    #save_as_box: any | null = null; // Changed Popbox to any to avoid declaration issues
 
     constructor() {
         $("#save_as_filename").keydown((ev) => {
@@ -56,10 +61,10 @@ class SaveAsBox {
     }
 }
 
-var saveAsBox = new SaveAsBox();
+export var saveAsBox = new SaveAsBox();
 
 class ConfirmBox {
-    #confirm_box: Popbox | null = null;
+    #confirm_box: any | null = null; // Changed Popbox to any
 
     constructor() {
         $("#confirm_box").on('popbox_closing', (_ev) => {
@@ -69,13 +74,15 @@ class ConfirmBox {
 
     show(text: string, okayCallback: ()=> void): void {
         $('#confirm_text').text(text);
-        $("#confirm_ok").on('click', (ev) => {
+        $("#confirm_ok").off('click').on('click', (ev) => { // Use .off('click') to prevent multiple bindings
             console.log("ok");
+            this.#confirm_box!.clear(); // Close the box
             ev.preventDefault();
             if (okayCallback) okayCallback();
         });
-        $("#confirm_cancel").on('click', (ev) => {
+        $("#confirm_cancel").off('click').on('click', (ev) => {
             console.log("canceled");
+            this.#confirm_box!.clear(); // Close the box
             ev.preventDefault();
         });
 
@@ -88,4 +95,4 @@ class ConfirmBox {
     }
 }
 
-var confirmBox = new ConfirmBox();
+export var confirmBox = new ConfirmBox();

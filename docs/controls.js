@@ -1,4 +1,7 @@
 'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.controls = void 0;
+const mvv_js_1 = require("./mvv.js");
 class Controls {
     #top;
     #rewind;
@@ -38,60 +41,60 @@ class Controls {
         this.#vlines = $("#vlines");
         this.#speedup = $("#speedup");
         this.#top.on('click', (ev) => {
-            coordinator.moveToStart();
+            mvv_js_1.coordinator.moveToStart();
             ev.stopPropagation();
         });
         this.#play.on('click', (ev) => {
-            coordinator.togglePlayback();
+            mvv_js_1.coordinator.togglePlayback();
             ev.stopPropagation();
         });
         this.#pause.on('click', (ev) => {
-            coordinator.pause();
+            mvv_js_1.coordinator.pause();
             ev.stopPropagation();
         });
         this.#stop.on('click', (ev) => {
-            coordinator.stop();
+            mvv_js_1.coordinator.stop();
             ev.stopPropagation();
         });
         this.#record.on('click', (ev) => {
-            coordinator.startRecording();
+            mvv_js_1.coordinator.startRecording();
             ev.stopPropagation();
         });
         this.#up.on('click', (ev) => {
-            coordinator.uploadRequested();
+            mvv_js_1.coordinator.uploadRequested();
             ev.stopPropagation();
         });
         this.#down.on('click', (ev) => {
-            coordinator.downloadRequested();
+            mvv_js_1.coordinator.downloadRequested();
             ev.stopPropagation();
         });
         this.#freeze.on('click', (ev) => {
-            coordinator.toggleRollFrozen();
+            mvv_js_1.coordinator.toggleRollFrozen();
             this.update();
             ev.stopPropagation();
         });
         this.#videoMute.on('click', (ev) => {
-            coordinator.toggleVideoMute();
+            mvv_js_1.coordinator.toggleVideoMute();
             this.update();
             ev.stopPropagation();
         });
         this.#sharp.on('click', (ev) => {
-            coordinator.setSharpMode(true);
+            mvv_js_1.coordinator.setSharpMode(true);
             this.update();
             ev.stopPropagation();
         });
         this.#flat.on('click', (ev) => {
-            coordinator.setSharpMode(false);
+            mvv_js_1.coordinator.setSharpMode(false);
             this.update();
             ev.stopPropagation();
         });
         this.#vlines.on('click', (ev) => {
-            coordinator.setShowingVlines(!coordinator.isShowingVlines);
+            mvv_js_1.coordinator.setShowingVlines(!mvv_js_1.coordinator.isShowingVlines);
             this.update();
             ev.stopPropagation();
         });
         this.#speedup.on('click', (ev) => {
-            coordinator.toggleScrollSpeedFactor();
+            mvv_js_1.coordinator.toggleScrollSpeedFactor();
             this.update();
             ev.stopPropagation();
         });
@@ -129,9 +132,9 @@ class Controls {
         control.addClass('button-activated-unclickable');
     }
     update() {
-        this.activate(this.#freeze, renderer.isRollFrozen);
-        this.activate(this.#videoMute, renderer.isVideoMuted);
-        if (recorder.isRecording) {
+        this.activate(this.#freeze, mvv_js_1.renderer.isRollFrozen);
+        this.activate(this.#videoMute, mvv_js_1.renderer.isVideoMuted);
+        if (mvv_js_1.recorder.isRecording) {
             this.disable(this.#top);
             this.disable(this.#play);
             this.disable(this.#pause);
@@ -142,7 +145,7 @@ class Controls {
             this.disable(this.#position);
             return;
         }
-        if (recorder.isPlaying) {
+        if (mvv_js_1.recorder.isPlaying) {
             this.enable(this.#top);
             this.activateUnclickable(this.#play);
             this.enable(this.#pause);
@@ -153,7 +156,7 @@ class Controls {
             this.enable(this.#position);
             return;
         }
-        if (recorder.isPausing) {
+        if (mvv_js_1.recorder.isPausing) {
             this.enable(this.#top);
             this.enable(this.#play);
             this.enable(this.#pause);
@@ -173,15 +176,15 @@ class Controls {
         this.disable(this.#ff);
         this.disable(this.#down);
         this.disable(this.#position);
-        if (recorder.isAnythingRecorded) {
+        if (mvv_js_1.recorder.isAnythingRecorded) {
             this.enable(this.#play);
             this.enable(this.#down);
             this.enable(this.#position);
         }
-        this.activate(this.#sharp, coordinator.isSharpMode);
-        this.activate(this.#flat, !coordinator.isSharpMode);
-        this.activate(this.#vlines, coordinator.isShowingVlines);
-        this.activate(this.#speedup, coordinator.scrollSpeedFactor > 1);
+        this.activate(this.#sharp, mvv_js_1.coordinator.isSharpMode);
+        this.activate(this.#flat, !mvv_js_1.coordinator.isSharpMode);
+        this.activate(this.#vlines, mvv_js_1.coordinator.isShowingVlines);
+        this.activate(this.#speedup, mvv_js_1.coordinator.scrollSpeedFactor > 1);
     }
     setCurrentPosition(positionMillis, totalMillis) {
         if (this.#isPositionDragging) {
@@ -200,9 +203,9 @@ class Controls {
         console.log("Drag start");
         this.#isPositionDragging = true;
         this.#wasPlayingBeforeDrag = false;
-        if (recorder.isPlaying) {
+        if (mvv_js_1.recorder.isPlaying) {
             this.#wasPlayingBeforeDrag = true;
-            coordinator.pause();
+            mvv_js_1.coordinator.pause();
         }
     }
     positionDrag(_ev, ui) {
@@ -215,22 +218,22 @@ class Controls {
             ui.position.left = max;
         }
         const left = ui.position.left;
-        coordinator.moveToPercent(left / max);
+        mvv_js_1.coordinator.moveToPercent(left / max);
     }
     positionDragStop(_ev, ui) {
         console.log("Drag stop: " + ui.position.left);
         this.#isPositionDragging = false;
         const max = this.#positionOuter.innerWidth();
         const left = ui.position.left;
-        coordinator.moveToPercent(left / max);
+        mvv_js_1.coordinator.moveToPercent(left / max);
         if (this.#wasPlayingBeforeDrag) {
-            coordinator.startPlayback();
+            mvv_js_1.coordinator.startPlayback();
         }
     }
     directJump(ev) {
         const max = this.#positionBar.innerWidth();
         console.log("jump to: " + ev.offsetX + " / " + max);
-        coordinator.moveToPercent(ev.offsetX / max);
+        mvv_js_1.coordinator.moveToPercent(ev.offsetX / max);
     }
 }
-const controls = new Controls();
+exports.controls = new Controls();

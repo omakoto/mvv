@@ -1,5 +1,7 @@
 'use strict';
 
+import { coordinator, renderer, recorder } from './mvv.js';
+
 class Controls {
     #top;
     #rewind;
@@ -266,4 +268,4 @@ class Controls {
     }
 }
 
-const controls = new Controls();
+export const controls = new Controls();

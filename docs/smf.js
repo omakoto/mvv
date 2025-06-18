@@ -1,4 +1,7 @@
 'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SmfWriter = exports.MidiEvent = void 0;
+exports.loadMidi = loadMidi;
 // SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
 // https://www.music.mcgill.ca/~gary/306/week9/smf.html
 // https://midimusic.github.io/tech/midispec.html
@@ -74,6 +77,7 @@ class MidiEvent {
         return this.#data;
     }
 }
+exports.MidiEvent = MidiEvent;
 const TICKS_PER_SECOND = 1000;
 class BytesWriter {
     #cap = 2; // 1024 * 32;
@@ -519,6 +523,7 @@ class SmfWriter {
         }
     }
 }
+exports.SmfWriter = SmfWriter;
 function downloadMidi(blob, filename) {
     if (!filename) {
         filename = "unnamed.mid";

@@ -14,7 +14,7 @@ function logBlob(blob: Blob) {
     return blob;
 }
 
-class MidiEvent {
+export class MidiEvent {
     #timeStamp: number;
     #data: Array<number> | Uint8Array;
     #device: string;
@@ -513,7 +513,7 @@ class SmfReader {
     }
 }
 
-class SmfWriter {
+export class SmfWriter {
     #writer = new BytesWriter();
 
     #trackLengthPos: number = 0;
@@ -649,7 +649,7 @@ function downloadMidi(blob: Blob, filename?: string | null) {
 }
 
 // Returns a promise
-function loadMidi(file: Blob): Promise<Array<MidiEvent>> {
+export function loadMidi(file: Blob): Promise<Array<MidiEvent>> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function (_event: ProgressEvent<FileReader>) {

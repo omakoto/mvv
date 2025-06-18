@@ -61,3 +61,14 @@ class LiteEvent<T> implements ILiteEvent<T> {
         return this;
     }
 }
+
+// Return the current time in "yyyy-mm-dd-hh-mm-ss.mmm" format, which is used for
+// midi filenames.
+function getCurrentTime(): string {
+    const nowUtc = new Date();
+    const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
+    let ret = nowLocal.toISOString();
+    return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
+}
+
+export { DEBUG, debug, info, infoRaw, w, LiteEvent, type ILiteEvent, getCurrentTime };

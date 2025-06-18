@@ -154,3 +154,5 @@ function analyzeChord(notes: number[], sharp: boolean): string | null {
 
     return null; // No matching chord found.
 }
+
+export { getNoteFullName, analyzeChord };

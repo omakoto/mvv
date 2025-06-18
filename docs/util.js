@@ -1,5 +1,13 @@
 'use strict';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LiteEvent = exports.DEBUG = void 0;
+exports.debug = debug;
+exports.info = info;
+exports.infoRaw = infoRaw;
+exports.w = w;
+exports.getCurrentTime = getCurrentTime;
 const DEBUG = parseInt((new URLSearchParams(window.location.search)).get("debug") ?? "0") ? true : false;
+exports.DEBUG = DEBUG;
 if (!DEBUG) {
     console.log("Debug log is disabled. Use https://omakoto.github.io/mvv/?debug=1 to enable debug log.");
 }
@@ -41,4 +49,13 @@ class LiteEvent {
     expose() {
         return this;
     }
+}
+exports.LiteEvent = LiteEvent;
+// Return the current time in "yyyy-mm-dd-hh-mm-ss.mmm" format, which is used for
+// midi filenames.
+function getCurrentTime() {
+    const nowUtc = new Date();
+    const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
+    let ret = nowLocal.toISOString();
+    return ret.replace("Z", "").replaceAll(/[:T]/g, "-").replace(/\..*$/, "");
 }
