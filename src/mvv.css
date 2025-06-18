@@ -242,14 +242,24 @@ canvas#roll2 {
 }
 
 /* Style for the note display span */
-#note_display {
+#notes {
     position: fixed;
     right: 10px;
-    top: 8px; /* Position it above the bottom controls */
+    top: 24px;
+    height: 14em;
     font-size: 14pt;
     color: var(--main-text-color);
     text-shadow: 1px 1px 2px black;
-    font-family: 'Courier New', Courier, monospace;
+}
+
+#chords {
+    position: fixed;
+    right: 10px;
+    top: 50px;
+    height: 14em;
+    font-size: 14pt;
+    color: var(--main-text-color);
+    text-shadow: 1px 1px 2px black;
 }
 
 .popbox_container {

@@ -849,7 +849,8 @@ class Coordinator {
     #wakelock : WakeLockSentinel | null = null;
     #wakelockTimer : number | null = 0;
     #timestamp;
-    #noteDisplay;
+    #notes;
+    #chords;
     #useSharp: boolean;
     #showVlines: boolean;
     #scrollSpeedFactor: number;
@@ -865,7 +866,8 @@ class Coordinator {
         this.#nextSecond = performance.now() + 1000;
         this.#efps = $("#fps");
         this.#timestamp = $('#timestamp');
-        this.#noteDisplay = $('#note_display');
+        this.#notes = $('#notes');
+        this.#chords = $('#chords');
 
         // Load settings from localStorage
         const storedSharp = localStorage.getItem(Coordinator.#STORAGE_KEY_USE_SHARP);
@@ -1242,13 +1244,17 @@ class Coordinator {
         const noteNames = pressedNotes.map((note) => getNoteFullName(note, this.#useSharp)).join(' ');
         const chordName = analyzeChord(pressedNotes, this.#useSharp);
         
-        const text = chordName ? `${noteNames}  [${chordName}]` : noteNames;
-
-        if (text.length > 0) {
-            this.#noteDisplay.text(text);
-            this.#noteDisplay.stop(true, true).show();
+        if (noteNames.length > 0) {
+            this.#notes.text(noteNames);
+            this.#notes.stop(true, true).show();
         } else {
-            this.#noteDisplay.fadeOut(800);
+            this.#notes.fadeOut(800);
+        }
+        if (chordName != null) {
+            this.#chords.text(chordName);
+            this.#chords.stop(true, true).show();
+        } else {
+            this.#chords.fadeOut(800);
         }
     }
     
