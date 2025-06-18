@@ -10,7 +10,7 @@ rm -f src/res/*~
 rm -fr docs/
 mkdir -p docs/
 mkdir -p docs/res/
-tsc
+npx tsc
 cp -pr LICENSE src/*.html src/*.css src/popbox/ src/res docs/
 
 echo "Success"
