@@ -11,6 +11,6 @@ rm -fr docs/
 mkdir -p docs/
 mkdir -p docs/res/
 npx tsc
-cp -pr LICENSE src/*.html src/*.css src/popbox/ src/res docs/
+cp -pr LICENSE src/*.html src/*.css src/popbox/ src/res js/* docs/
 
 echo "Success"

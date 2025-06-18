@@ -1,5 +1,7 @@
 // Note names
 
+import { note } from "tonal";
+
 
 // TODO Use import. For that, I need to bundle tonal to the app.
 // import { Chord, Note } from "tonal";
@@ -7,8 +9,8 @@ declare var Tonal: any;
 
 
 //const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
-const NOTE_NAMES_SHARPS = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-const NOTE_NAMES_FLATS = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+const NOTE_NAMES_SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const NOTE_NAMES_FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 
 function getNoteName(note: number, sharp: boolean) {
     return (sharp ? NOTE_NAMES_SHARPS : NOTE_NAMES_FLATS)[note % 12]!!;
@@ -134,7 +136,7 @@ function findChordInDictionary(pitchClasses: number[], definitions: { [name: str
  * @param notes An array of MIDI note numbers.
  * @returns The name of the chord (e.g., "CM", "Dm7") or null if no chord is recognized.
  */
-function analyzeChord(notes: number[], sharp: boolean): string | null {
+function analyzeChord1(notes: number[], sharp: boolean): string | null {
     if (notes.length < 2) {
         return null;
     }
@@ -160,6 +162,41 @@ function analyzeChord(notes: number[], sharp: boolean): string | null {
     }
 
     return null; // No matching chord found.
+}
+
+/**
+ * Analyzes an array of MIDI notes to identify possible chords using the Tonal.js library.
+ * @param notes An array of MIDI note numbers.
+ * @param sharp Whether to use sharp notation for note names.
+ * @returns A string containing all possible chord names, separated by commas, or null if no chord is recognized.
+ */
+function analyzeChordTonalInner(notes: number[], sharp: boolean, assumePerfectFifth: boolean): string | null {
+    if (notes.length < 2) {
+        return null;
+    }
+    // Tonal.js's chord detection works with note names (e.g., "C", "E", "G").
+    // We get the unique pitch classes first, then convert them to names.
+    const pitchClasses = [...new Set(notes.map(note => note % 12))];
+    const noteNames = pitchClasses.map(pc => Tonal.Midi.midiToNoteName(pc, {sharps: sharp}));
+    console.log(noteNames);
+
+    // The Tonal variable is declared at the top of the file. It provides Chord.detect().
+    const detectedChords = Tonal.Chord.detect(noteNames, {assumePerfectFifth: true});
+
+    if (detectedChords && detectedChords.length > 0) {
+        // As requested, return all possible chords as a single string.
+        return detectedChords.join(', ');
+    }
+
+    return null; // No matching chord found.
+}
+
+function analyzeChordTonal(notes: number[], sharp: boolean): string | null {
+    return analyzeChordTonalInner(notes, sharp, false);
+}
+
+function analyzeChord(notes: number[], sharp: boolean): string | null {
+    return analyzeChordTonal(notes, sharp);
 }
 
 export { getNoteFullName, analyzeChord };
