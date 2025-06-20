@@ -177,7 +177,7 @@ function analyzeChordTonalInner(notes: number[], sharp: boolean, assumePerfectFi
     // Tonal.js's chord detection works with note names (e.g., "C", "E", "G").
     notes.sort();
     const noteNames = notes.map(pc => Tonal.Midi.midiToNoteName(pc, {sharps: sharp}));
-    console.log(noteNames);
+    //console.log(noteNames);
 
     const detectedChords = Tonal.Chord.detect(noteNames, {assumePerfectFifth: true});
 
