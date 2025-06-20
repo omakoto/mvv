@@ -716,15 +716,37 @@ class Recorder {
         midiOutputManager.reset();
         midiRenderingStatus.reset();
 
+        // We replay MIDI voice messages except for note on/off (0b1010nnnn (0xAn) - 0b1110nnnn (0xEn)).
+        // we store them in this map, where:
+        // - key: (data0 << 8) | data1 for control change (e.g. 0b1011nnnn == 0xBn)
+        // - key: (data0 << 8) for the other vents.
+        const events = new Map<number, MidiEvent>();
+
         for (const ev of this.#events) {
-            if (ev.timeStamp > newTimestamp) {
+            if (ev.timeStamp >= newTimestamp) {
                 break; // Stop scanning once we've passed our target time.
             }
-            // Do not send note on/off
-            if (ev.status != 0x90 && ev.status != 0x80) {
-                midiRenderingStatus.onMidiMessage(ev); // Update visuals
-                midiOutputManager.sendEvent(ev.getDataAsArray(), 0); // Send to MIDI device
+            // Skip note on/off, and system messages.
+            if (ev.status < 0xA0 || ev.status >= 0xF0) {
+                // if (DEBUG) {
+                //     debug("Skipping: ", ev.data0, ev.data1, ev.data2);
+                // }
+                continue;
             }
+            if (DEBUG) {
+                debug("Storing: ", ev.data0, ev.data1, ev.data2);
+            }
+            const key = (ev.data0 << 8) | (ev.isCC ? ev.data1 : 0)
+            events.set(key, ev);
+        }
+
+        // Then, we replay all of them.
+        for (const ev of events.values()) {
+            if (DEBUG) {
+                debug("Replying: ", ev.data0, ev.data1, ev.data2);
+            }
+            midiRenderingStatus.onMidiMessage(ev); // Update visuals
+            midiOutputManager.sendEvent(ev.getDataAsArray(), 0); // Send to MIDI device
         }
 
         this.#nextPlaybackIndex = 0;
@@ -1167,6 +1189,11 @@ class Coordinator {
     onMidiMessage(ev: MidiEvent): void {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2,  ev);
 
+        // Ignore "Active Sensing" and "Timing clock"
+        if (ev.data0 == 254 || ev.data0 == 248) {
+            return;
+        }
+
         this.extendWakelock();
 
         this.#normalizeMidiEvent(ev);
@@ -1394,10 +1421,6 @@ function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
     for (let input of midiAccess.inputs.values()) {
         console.log("Input: ", input);
         input.onmidimessage = (ev) => {
-            // Ignore "Active Sensing" and "Timing clock"
-            if (ev.data[0] == 254 || ev.data[0] == 248) {
-                return;
-            }
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         }
     }

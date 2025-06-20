@@ -597,15 +597,35 @@ class Recorder {
         // Reset MIDI devices. This clears any hanging notes or stale controller states.
         midiOutputManager.reset();
         midiRenderingStatus.reset();
+        // We replay MIDI voice messages except for note on/off (0b1010nnnn (0xAn) - 0b1110nnnn (0xEn)).
+        // we store them in this map, where:
+        // - key: (data0 << 8) | data1 for control change (e.g. 0b1011nnnn == 0xBn)
+        // - key: (data0 << 8) for the other vents.
+        const events = new Map();
         for (const ev of __classPrivateFieldGet(this, _Recorder_events, "f")) {
-            if (ev.timeStamp > newTimestamp) {
+            if (ev.timeStamp >= newTimestamp) {
                 break; // Stop scanning once we've passed our target time.
             }
-            // Do not send note on/off
-            if (ev.status != 0x90 && ev.status != 0x80) {
-                midiRenderingStatus.onMidiMessage(ev); // Update visuals
-                midiOutputManager.sendEvent(ev.getDataAsArray(), 0); // Send to MIDI device
+            // Skip note on/off, and system messages.
+            if (ev.status < 0xA0 || ev.status >= 0xF0) {
+                // if (DEBUG) {
+                //     debug("Skipping: ", ev.data0, ev.data1, ev.data2);
+                // }
+                continue;
             }
+            if (DEBUG) {
+                debug("Storing: ", ev.data0, ev.data1, ev.data2);
+            }
+            const key = (ev.data0 << 8) | (ev.isCC ? ev.data1 : 0);
+            events.set(key, ev);
+        }
+        // Then, we replay all of them.
+        for (const ev of events.values()) {
+            if (DEBUG) {
+                debug("Replying: ", ev.data0, ev.data1, ev.data2);
+            }
+            midiRenderingStatus.onMidiMessage(ev); // Update visuals
+            midiOutputManager.sendEvent(ev.getDataAsArray(), 0); // Send to MIDI device
         }
         __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, newTimestamp, null);
@@ -1009,6 +1029,10 @@ class Coordinator {
     }
     onMidiMessage(ev) {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
+        // Ignore "Active Sensing" and "Timing clock"
+        if (ev.data0 == 254 || ev.data0 == 248) {
+            return;
+        }
         this.extendWakelock();
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_normalizeMidiEvent).call(this, ev);
         midiRenderingStatus.onMidiMessage(ev);
@@ -1249,10 +1273,6 @@ function onMIDISuccess(midiAccess) {
     for (let input of midiAccess.inputs.values()) {
         console.log("Input: ", input);
         input.onmidimessage = (ev) => {
-            // Ignore "Active Sensing" and "Timing clock"
-            if (ev.data[0] == 254 || ev.data[0] == 248) {
-                return;
-            }
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         };
     }

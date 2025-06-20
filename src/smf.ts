@@ -86,7 +86,16 @@ export class MidiEvent {
     }
 
     get isNoteOn(): boolean {
-        return this.status === 144 && this.data2 > 0;
+        return this.status === 0x90 && this.data2 > 0;
+    }
+
+    get isNoteOff(): boolean {
+        return this.status === 0x80 || (this.status === 0x90 && this.data2 == 0);
+    }
+
+    // Control change?
+    get isCC(): boolean {
+        return this.status === 0xB0;
     }
 
     getDataAsArray(): Array<number> | Uint8Array {

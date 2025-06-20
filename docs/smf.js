@@ -80,7 +80,14 @@ export class MidiEvent {
         return this.getData(2);
     }
     get isNoteOn() {
-        return this.status === 144 && this.data2 > 0;
+        return this.status === 0x90 && this.data2 > 0;
+    }
+    get isNoteOff() {
+        return this.status === 0x80 || (this.status === 0x90 && this.data2 == 0);
+    }
+    // Control change?
+    get isCC() {
+        return this.status === 0xB0;
     }
     getDataAsArray() {
         return __classPrivateFieldGet(this, _MidiEvent_data, "f");
