@@ -352,7 +352,6 @@ export const renderer = new Renderer();
 
 class MidiRenderingStatus {
     #tick = 0;
-    #lastUpdateTimestamp = 0;
     #notes: Array<[boolean, number, number]> = []; // note on/off, velocity, last on-tick
     #pedal = 0;
     #sostenuto = 0;
@@ -364,7 +363,6 @@ class MidiRenderingStatus {
     }
 
     onMidiMessage(ev: MidiEvent): void {
-        this.#lastUpdateTimestamp = Date.now();
         coordinator.startAnimationLoop();
 
         let status = ev.status;
@@ -409,10 +407,6 @@ class MidiRenderingStatus {
         this.#tick++;
         this.#onNoteCount = 0;
         this.#offNoteCount = 0;
-    }
-
-    get lastUpdateTimestamp(): number {
-        return this.#lastUpdateTimestamp;
     }
 
     get onNoteCount(): number {
@@ -617,6 +611,8 @@ class Recorder {
 
     #startRecording(): void {
         info("Recording started");
+        coordinator.startAnimationLoop();
+
         this.#state = RecorderState.Recording;
         this.#events = [];
         this.#isDirty = true;
@@ -633,6 +629,8 @@ class Recorder {
 
     #startPlaying(): void {
         info("Playback started");
+        coordinator.startAnimationLoop();
+
         this.#state = RecorderState.Playing;
         this.#playbackStartTimestamp = performance.now();
         // Do not reset playbackTimeAdjustment. It contains the start offset.
@@ -646,6 +644,7 @@ class Recorder {
 
     #stopPlaying(): void {
         info("Playback stopped");
+
         this.#state = RecorderState.Idle;
         this.#playbackTimeAdjustment = 0; // Reset position to start.
     
@@ -684,8 +683,7 @@ class Recorder {
         if (this.isRecording) {
             return;
         }
-        // Jump from the current time back to time 0.
-        this.adjustPlaybackPosition(-this.currentPlaybackTimestamp);
+        this.adjustPlaybackPosition(-999999999);
     }
 
     /**
@@ -714,33 +712,21 @@ class Recorder {
         // Update the internal timekeeping to reflect the jump.
         this.#playbackTimeAdjustment += (newTimestamp - oldTimestamp);
 
-        // 1. Reset MIDI devices. This clears any hanging notes or stale controller states.
+        // Reset MIDI devices. This clears any hanging notes or stale controller states.
         midiOutputManager.reset();
         midiRenderingStatus.reset();
 
-        // 2. Calculate the definitive state of all controllers at the new timestamp.
-        // To do this, we iterate from the beginning of the recording and store the
-        // last seen value for each controller number.
-        const controllerState = new Map<number, number>(); // Map<controller_number, value>
-        
         for (const ev of this.#events) {
             if (ev.timeStamp > newTimestamp) {
                 break; // Stop scanning once we've passed our target time.
             }
-            if (ev.status === 176) { // It's a Control Change event.
-                controllerState.set(ev.data1, ev.data2);
+            // Do not send note on/off
+            if (ev.status != 0x90 && ev.status != 0x80) {
+                midiRenderingStatus.onMidiMessage(ev); // Update visuals
+                midiOutputManager.sendEvent(ev.getDataAsArray(), 0); // Send to MIDI device
             }
         }
-        
-        // 3. Apply the final controller states by sending MIDI CC messages.
-        controllerState.forEach((value, controller) => {
-            const ccEvent = new MidiEvent(newTimestamp, [176, controller, value]);
-            midiRenderingStatus.onMidiMessage(ccEvent); // Update visuals
-            midiOutputManager.sendEvent(ccEvent.getDataAsArray(), 0); // Send to MIDI device
-        });
 
-        // 4. Find the correct next event to play from the new position.
-        // We use a null callback because we have already handled the controller state.
         this.#nextPlaybackIndex = 0;
         this.#moveUpToTimestamp(newTimestamp, null);
         
@@ -793,7 +779,7 @@ class Recorder {
                 return true;
             }
             let ev = this.#events[this.#nextPlaybackIndex]!;
-            if (ev.timeStamp > timeStamp) {
+            if (ev.timeStamp >= timeStamp) {
                 return true;
             }
             this.#nextPlaybackIndex++;
@@ -864,7 +850,7 @@ class Coordinator {
     #showVlines: boolean;
     #scrollSpeedFactor: number;
     #isHelpVisible = false;
-
+    #lastAnimationRequestTimestamp = 0;
 
     // LocalStorage keys
     static readonly #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
@@ -1275,6 +1261,7 @@ class Coordinator {
      * rendering cycle for smooth visuals.
      */
     startAnimationLoop(): void {
+        this.#lastAnimationRequestTimestamp = Date.now();
         if (this.#animationFrameId !== null) {
             // Loop is already running.
             return;
@@ -1296,7 +1283,7 @@ class Coordinator {
             renderer.flip();
             
             // Request the next frame.
-            if ((Date.now() - midiRenderingStatus.lastUpdateTimestamp) < ANIMATION_TIMEOUT_MS) {
+            if ((Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS) {
                 this.#animationFrameId = requestAnimationFrame(loop);
             } else {
                 this.stopAnimationLoop();
