@@ -1261,6 +1261,10 @@ function onMIDISuccess(midiAccess) {
     for (let input of midiAccess.inputs.values()) {
         console.log("Input: ", input);
         input.onmidimessage = (ev) => {
+            // Ignore "Active Sensing" and "Timing clock"
+            if (ev.data[0] == 254 || ev.data[0] == 248) {
+                return;
+            }
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         };
     }
