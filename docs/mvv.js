@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_scrollSpeedFactor, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _MidiRenderingStatus_tick, _MidiRenderingStatus_lastUpdateTimestamp, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_scrollSpeedFactor, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 import { info, debug, DEBUG } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -40,7 +40,8 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
-const FPS = 60; // This is now only used for the FPS counter display, not for timing the loop.
+// To save power, we'll stop animation after this much time since the last midi event.
+const ANIMATION_TIMEOUT_MS = 60000;
 // Common values
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
@@ -315,6 +316,7 @@ export const renderer = new Renderer();
 class MidiRenderingStatus {
     constructor() {
         _MidiRenderingStatus_tick.set(this, 0);
+        _MidiRenderingStatus_lastUpdateTimestamp.set(this, 0);
         _MidiRenderingStatus_notes.set(this, []); // note on/off, velocity, last on-tick
         _MidiRenderingStatus_pedal.set(this, 0);
         _MidiRenderingStatus_sostenuto.set(this, 0);
@@ -324,6 +326,8 @@ class MidiRenderingStatus {
     }
     onMidiMessage(ev) {
         var _b, _c;
+        __classPrivateFieldSet(this, _MidiRenderingStatus_lastUpdateTimestamp, Date.now(), "f");
+        coordinator.startAnimationLoop();
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
@@ -369,6 +373,9 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
     }
+    get lastUpdateTimestamp() {
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_lastUpdateTimestamp, "f");
+    }
     get onNoteCount() {
         return __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f");
     }
@@ -409,7 +416,7 @@ class MidiRenderingStatus {
         return pressed;
     }
 }
-_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_pedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCount = new WeakMap(), _MidiRenderingStatus_offNoteCount = new WeakMap();
+_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_lastUpdateTimestamp = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_pedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCount = new WeakMap(), _MidiRenderingStatus_offNoteCount = new WeakMap();
 export const midiRenderingStatus = new MidiRenderingStatus();
 class MidiOutputManager {
     constructor() {
@@ -1097,6 +1104,7 @@ class Coordinator {
             // Loop is already running.
             return;
         }
+        console.log("Animation started");
         const loop = () => {
             var _b;
             // #flips is for the FPS counter, representing screen updates.
@@ -1109,7 +1117,12 @@ class Coordinator {
             // Copy the off-screen canvas to the visible one.
             renderer.flip();
             // Request the next frame.
-            __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(loop), "f");
+            if ((Date.now() - midiRenderingStatus.lastUpdateTimestamp) < ANIMATION_TIMEOUT_MS) {
+                __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(loop), "f");
+            }
+            else {
+                this.stopAnimationLoop();
+            }
         };
         // Start the loop.
         loop();
@@ -1121,6 +1134,7 @@ class Coordinator {
         if (__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") !== null) {
             cancelAnimationFrame(__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f"));
             __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
+            console.log("Animation stopped");
         }
     }
     onPlaybackTimer() {

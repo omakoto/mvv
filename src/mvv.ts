@@ -39,7 +39,8 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 
-const FPS = 60; // This is now only used for the FPS counter display, not for timing the loop.
+// To save power, we'll stop animation after this much time since the last midi event.
+const ANIMATION_TIMEOUT_MS = 60_000;
 
 // Common values
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
@@ -351,6 +352,7 @@ export const renderer = new Renderer();
 
 class MidiRenderingStatus {
     #tick = 0;
+    #lastUpdateTimestamp = 0;
     #notes: Array<[boolean, number, number]> = []; // note on/off, velocity, last on-tick
     #pedal = 0;
     #sostenuto = 0;
@@ -362,6 +364,9 @@ class MidiRenderingStatus {
     }
 
     onMidiMessage(ev: MidiEvent): void {
+        this.#lastUpdateTimestamp = Date.now();
+        coordinator.startAnimationLoop();
+
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
@@ -404,6 +409,10 @@ class MidiRenderingStatus {
         this.#tick++;
         this.#onNoteCount = 0;
         this.#offNoteCount = 0;
+    }
+
+    get lastUpdateTimestamp(): number {
+        return this.#lastUpdateTimestamp;
     }
 
     get onNoteCount(): number {
@@ -1269,6 +1278,7 @@ class Coordinator {
             // Loop is already running.
             return;
         }
+        console.log("Animation started")
 
         const loop = () => {
             // #flips is for the FPS counter, representing screen updates.
@@ -1285,7 +1295,11 @@ class Coordinator {
             renderer.flip();
             
             // Request the next frame.
-            this.#animationFrameId = requestAnimationFrame(loop);
+            if ((Date.now() - midiRenderingStatus.lastUpdateTimestamp) < ANIMATION_TIMEOUT_MS) {
+                this.#animationFrameId = requestAnimationFrame(loop);
+            } else {
+                this.stopAnimationLoop();
+            }
         };
         
         // Start the loop.
@@ -1299,6 +1313,7 @@ class Coordinator {
         if (this.#animationFrameId !== null) {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
+            console.log("Animation stopped")
         }
     }
 
