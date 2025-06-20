@@ -41,7 +41,7 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 // To save power, we'll stop animation after this much time since the last midi event.
-const ANIMATION_TIMEOUT_MS = 60000;
+const ANIMATION_TIMEOUT_MS = 30000;
 // Common values
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
