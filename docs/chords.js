@@ -150,15 +150,11 @@ function analyzeChordTonalInner(notes, sharp, assumePerfectFifth) {
         return null;
     }
     // Tonal.js's chord detection works with note names (e.g., "C", "E", "G").
-    // We get the unique pitch classes first, then convert them to names.
-    // const pitchClasses = [...new Set(notes.map(note => note % 12))];
     notes.sort();
     const noteNames = notes.map(pc => Tonal.Midi.midiToNoteName(pc, { sharps: sharp }));
-    console.log(noteNames);
-    // The Tonal variable is declared at the top of the file. It provides Chord.detect().
+    //console.log(noteNames);
     const detectedChords = Tonal.Chord.detect(noteNames, { assumePerfectFifth: true });
     if (detectedChords && detectedChords.length > 0) {
-        // As requested, return all possible chords as a single string.
         return detectedChords.join(', ');
     }
     return null; // No matching chord found.
