@@ -841,6 +841,7 @@ class Recorder {
 
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
         info(message);
+        this.moveToStart();
     }
 }
 
