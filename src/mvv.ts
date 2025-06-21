@@ -1463,7 +1463,8 @@ $("body").on("dragover", function(ev) {
 });
 
 function loadMidiFile(file: File) {
-    info("loading from: " + file.name);
+    info("Loading from: " + file.name);
+    console.log("Loading from: ", file);
     coordinator.reset();
     loadMidi(file).then((events) => {
         debug("File loaded", events);
@@ -1492,9 +1493,10 @@ $("body").on("mousemove", function(_ev) {
 $("body").on("drop", function(ev) {
     ev.preventDefault();
     let oev = <DragEvent>ev.originalEvent;
-    console.log("File dropped", oev.dataTransfer!.files[0], oev.dataTransfer);
+    const file = oev.dataTransfer!.files[0]!;
+    console.log("File dropped", file, oev.dataTransfer);
     coordinator.withOverwriteConfirm(() => {
-        loadMidiFile(oev.dataTransfer!.files[0]!);
+        loadMidiFile(file);
     });
 });
 

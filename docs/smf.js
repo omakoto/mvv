@@ -14,6 +14,7 @@ var _MidiEvent_timeStamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_insta
 // SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
 // https://www.music.mcgill.ca/~gary/306/week9/smf.html
 // https://midimusic.github.io/tech/midispec.html
+import { debug } from './util.js';
 function logBlob(blob) {
     let fileReader = new FileReader();
     fileReader.readAsArrayBuffer(blob);
@@ -395,7 +396,7 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                     if (type === 0x51) {
                         // tempo
                         const tempo = rd.readU24();
-                        console.log("  @" + tick + " Tempo=" + tempo);
+                        debug("  @" + tick + " Tempo=" + tempo);
                         tc.setTempo(tick, tempo);
                         continue;
                     }

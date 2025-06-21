@@ -4,6 +4,8 @@
 // https://www.music.mcgill.ca/~gary/306/week9/smf.html
 // https://midimusic.github.io/tech/midispec.html
 
+import { info, debug, DEBUG } from './util.js';
+
 function logBlob(blob: Blob) {
     let fileReader = new FileReader();
     fileReader.readAsArrayBuffer(blob);
@@ -470,7 +472,7 @@ class SmfReader {
                         if (type === 0x51) {
                             // tempo
                             const tempo = rd.readU24();
-                            console.log("  @" + tick + " Tempo=" + tempo);
+                            debug("  @" + tick + " Tempo=" + tempo);
                             tc.setTempo(tick, tempo);
                             continue;
                         }
