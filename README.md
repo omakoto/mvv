@@ -16,20 +16,7 @@ It visualizes:
 
 ## Keys
 
-- `?` : Help
-- `1` : Hide screen
-- `2` : Freeze roll pane
-- `F` or double tap anywhere : Toggle full-screen
-- `R`: Record start/stop
-- `SPACE`: Playback start / pause
-  - `Left`/`Right`: during playback -- Rewind/Fast-forward
-- `Z`: Stop playback
-- `S`: Save the last recording as a midi file
-- `L`: Load a `*.mid` file
-- `3`: Show FPS and playback timer resolution
-- `4`: Toggle between ♯ and ♭ for key/chord names
-- `5`: Toggle octave lines
-- `6`: Toggle scroll speed
+Press '?' for help
 
 ## Supported midi events
 

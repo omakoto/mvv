@@ -339,6 +339,7 @@ class Renderer {
     }
 
     toggleRollFrozen(): void {
+        coordinator.startAnimationLoop(); // Potentially resume animation
         this.#rollFrozen = !this.#rollFrozen;
     }
 
@@ -1415,6 +1416,8 @@ class Coordinator {
     }
 
     async extendWakelock(): Promise<void> {
+        coordinator.startAnimationLoop(); // Potentially resume animation
+
         // Got the wake lock type definition from:
         // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
         // npm i @types/dom-screen-wake-lock

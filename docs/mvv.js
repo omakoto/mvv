@@ -304,6 +304,7 @@ class Renderer {
         $('#canvases').show();
     }
     toggleRollFrozen() {
+        coordinator.startAnimationLoop(); // Potentially resume animation
         __classPrivateFieldSet(this, _Renderer_rollFrozen, !__classPrivateFieldGet(this, _Renderer_rollFrozen, "f"), "f");
     }
     get isRollFrozen() {
@@ -1209,6 +1210,7 @@ class Coordinator {
     }
     extendWakelock() {
         return __awaiter(this, void 0, void 0, function* () {
+            coordinator.startAnimationLoop(); // Potentially resume animation
             // Got the wake lock type definition from:
             // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
             // npm i @types/dom-screen-wake-lock
