@@ -33,6 +33,9 @@ const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_AR
 
 const NOTES_COUNT = 128;
 
+// Time in milliseconds to highlight a recently pressed note.
+const RECENT_NOTE_THRESHOLD_MS = 60;
+
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 
@@ -352,7 +355,7 @@ export const renderer = new Renderer();
 
 class MidiRenderingStatus {
     #tick = 0;
-    #notes: Array<[boolean, number, number]> = []; // note on/off, velocity, last on-tick
+    #notes: Array<[boolean, number, number, number]> = []; // on/off, velocity, last on-tick, press timestamp
     #pedal = 0;
     #sostenuto = 0;
     #onNoteCount = 0;
@@ -375,6 +378,7 @@ class MidiRenderingStatus {
             ar[0] = true;
             ar[1] = data2;
             ar[2] = this.#tick;
+            ar[3] = performance.now(); // Store press timestamp
         } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             this.#offNoteCount++;
             this.#notes[data1]![0] = false;
@@ -395,7 +399,7 @@ class MidiRenderingStatus {
         this.#tick = 0;
         this.#notes = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
-            this.#notes[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
+            this.#notes[i] = [false, 0, -99999, 0]; // on/off, velocity, last on-tick, press timestamp
         }
         this.#pedal = 0;
         this.#sostenuto = 0;
@@ -447,6 +451,23 @@ class MidiRenderingStatus {
             const note = this.getNote(i);
             if (note[0]) { // is on
                 pressed.push(i);
+            }
+        }
+        return pressed;
+    }
+
+    /**
+     * Returns info for all notes currently considered "on", including their press timestamp.
+     */
+    getPressedNotesInfo(): { note: number, timestamp: number }[] {
+        const pressed: { note: number, timestamp: number }[] = [];
+        for (let i = 0; i < NOTES_COUNT; i++) {
+            const noteInfo = this.#notes[i]!;
+            // A note is considered "on" if its on-flag is true, or if it was turned off
+            // very recently (within 2 ticks), to make visuals linger a bit.
+            const isVisuallyOn = noteInfo[0] || (this.#tick - noteInfo[2]) < 2;
+            if (isVisuallyOn) {
+                pressed.push({ note: i, timestamp: noteInfo[3] });
             }
         }
         return pressed;
@@ -1262,12 +1283,27 @@ class Coordinator {
     }
 
     updateNoteInformation(): void {
-        const pressedNotes = midiRenderingStatus.getPressedNotes();
-        const noteNames = pressedNotes.map((note) => getNoteFullName(note, this.#useSharp)).join(' ');
-        const chordName = analyzeChord(pressedNotes, this.#useSharp);
+        const now = performance.now();
+        const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
+
+        const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
+            const noteName = getNoteFullName(note, this.#useSharp);
+            // Check if the note was pressed recently.
+            const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
+            if (isRecent) {
+                return `<span class="notes_recent">${noteName}</span>`;
+            } else {
+                return `<span>${noteName}</span>`;
+            }
+        });
+        const noteNamesHtml = noteSpans.join(' ');
+
+        // We need just the note numbers for chord analysis.
+        const pressedNoteNumbers = pressedNotesInfo.map(info => info.note);
+        const chordName = analyzeChord(pressedNoteNumbers, this.#useSharp);
         
-        if (noteNames.length > 0) {
-            this.#notes.text(noteNames);
+        if (noteNamesHtml.length > 0) {
+            this.#notes.html(noteNamesHtml);
             this.#notes.stop(true, true).show();
         } else {
             this.#notes.fadeOut(800);

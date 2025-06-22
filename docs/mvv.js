@@ -36,6 +36,8 @@ console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
 const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120;
 const NOTES_COUNT = 128;
+// Time in milliseconds to highlight a recently pressed note.
+const RECENT_NOTE_THRESHOLD_MS = 60;
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
@@ -316,7 +318,7 @@ export const renderer = new Renderer();
 class MidiRenderingStatus {
     constructor() {
         _MidiRenderingStatus_tick.set(this, 0);
-        _MidiRenderingStatus_notes.set(this, []); // note on/off, velocity, last on-tick
+        _MidiRenderingStatus_notes.set(this, []); // on/off, velocity, last on-tick, press timestamp
         _MidiRenderingStatus_pedal.set(this, 0);
         _MidiRenderingStatus_sostenuto.set(this, 0);
         _MidiRenderingStatus_onNoteCount.set(this, 0);
@@ -336,6 +338,7 @@ class MidiRenderingStatus {
             ar[0] = true;
             ar[1] = data2;
             ar[2] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
+            ar[3] = performance.now(); // Store press timestamp
         }
         else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, // Note off
@@ -358,7 +361,7 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_notes, [], "f");
         for (let i = 0; i < NOTES_COUNT; i++) {
-            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -99999]; // note on/off, velocity, last note on tick
+            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -99999, 0]; // on/off, velocity, last on-tick, press timestamp
         }
         __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
@@ -406,6 +409,22 @@ class MidiRenderingStatus {
             const note = this.getNote(i);
             if (note[0]) { // is on
                 pressed.push(i);
+            }
+        }
+        return pressed;
+    }
+    /**
+     * Returns info for all notes currently considered "on", including their press timestamp.
+     */
+    getPressedNotesInfo() {
+        const pressed = [];
+        for (let i = 0; i < NOTES_COUNT; i++) {
+            const noteInfo = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i];
+            // A note is considered "on" if its on-flag is true, or if it was turned off
+            // very recently (within 2 ticks), to make visuals linger a bit.
+            const isVisuallyOn = noteInfo[0] || (__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - noteInfo[2]) < 2;
+            if (isVisuallyOn) {
+                pressed.push({ note: i, timestamp: noteInfo[3] });
             }
         }
         return pressed;
@@ -1089,11 +1108,25 @@ class Coordinator {
         midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
     }
     updateNoteInformation() {
-        const pressedNotes = midiRenderingStatus.getPressedNotes();
-        const noteNames = pressedNotes.map((note) => getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"))).join(' ');
-        const chordName = analyzeChord(pressedNotes, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
-        if (noteNames.length > 0) {
-            __classPrivateFieldGet(this, _Coordinator_notes, "f").text(noteNames);
+        const now = performance.now();
+        const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
+        const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
+            const noteName = getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
+            // Check if the note was pressed recently.
+            const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
+            if (isRecent) {
+                return `<span class="notes_recent">${noteName}</span>`;
+            }
+            else {
+                return `<span>${noteName}</span>`;
+            }
+        });
+        const noteNamesHtml = noteSpans.join(' ');
+        // We need just the note numbers for chord analysis.
+        const pressedNoteNumbers = pressedNotesInfo.map(info => info.note);
+        const chordName = analyzeChord(pressedNoteNumbers, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
+        if (noteNamesHtml.length > 0) {
+            __classPrivateFieldGet(this, _Coordinator_notes, "f").html(noteNamesHtml);
             __classPrivateFieldGet(this, _Coordinator_notes, "f").stop(true, true).show();
         }
         else {

@@ -253,6 +253,11 @@ canvas#roll2 {
     padding: 6px;
 }
 
+/* recently pressed notes */
+.notes_recent {
+    color: #ff90c0;
+}
+
 #chords {
     position: fixed;
     right: 10px;
