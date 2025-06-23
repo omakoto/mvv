@@ -50,6 +50,8 @@ const RGB_BLACK: [number, number, number] = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES: [number, number, number] = [50, 50, 0];
 
+const PLAYBACK_TIMER_MS = 20;
+
 // Utility functions
 
 function int(v: number): number {
@@ -262,7 +264,7 @@ class Renderer {
     }
 
     isAnythingOnScreen(): boolean {
-        return this.#lastDrawY <= this.#ROLL_H;
+        return this.#lastDrawY <= (this.#ROLL_H * 2); // *2 for safety(?) extra
     }
 
     onDraw(): void {
@@ -272,14 +274,18 @@ class Renderer {
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, scrollAmount);
 
-        this.#lastDrawY += scrollAmount;
+        this.#lastDrawY += int(scrollAmount);
 
+        // Draw the pedals.
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
         const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
         const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
 
         this.#roll.fillStyle = rgbToStr(pedalColor);
         this.#roll.fillRect(0, 0, this.#W, scrollAmount);
+        if (pedalColor[0] > 0 || pedalColor[1] > 0 || pedalColor[2] > 0) {
+            this.#anythingDrawn();
+        }
 
         // Clear the bar area.
         this.#bar.fillStyle = 'black';
@@ -560,6 +566,8 @@ class Recorder {
 
     #isDirty = false;
 
+    #timer: number = 0;
+
     constructor() {
     }
 
@@ -688,6 +696,13 @@ class Recorder {
         this.#moveUpToTimestamp(this.currentPlaybackTimestamp, null);
     
         coordinator.onRecorderStatusChanged();
+
+        if (this.#timer === 0) {
+            this.#timer = setInterval(() => {
+                coordinator.onPlaybackTimer();
+            }, PLAYBACK_TIMER_MS);
+            console.log("Timer started");
+        }
     }
 
     #stopPlaying(): void {
@@ -698,6 +713,12 @@ class Recorder {
     
         coordinator.onRecorderStatusChanged();
         coordinator.resetMidi();
+
+        if (this.#timer != 0) {
+            console.log("Timer stopped");
+            clearInterval(this.#timer);
+            this.#timer = 0;
+        }
     }
 
     recordEvent(ev: MidiEvent): boolean {
@@ -820,9 +841,9 @@ class Recorder {
                 this.#playbackTimeAdjustment - this.#getPausingDuration();
     }
 
-    playbackUpToNow(): boolean {
+    playbackUpToNow() {
         if (!this.isPlaying) {
-            return false;
+            return;
         }
 
         // Current timestamp
@@ -831,7 +852,7 @@ class Recorder {
             debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
 
-        return this.#moveUpToTimestamp(ts, (ev: MidiEvent) => {
+        const stillPlaying = this.#moveUpToTimestamp(ts, (ev: MidiEvent) => {
             if (DEBUG) {
                 debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
                         " index=" + (this.#nextPlaybackIndex - 1), ev);
@@ -839,13 +860,19 @@ class Recorder {
             midiRenderingStatus.onMidiMessage(ev);
             midiOutputManager.sendEvent(ev.getDataAsArray(), 0)
         });
+        if (!stillPlaying) {
+            this.stopPlaying();
+        }
     }
 
     #moveUpToTimestamp(timeStamp: number, callback: null | ((a: MidiEvent) => void)): boolean {
         for (;;) {
             if (this.isAfterLast) {
-                // No more events.
-                // But do not auto-stop; otherwise it'd be hard to listen to the last part.
+                if (timeStamp > this.#lastEventTimestamp + 5000) {
+                    // It's been a while since the last event. Let's stop playing.
+                    return false;
+                }
+                // Continue playing for a bit, which makes it easier to listen to the last part again.
                 return true;
             }
             let ev = this.#events[this.#nextPlaybackIndex]!;
@@ -901,7 +928,6 @@ class Recorder {
     }
 }
 
-// ADDED: Export instance
 export const recorder = new Recorder();
 
 class Coordinator {
@@ -920,7 +946,6 @@ class Coordinator {
     #showVlines: boolean;
     #scrollSpeedFactor: number;
     #isHelpVisible = false;
-    // #lastAnimationRequestTimestamp = 0;
 
     // LocalStorage keys
     static readonly #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
@@ -1343,7 +1368,6 @@ class Coordinator {
         }
     }
     
-    // --- START: VSYNC-BASED ANIMATION LOOP ---
     #animationFrameId: number | null = null;
 
     /**
@@ -1351,7 +1375,6 @@ class Coordinator {
      * rendering cycle for smooth visuals.
      */
     startAnimationLoop(): void {
-        // this.#lastAnimationRequestTimestamp = Date.now();
         if (this.#animationFrameId !== null) {
             // Loop is already running.
             return;
@@ -1362,9 +1385,6 @@ class Coordinator {
             // #flips is for the FPS counter, representing screen updates.
             this.#flips++; 
             
-            // Run a playback tick to process MIDI events.
-            this.onPlaybackTimer();
-            
             // Draw the current state to the off-screen canvas.
             // This also updates the #frames count for the FPS counter.
             this.onDraw();
@@ -1374,7 +1394,7 @@ class Coordinator {
             
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = renderer.isAnythingOnScreen();
+            const needsAnimation = renderer.isAnythingOnScreen() || recorder.isPlaying;
             if (needsAnimation) {
                 this.#animationFrameId = requestAnimationFrame(loop);
             } else {
