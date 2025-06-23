@@ -92,6 +92,10 @@ function rgbToStr(rgb: [number, number, number]): string {
     return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
 }
 
+function rgbToInt(rgb: [number, number, number]): number {
+    return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+}
+
 // Logic
 
 class Renderer {
@@ -128,6 +132,10 @@ class Renderer {
 
     // Last drawn element Y position.
     #lastDrawY = 0;
+
+    #lastPedalColorInt = -1;
+    #lastVlinesOn = false;
+
 
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
@@ -264,7 +272,7 @@ class Renderer {
     }
 
     isAnythingOnScreen(): boolean {
-        return this.#lastDrawY <= (this.#ROLL_H * 2); // *2 for safety(?) extra
+        return this.#lastDrawY <= (this.#ROLL_H + 64); // +64 for safety(?) margin
     }
 
     onDraw(): void {
@@ -280,11 +288,14 @@ class Renderer {
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
         const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
         const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+        const pedalColorInt = rgbToInt(pedalColor);
+
 
         this.#roll.fillStyle = rgbToStr(pedalColor);
         this.#roll.fillRect(0, 0, this.#W, scrollAmount);
-        if (pedalColor[0] > 0 || pedalColor[1] > 0 || pedalColor[2] > 0) {
+        if (pedalColorInt !== this.#lastPedalColorInt) {
             this.#anythingDrawn();
+            this.#lastPedalColorInt = pedalColorInt;
         }
 
         // Clear the bar area.
@@ -348,6 +359,10 @@ class Renderer {
         if (coordinator.isShowingVlines) {
             // Draw octave lines.
             this.drawOctaveLines();
+        }
+        if (this.#lastVlinesOn !== coordinator.isShowingVlines) {
+            this.#anythingDrawn();
+            this.#lastVlinesOn = coordinator.isShowingVlines;
         }
 
         // Base line.
@@ -1103,6 +1118,7 @@ class Coordinator {
     setShowingVlines(show: boolean): void {
         this.#showVlines = show
         localStorage.setItem(Coordinator.#STORAGE_KEY_SHOW_VLINES, String(show));
+        this.startAnimationLoop();
     }
 
     get scrollSpeedFactor(): number {
