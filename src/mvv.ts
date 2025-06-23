@@ -615,6 +615,9 @@ class Recorder {
         this.#pauseStartTimestamp = performance.now();
         this.#state = RecorderState.Pausing;
         coordinator.onRecorderStatusChanged();
+
+        this.#stopTimer();
+
         return true;
     }
 
@@ -627,6 +630,9 @@ class Recorder {
         this.#playbackStartTimestamp += pausedDuration;
         this.#state = RecorderState.Playing;
         coordinator.onRecorderStatusChanged();
+
+        this.#startTimer();
+
         return true;
     }
 
@@ -697,12 +703,7 @@ class Recorder {
     
         coordinator.onRecorderStatusChanged();
 
-        if (this.#timer === 0) {
-            this.#timer = setInterval(() => {
-                coordinator.onPlaybackTimer();
-            }, PLAYBACK_TIMER_MS);
-            console.log("Timer started");
-        }
+        this.#startTimer();
     }
 
     #stopPlaying(): void {
@@ -714,6 +715,19 @@ class Recorder {
         coordinator.onRecorderStatusChanged();
         coordinator.resetMidi();
 
+        this.#stopTimer();
+    }
+
+    #startTimer(): void {
+        if (this.#timer === 0) {
+            this.#timer = setInterval(() => {
+                coordinator.onPlaybackTimer();
+            }, PLAYBACK_TIMER_MS);
+            console.log("Timer started");
+        }
+    }
+
+    #stopTimer(): void {
         if (this.#timer != 0) {
             console.log("Timer stopped");
             clearInterval(this.#timer);
