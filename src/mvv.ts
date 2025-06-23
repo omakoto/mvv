@@ -118,6 +118,15 @@ class Renderer {
 
     #drewOffLine = false;
 
+    // Current frame #
+    #currentFrame = -1;
+
+    // Last frame # when anything was drawn
+    #lastDrawFrame = 0;
+
+    // Last drawn element Y position.
+    #lastDrawY = 0;
+
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
         let context = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -247,10 +256,23 @@ class Renderer {
         }
     }
 
+    #anythingDrawn() {
+        this.#lastDrawFrame = this.#currentFrame;
+        this.#lastDrawY = 0;
+    }
+
+    isAnythingOnScreen(): boolean {
+        return this.#lastDrawY <= this.#ROLL_H;
+    }
+
     onDraw(): void {
+        this.#currentFrame++;
+
         const scrollAmount = this.#ROLL_SCROLL_AMOUNT * coordinator.scrollSpeedFactor;
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, scrollAmount);
+
+        this.#lastDrawY += scrollAmount;
 
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
         const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
@@ -268,6 +290,8 @@ class Renderer {
 
         // "Off" line
         if (midiRenderingStatus.offNoteCount > 0) {
+            this.#anythingDrawn();
+
             // We don't highlight off lines. Always same color.
             // However, if we draw two off lines in a raw, it'll look brighter,
             // so avoid doing so.
@@ -283,6 +307,8 @@ class Renderer {
         
         // "On" line
         if (midiRenderingStatus.onNoteCount > 0) {
+            this.#anythingDrawn();
+
             this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
             this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
         }
@@ -323,6 +349,7 @@ class Renderer {
         this.#bar.fillRect(0, this.#BAR_H, this.#W, -this.#BAR_SUB_LINE_WIDTH)
     }
 
+
     flip(): void {
         this.#bar2.drawImage(this.#cbar, 0, 0);
         if (!this.#rollFrozen) {
@@ -339,8 +366,8 @@ class Renderer {
     }
 
     toggleRollFrozen(): void {
-        coordinator.startAnimationLoop(); // Potentially resume animation
         this.#rollFrozen = !this.#rollFrozen;
+        this.flip();
     }
 
     get isRollFrozen(): boolean {
@@ -633,7 +660,6 @@ class Recorder {
 
     #startRecording(): void {
         info("Recording started");
-        coordinator.startAnimationLoop();
 
         this.#state = RecorderState.Recording;
         this.#events = [];
@@ -894,7 +920,7 @@ class Coordinator {
     #showVlines: boolean;
     #scrollSpeedFactor: number;
     #isHelpVisible = false;
-    #lastAnimationRequestTimestamp = 0;
+    // #lastAnimationRequestTimestamp = 0;
 
     // LocalStorage keys
     static readonly #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
@@ -1325,7 +1351,7 @@ class Coordinator {
      * rendering cycle for smooth visuals.
      */
     startAnimationLoop(): void {
-        this.#lastAnimationRequestTimestamp = Date.now();
+        // this.#lastAnimationRequestTimestamp = Date.now();
         if (this.#animationFrameId !== null) {
             // Loop is already running.
             return;
@@ -1347,7 +1373,9 @@ class Coordinator {
             renderer.flip();
             
             // Request the next frame.
-            if ((Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS) {
+            // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
+            const needsAnimation = renderer.isAnythingOnScreen();
+            if (needsAnimation) {
                 this.#animationFrameId = requestAnimationFrame(loop);
             } else {
                 this.stopAnimationLoop();
@@ -1416,8 +1444,6 @@ class Coordinator {
     }
 
     async extendWakelock(): Promise<void> {
-        coordinator.startAnimationLoop(); // Potentially resume animation
-
         // Got the wake lock type definition from:
         // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dom-screen-wake-lock
         // npm i @types/dom-screen-wake-lock
