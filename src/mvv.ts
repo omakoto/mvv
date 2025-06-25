@@ -28,8 +28,7 @@ const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
-const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120;
-
+const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
 
 const NOTES_COUNT = 128;
 
@@ -49,8 +48,6 @@ const ANIMATION_TIMEOUT_MS = 30_000;
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES: [number, number, number] = [50, 50, 0];
-
-const PLAYBACK_TIMER_MS = 20;
 
 // Utility functions
 
@@ -737,7 +734,7 @@ class Recorder {
         if (this.#timer === 0) {
             this.#timer = setInterval(() => {
                 coordinator.onPlaybackTimer();
-            }, PLAYBACK_TIMER_MS);
+            }, PLAYBACK_RESOLUTION_MS);
             console.log("Timer started");
         }
     }

@@ -34,7 +34,7 @@ const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search))
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
-const PLAYBACK_RESOLUTION = PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120;
+const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
 const NOTES_COUNT = 128;
 // Time in milliseconds to highlight a recently pressed note.
 const RECENT_NOTE_THRESHOLD_MS = 60;
@@ -48,7 +48,6 @@ const ANIMATION_TIMEOUT_MS = 30000;
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES = [50, 50, 0];
-const PLAYBACK_TIMER_MS = 20;
 // Utility functions
 function int(v) {
     return Math.floor(v);
@@ -779,7 +778,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     if (__classPrivateFieldGet(this, _Recorder_timer, "f") === 0) {
         __classPrivateFieldSet(this, _Recorder_timer, setInterval(() => {
             coordinator.onPlaybackTimer();
-        }, PLAYBACK_TIMER_MS), "f");
+        }, PLAYBACK_RESOLUTION_MS), "f");
         console.log("Timer started");
     }
 }, _Recorder_stopTimer = function _Recorder_stopTimer() {
