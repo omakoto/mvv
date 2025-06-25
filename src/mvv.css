@@ -254,8 +254,9 @@ canvas#roll2 {
 }
 
 /* recently pressed notes */
-.notes_recent {
+.notes_highlight {
     color: #ff90c0;
+    font-weight: bold;
 }
 
 #chords {

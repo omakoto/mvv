@@ -1163,23 +1163,39 @@ class Coordinator {
         midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
     }
     updateNoteInformation() {
+        // Build note names.
         const now = performance.now();
         const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
+        let lastOctave = 0;
         const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
             const noteName = getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
+            // Add extra space between octaves.
+            const octave = int(note / 12);
+            const spacing = (octave === lastOctave ? "" : "&nbsp;&nbsp;");
+            lastOctave = octave;
             // Check if the note was pressed recently.
             const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
             if (isRecent) {
-                return `<span class="notes_recent">${noteName}</span>`;
+                return `${spacing}<span class="notes_highlight">${noteName}</span>`;
             }
             else {
-                return `<span>${noteName}</span>`;
+                return `${spacing}<span>${noteName}</span>`;
             }
         });
         const noteNamesHtml = noteSpans.join(' ');
+        // Build chord names.
         // We need just the note numbers for chord analysis.
         const pressedNoteNumbers = pressedNotesInfo.map(info => info.note);
-        const chordName = analyzeChord(pressedNoteNumbers, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
+        let index = -1;
+        const chordNamesHtml = analyzeChord(pressedNoteNumbers, __classPrivateFieldGet(this, _Coordinator_useSharp, "f")).map((chord) => {
+            index++;
+            if (index == 0) {
+                return `<span class="notes_highlight">${chord}</span>`;
+            }
+            else {
+                return `<span>${chord}</span>`;
+            }
+        }).join(", ");
         if (noteNamesHtml.length > 0) {
             __classPrivateFieldGet(this, _Coordinator_notes, "f").html(noteNamesHtml);
             __classPrivateFieldGet(this, _Coordinator_notes, "f").stop(true, true).show();
@@ -1187,8 +1203,8 @@ class Coordinator {
         else {
             __classPrivateFieldGet(this, _Coordinator_notes, "f").fadeOut(800);
         }
-        if (chordName != null) {
-            __classPrivateFieldGet(this, _Coordinator_chords, "f").text(chordName);
+        if (chordNamesHtml) {
+            __classPrivateFieldGet(this, _Coordinator_chords, "f").html(chordNamesHtml);
             __classPrivateFieldGet(this, _Coordinator_chords, "f").stop(true, true).show();
         }
         else {

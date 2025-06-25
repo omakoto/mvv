@@ -2,6 +2,7 @@
 //const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
 const NOTE_NAMES_SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_NAMES_FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+const EMPTY_STRS = [];
 function getNoteName(note, sharp) {
     return (sharp ? NOTE_NAMES_SHARPS : NOTE_NAMES_FLATS)[note % 12];
 }
@@ -147,17 +148,19 @@ function analyzeChord1(notes, sharp) {
  */
 function analyzeChordTonalInner(notes, sharp, assumePerfectFifth) {
     if (notes.length < 2) {
-        return null;
+        return EMPTY_STRS;
     }
     // Tonal.js's chord detection works with note names (e.g., "C", "E", "G").
     notes.sort();
     const noteNames = notes.map(pc => Tonal.Midi.midiToNoteName(pc, { sharps: sharp }));
     //console.log(noteNames);
-    const detectedChords = Tonal.Chord.detect(noteNames, { assumePerfectFifth: true });
-    if (detectedChords && detectedChords.length > 0) {
-        return detectedChords.join(', ');
+    const chords = Tonal.Chord.detect(noteNames, { assumePerfectFifth: true });
+    if (chords === null) {
+        return EMPTY_STRS;
     }
-    return null; // No matching chord found.
+    else {
+        return chords;
+    }
 }
 function analyzeChordTonal(notes, sharp) {
     return analyzeChordTonalInner(notes, sharp, false);

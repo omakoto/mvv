@@ -12,6 +12,8 @@ declare var Tonal: any;
 const NOTE_NAMES_SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_NAMES_FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 
+const EMPTY_STRS: string[] = [];
+
 function getNoteName(note: number, sharp: boolean) {
     return (sharp ? NOTE_NAMES_SHARPS : NOTE_NAMES_FLATS)[note % 12]!!;
 }
@@ -170,29 +172,28 @@ function analyzeChord1(notes: number[], sharp: boolean): string | null {
  * @param sharp Whether to use sharp notation for note names.
  * @returns A string containing all possible chord names, separated by commas, or null if no chord is recognized.
  */
-function analyzeChordTonalInner(notes: number[], sharp: boolean, assumePerfectFifth: boolean): string | null {
+function analyzeChordTonalInner(notes: number[], sharp: boolean, assumePerfectFifth: boolean): string[] {
     if (notes.length < 2) {
-        return null;
+        return EMPTY_STRS;
     }
     // Tonal.js's chord detection works with note names (e.g., "C", "E", "G").
     notes.sort();
     const noteNames = notes.map(pc => Tonal.Midi.midiToNoteName(pc, {sharps: sharp}));
     //console.log(noteNames);
 
-    const detectedChords = Tonal.Chord.detect(noteNames, {assumePerfectFifth: true});
-
-    if (detectedChords && detectedChords.length > 0) {
-        return detectedChords.join(', ');
+    const chords = Tonal.Chord.detect(noteNames, {assumePerfectFifth: true});
+    if (chords === null) {
+        return EMPTY_STRS;
+    } else {
+        return chords;
     }
-
-    return null; // No matching chord found.
 }
 
-function analyzeChordTonal(notes: number[], sharp: boolean): string | null {
+function analyzeChordTonal(notes: number[], sharp: boolean): string[] {
     return analyzeChordTonalInner(notes, sharp, false);
 }
 
-function analyzeChord(notes: number[], sharp: boolean): string | null {
+function analyzeChord(notes: number[], sharp: boolean): string[] {
     return analyzeChordTonal(notes, sharp);
 }
 

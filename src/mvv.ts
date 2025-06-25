@@ -1362,24 +1362,44 @@ class Coordinator {
     }
 
     updateNoteInformation(): void {
+        // Build note names.
         const now = performance.now();
         const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
 
+        let lastOctave = 0;
         const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
             const noteName = getNoteFullName(note, this.#useSharp);
+
+            // Add extra space between octaves.
+            const octave = int(note / 12);
+            const spacing = (octave === lastOctave ? "" : "&nbsp;&nbsp;");
+            lastOctave = octave;
+
             // Check if the note was pressed recently.
             const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
+
             if (isRecent) {
-                return `<span class="notes_recent">${noteName}</span>`;
+                return `${spacing}<span class="notes_highlight">${noteName}</span>`;
             } else {
-                return `<span>${noteName}</span>`;
+                return `${spacing}<span>${noteName}</span>`;
             }
         });
         const noteNamesHtml = noteSpans.join(' ');
 
+        // Build chord names.
+
         // We need just the note numbers for chord analysis.
         const pressedNoteNumbers = pressedNotesInfo.map(info => info.note);
-        const chordName = analyzeChord(pressedNoteNumbers, this.#useSharp);
+        let index = -1;
+        const chordNamesHtml = analyzeChord(pressedNoteNumbers, this.#useSharp).map((chord) => {
+            index++;
+            if (index == 0) {
+                return `<span class="notes_highlight">${chord}</span>`;
+            } else {
+                return `<span>${chord}</span>`;
+            }
+        }).join(", ");
+
         
         if (noteNamesHtml.length > 0) {
             this.#notes.html(noteNamesHtml);
@@ -1387,8 +1407,8 @@ class Coordinator {
         } else {
             this.#notes.fadeOut(800);
         }
-        if (chordName != null) {
-            this.#chords.text(chordName);
+        if (chordNamesHtml) {
+            this.#chords.html(chordNamesHtml);
             this.#chords.stop(true, true).show();
         } else {
             this.#chords.fadeOut(800);
