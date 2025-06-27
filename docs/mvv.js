@@ -314,7 +314,7 @@ class Renderer {
                 __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
                 __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
                 __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = 'rgba(0, 0, 0, 0.7)';
-                __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = s(2);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = s(5);
                 __classPrivateFieldGet(this, _Renderer_roll, "f").strokeText(noteName, bl + bw / 2, scrollAmount + fontSize);
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20';
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillText(noteName, bl + bw / 2, scrollAmount + fontSize);
