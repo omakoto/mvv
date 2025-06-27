@@ -939,6 +939,12 @@ class Coordinator {
                 this.toggleScrollSpeedFactor();
                 this.updateUi();
                 break;
+            case 'Digit7':
+                if (isRepeat)
+                    break;
+                this.toggleNoteNames();
+                this.updateUi();
+                break;
             case 'KeyR':
                 if (isRepeat)
                     break;
