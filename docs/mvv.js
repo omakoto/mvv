@@ -293,7 +293,7 @@ class Renderer {
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
-        const fontSize = bw / 1.5;
+        const fontSize = bw * 1.0;
         for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
             let note = midiRenderingStatus.getNote(i);
             if (!note[0]) {

@@ -333,7 +333,7 @@ class Renderer {
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
 
-        const fontSize = bw / 1.5;
+        const fontSize = bw * 0.9;
 
         for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
             let note = midiRenderingStatus.getNote(i);
