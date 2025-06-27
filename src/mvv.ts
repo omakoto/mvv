@@ -1057,6 +1057,7 @@ class Coordinator {
                 break;
             case 'F2':
             case 'Digit2':
+            case 'Enter':
                 if (isRepeat) break;
                 this.toggleRollFrozen();
                 break;
