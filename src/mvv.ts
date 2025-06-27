@@ -357,10 +357,12 @@ class Renderer {
 
             if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
                 const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
-                console.log(noteName);
-                this.#roll.fillStyle = '#ffff20'; //'var(--main-text-color)';
                 this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
                 this.#roll.textAlign = 'center';
+                this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                this.#roll.lineWidth = s(2);
+                this.#roll.strokeText(noteName, bl + bw / 2, scrollAmount + fontSize);
+                this.#roll.fillStyle = '#ffff20';
                 this.#roll.fillText(noteName, bl + bw / 2, scrollAmount + fontSize);
             }
         }

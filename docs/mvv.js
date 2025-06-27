@@ -293,7 +293,7 @@ class Renderer {
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
-        const fontSize = bw * 1.0;
+        const fontSize = bw * 0.9;
         for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
             let note = midiRenderingStatus.getNote(i);
             if (!note[0]) {
@@ -311,10 +311,12 @@ class Renderer {
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, scrollAmount);
             if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
                 const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
-                console.log(noteName);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20'; //'var(--main-text-color)';
                 __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
                 __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
+                __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = s(2);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").strokeText(noteName, bl + bw / 2, scrollAmount + fontSize);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20';
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillText(noteName, bl + bw / 2, scrollAmount + fontSize);
             }
         }
