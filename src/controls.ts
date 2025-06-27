@@ -2,6 +2,8 @@
 
 import { coordinator, renderer, recorder } from './mvv.js';
 
+const speedClassses = ["speed-normal", "speed-fast", "speed-slow"];
+
 class Controls {
     #top;
     #rewind;
@@ -107,7 +109,7 @@ class Controls {
             ev.stopPropagation();
         });
         this.#speedup.on('click', (ev) => {
-            coordinator.toggleScrollSpeedFactor();
+            coordinator.rotateScrollSpeed();
             this.update();
             ev.stopPropagation();
         });
@@ -212,8 +214,15 @@ class Controls {
         this.activate(this.#sharp, coordinator.isSharpMode);
         this.activate(this.#flat, !coordinator.isSharpMode);
         this.activate(this.#vlines, coordinator.isShowingVlines);
-        this.activate(this.#speedup, coordinator.scrollSpeedFactor > 1);
         this.activate(this.#notenames, coordinator.isShowingNoteNames);
+
+        // Speed button. Select the right icon.
+        // Also activate it if the speed isn't the default.
+        for (let i = 0; i < speedClassses.length; i++) {
+            this.#speedup.removeClass(speedClassses[i]);
+        }
+        this.#speedup.addClass(speedClassses[coordinator.scrollSpeedIndex]);
+        this.activate(this.#speedup, coordinator.scrollSpeedIndex > 0);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {

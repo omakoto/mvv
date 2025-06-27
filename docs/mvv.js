@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_ROLL_SCROLL_AMOUNT, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_anythingDrawn, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedFactor, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_anythingDrawn, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 import { info, debug, DEBUG } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -54,6 +54,14 @@ function int(v) {
 }
 function s(v) {
     return int(v * SCALE);
+}
+// Scroll speed.
+const ROLL_SCROLL_PX = [s(2), s(4), 1];
+function getScrollSpeedPx(index) {
+    return ROLL_SCROLL_PX[index];
+}
+function getNextScrollSpeedIndex(index) {
+    return (index + 1) % ROLL_SCROLL_PX.length;
 }
 function hsvToRgb(h, s, v) {
     let r = 0, g = 0, b = 0, i, f, p, q, t;
@@ -110,7 +118,6 @@ class Renderer {
         _Renderer_instances.add(this);
         _Renderer_BAR_SUB_LINE_WIDTH.set(this, s(2));
         _Renderer_BAR_BASE_LINE_COLOR.set(this, [200, 255, 200]);
-        _Renderer_ROLL_SCROLL_AMOUNT.set(this, s(2));
         _Renderer_W.set(this, void 0); // Width in canvas pixels
         _Renderer_H.set(this, void 0); // Height in canvas pixels
         _Renderer_BAR_H.set(this, void 0);
@@ -248,7 +255,7 @@ class Renderer {
     onDraw() {
         var _b;
         __classPrivateFieldSet(this, _Renderer_currentFrame, (_b = __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), _b++, _b), "f");
-        const scrollAmount = __classPrivateFieldGet(this, _Renderer_ROLL_SCROLL_AMOUNT, "f") * coordinator.scrollSpeedFactor;
+        const scrollAmount = coordinator.scrollSpeedPx;
         // Scroll the roll.
         __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, scrollAmount);
         __classPrivateFieldSet(this, _Renderer_lastDrawY, __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") + int(scrollAmount), "f");
@@ -355,7 +362,7 @@ class Renderer {
         return $('#canvases').css('display') === 'none';
     }
 }
-_Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_ROLL_SCROLL_AMOUNT = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap(), _Renderer_drewOffLine = new WeakMap(), _Renderer_currentFrame = new WeakMap(), _Renderer_lastDrawFrame = new WeakMap(), _Renderer_lastDrawY = new WeakMap(), _Renderer_lastPedalColorInt = new WeakMap(), _Renderer_lastVlinesOn = new WeakMap(), _Renderer_instances = new WeakSet(), _Renderer_anythingDrawn = function _Renderer_anythingDrawn() {
+_Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap(), _Renderer_drewOffLine = new WeakMap(), _Renderer_currentFrame = new WeakMap(), _Renderer_lastDrawFrame = new WeakMap(), _Renderer_lastDrawY = new WeakMap(), _Renderer_lastPedalColorInt = new WeakMap(), _Renderer_lastVlinesOn = new WeakMap(), _Renderer_instances = new WeakSet(), _Renderer_anythingDrawn = function _Renderer_anythingDrawn() {
     __classPrivateFieldSet(this, _Renderer_lastDrawFrame, __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), "f");
     __classPrivateFieldSet(this, _Renderer_lastDrawY, 0, "f");
 };
@@ -851,7 +858,7 @@ class Coordinator {
         _Coordinator_useSharp.set(this, void 0);
         _Coordinator_showVlines.set(this, void 0);
         _Coordinator_showNoteNames.set(this, void 0);
-        _Coordinator_scrollSpeedFactor.set(this, void 0);
+        _Coordinator_scrollSpeedIndex.set(this, void 0);
         _Coordinator_isHelpVisible.set(this, false);
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
         _Coordinator_lastRewindPressTime.set(this, 0);
@@ -872,7 +879,7 @@ class Coordinator {
         const storedNoteNames = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES));
         __classPrivateFieldSet(this, _Coordinator_showNoteNames, storedNoteNames === null ? true : storedNoteNames === 'true', "f");
         const storedSpeed = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED));
-        __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, storedSpeed ? parseFloat(storedSpeed) : 1.0, "f");
+        __classPrivateFieldSet(this, _Coordinator_scrollSpeedIndex, storedSpeed ? parseInt(storedSpeed) : 0, "f");
     }
     onKeyDown(ev) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
@@ -922,7 +929,7 @@ class Coordinator {
             case 'Digit4':
                 if (isRepeat)
                     break;
-                this.toggleScrollSpeedFactor();
+                this.rotateScrollSpeed();
                 this.updateUi();
                 break;
             case 'Digit5':
@@ -1013,15 +1020,18 @@ class Coordinator {
         localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES), String(__classPrivateFieldGet(this, _Coordinator_showNoteNames, "f")));
         this.startAnimationLoop();
     }
-    get scrollSpeedFactor() {
-        return __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f");
+    get scrollSpeedPx() {
+        return getScrollSpeedPx(this.scrollSpeedIndex);
     }
-    setScrollSpeedFactor(factor) {
-        __classPrivateFieldSet(this, _Coordinator_scrollSpeedFactor, factor, "f");
-        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED), String(factor));
+    get scrollSpeedIndex() {
+        return __classPrivateFieldGet(this, _Coordinator_scrollSpeedIndex, "f");
     }
-    toggleScrollSpeedFactor() {
-        this.setScrollSpeedFactor(3.0 - __classPrivateFieldGet(this, _Coordinator_scrollSpeedFactor, "f"));
+    setScrollSpeedIndex(index) {
+        __classPrivateFieldSet(this, _Coordinator_scrollSpeedIndex, index, "f");
+        localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED), String(index));
+    }
+    rotateScrollSpeed() {
+        this.setScrollSpeedIndex(getNextScrollSpeedIndex(this.scrollSpeedIndex));
     }
     toggleHelpScreen() {
         __classPrivateFieldSet(this, _Coordinator_isHelpVisible, !__classPrivateFieldGet(this, _Coordinator_isHelpVisible, "f"), "f");
@@ -1345,7 +1355,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_a = Coordinator, _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showVlines = new WeakMap(), _Coordinator_showNoteNames = new WeakMap(), _Coordinator_scrollSpeedFactor = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
+_a = Coordinator, _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_timestamp = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showVlines = new WeakMap(), _Coordinator_showNoteNames = new WeakMap(), _Coordinator_scrollSpeedIndex = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_lastRewindPressTime = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = new WeakMap(), _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (recorder.isRecording) {
         return;
     }

@@ -175,8 +175,14 @@ canvas#roll2 {
 #vlines {
     background-image: url("res/triple-line.png");
 }
-#speedup {
-    background-image: url("res/speed-up.png");
+#speedup.speed-normal {
+    background-image: url("res/speed-1x.png");
+}
+#speedup.speed-fast {
+    background-image: url("res/speed-2x.png");
+}
+#speedup.speed-slow {
+    background-image: url("res/speed-slow.png");
 }
 #notenames {
     background-image: url("res/a.png");

@@ -60,6 +60,17 @@ function s(v: number): number {
     return int(v * SCALE);
 }
 
+// Scroll speed.
+const ROLL_SCROLL_PX = [s(2), s(4), 1];
+
+function getScrollSpeedPx(index: number) {
+    return ROLL_SCROLL_PX[index];
+}
+
+function getNextScrollSpeedIndex(index: number): number {
+    return (index + 1) % ROLL_SCROLL_PX.length;
+}
+
 function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
     let r = 0, g = 0, b = 0, i, f, p, q, t;
     i = Math.floor(h * 6);
@@ -99,7 +110,6 @@ function rgbToInt(rgb: [number, number, number]): number {
 class Renderer {
     #BAR_SUB_LINE_WIDTH = s(2);
     #BAR_BASE_LINE_COLOR: [number, number, number] = [200, 255, 200];
-    #ROLL_SCROLL_AMOUNT = s(2);
 
     #W; // Width in canvas pixels
     #H; // Height in canvas pixels
@@ -276,7 +286,7 @@ class Renderer {
     onDraw(): void {
         this.#currentFrame++;
 
-        const scrollAmount = this.#ROLL_SCROLL_AMOUNT * coordinator.scrollSpeedFactor;
+        const scrollAmount = coordinator.scrollSpeedPx;
         // Scroll the roll.
         this.#roll.drawImage(this.#croll, 0, scrollAmount);
 
@@ -991,7 +1001,7 @@ class Coordinator {
     #useSharp: boolean;
     #showVlines: boolean;
     #showNoteNames: boolean;
-    #scrollSpeedFactor: number;
+    #scrollSpeedIndex: number;
     #isHelpVisible = false;
 
     // LocalStorage keys
@@ -1018,7 +1028,7 @@ class Coordinator {
         this.#showNoteNames = storedNoteNames === null ? true : storedNoteNames === 'true';
 
         const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
-        this.#scrollSpeedFactor = storedSpeed ? parseFloat(storedSpeed) : 1.0;
+        this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed) : 0;
     }
 
     onKeyDown(ev: KeyboardEvent) {
@@ -1069,7 +1079,7 @@ class Coordinator {
                 break;
             case 'Digit4':
                 if (isRepeat) break;
-                this.toggleScrollSpeedFactor();
+                this.rotateScrollSpeed();
                 this.updateUi();
                 break;
 
@@ -1161,17 +1171,21 @@ class Coordinator {
         this.startAnimationLoop();
     }
 
-    get scrollSpeedFactor(): number {
-        return this.#scrollSpeedFactor;
+    get scrollSpeedPx(): number {
+        return getScrollSpeedPx(this.scrollSpeedIndex);
     }
 
-    setScrollSpeedFactor(factor: number): void {
-        this.#scrollSpeedFactor = factor;
-        localStorage.setItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED, String(factor));
+    get scrollSpeedIndex(): number {
+        return this.#scrollSpeedIndex;
     }
 
-    toggleScrollSpeedFactor(): void {
-        this.setScrollSpeedFactor(3.0 - this.#scrollSpeedFactor);
+    setScrollSpeedIndex(index: number): void {
+        this.#scrollSpeedIndex = index;
+        localStorage.setItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED, String(index));
+    }
+
+    rotateScrollSpeed(): void {
+        this.setScrollSpeedIndex(getNextScrollSpeedIndex(this.scrollSpeedIndex));
     }
 
     toggleHelpScreen(): void {

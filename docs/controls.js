@@ -12,6 +12,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_notenames, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { coordinator, renderer, recorder } from './mvv.js';
+const speedClassses = ["speed-normal", "speed-fast", "speed-slow"];
 class Controls {
     constructor() {
         _Controls_top.set(this, void 0);
@@ -108,7 +109,7 @@ class Controls {
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_speedup, "f").on('click', (ev) => {
-            coordinator.toggleScrollSpeedFactor();
+            coordinator.rotateScrollSpeed();
             this.update();
             ev.stopPropagation();
         });
@@ -203,8 +204,14 @@ class Controls {
         this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), coordinator.isSharpMode);
         this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
         this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingVlines);
-        this.activate(__classPrivateFieldGet(this, _Controls_speedup, "f"), coordinator.scrollSpeedFactor > 1);
         this.activate(__classPrivateFieldGet(this, _Controls_notenames, "f"), coordinator.isShowingNoteNames);
+        // Speed button. Select the right icon.
+        // Also activate it if the speed isn't the default.
+        for (let i = 0; i < speedClassses.length; i++) {
+            __classPrivateFieldGet(this, _Controls_speedup, "f").removeClass(speedClassses[i]);
+        }
+        __classPrivateFieldGet(this, _Controls_speedup, "f").addClass(speedClassses[coordinator.scrollSpeedIndex]);
+        this.activate(__classPrivateFieldGet(this, _Controls_speedup, "f"), coordinator.scrollSpeedIndex > 0);
     }
     setCurrentPosition(positionMillis, totalMillis) {
         if (__classPrivateFieldGet(this, _Controls_isPositionDragging, "f")) {
