@@ -178,6 +178,9 @@ canvas#roll2 {
 #speedup {
     background-image: url("res/speed-up.png");
 }
+#notenames {
+    background-image: url("res/a.png");
+}
 #source {
     background-image: url("res/source.png");
     margin-right: 12px;

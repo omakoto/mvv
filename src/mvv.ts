@@ -355,7 +355,7 @@ class Renderer {
             this.#roll.fillStyle = colorStr;
             this.#roll.fillRect(bl, 0, bw, scrollAmount);
 
-            if (midiRenderingStatus.isJustPressed(i)) {
+            if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
                 const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
                 console.log(noteName);
                 this.#roll.fillStyle = '#ffff20'; //'var(--main-text-color)';
@@ -988,12 +988,14 @@ class Coordinator {
     #chords;
     #useSharp: boolean;
     #showVlines: boolean;
+    #showNoteNames: boolean;
     #scrollSpeedFactor: number;
     #isHelpVisible = false;
 
     // LocalStorage keys
     static readonly #STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
     static readonly #STORAGE_KEY_SHOW_VLINES = 'mvv_showVlines';
+    static readonly #STORAGE_KEY_SHOW_NOTE_NAMES = 'mvv_showNoteNames';
     static readonly #STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
 
     constructor() {
@@ -1009,6 +1011,9 @@ class Coordinator {
 
         const storedVlines = localStorage.getItem(Coordinator.#STORAGE_KEY_SHOW_VLINES);
         this.#showVlines = storedVlines === null ? true : storedVlines === 'true';
+
+        const storedNoteNames = localStorage.getItem(Coordinator.#STORAGE_KEY_SHOW_NOTE_NAMES);
+        this.#showNoteNames = storedNoteNames === null ? true : storedNoteNames === 'true';
 
         const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
         this.#scrollSpeedFactor = storedSpeed ? parseFloat(storedSpeed) : 1.0;
@@ -1133,6 +1138,16 @@ class Coordinator {
     setShowingVlines(show: boolean): void {
         this.#showVlines = show
         localStorage.setItem(Coordinator.#STORAGE_KEY_SHOW_VLINES, String(show));
+        this.startAnimationLoop();
+    }
+
+    get isShowingNoteNames(): boolean {
+        return this.#showNoteNames;
+    }
+
+    toggleNoteNames(): void {
+        this.#showNoteNames = !this.#showNoteNames;
+        localStorage.setItem(Coordinator.#STORAGE_KEY_SHOW_NOTE_NAMES, String(this.#showNoteNames));
         this.startAnimationLoop();
     }
 

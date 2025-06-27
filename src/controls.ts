@@ -21,6 +21,7 @@ class Controls {
     #flat;
     #vlines;
     #speedup;
+    #notenames;
 
     constructor() {
         this.#top = $("#top");
@@ -45,6 +46,7 @@ class Controls {
 
         this.#vlines = $("#vlines");
         this.#speedup = $("#speedup");
+        this.#notenames = $("#notenames");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -106,6 +108,12 @@ class Controls {
         });
         this.#speedup.on('click', (ev) => {
             coordinator.toggleScrollSpeedFactor();
+            this.update();
+            ev.stopPropagation();
+        });
+
+        this.#notenames.on('click', (ev) => {
+            coordinator.toggleNoteNames();
             this.update();
             ev.stopPropagation();
         });
@@ -205,6 +213,7 @@ class Controls {
         this.activate(this.#flat, !coordinator.isSharpMode);
         this.activate(this.#vlines, coordinator.isShowingVlines);
         this.activate(this.#speedup, coordinator.scrollSpeedFactor > 1);
+        this.activate(this.#notenames, coordinator.isShowingNoteNames);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {
