@@ -293,6 +293,8 @@ class Renderer {
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
+        const fontSize = bw / 1.5;
+        const fontOffset = s(0);
         for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
             let note = midiRenderingStatus.getNote(i);
             if (!note[0]) {
@@ -308,6 +310,14 @@ class Renderer {
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(bl, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), bw, -bh);
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, scrollAmount);
+            if (midiRenderingStatus.isJustPressed(i)) {
+                const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                console.log(noteName);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20'; //'var(--main-text-color)';
+                __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
+                __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillText(noteName, bl + bw / 2, scrollAmount + fontSize + fontOffset);
+            }
         }
         if (coordinator.isShowingVlines) {
             // Draw octave lines.
@@ -433,6 +443,11 @@ class MidiRenderingStatus {
         else {
             return [false, 0];
         }
+    }
+    isJustPressed(noteIndex) {
+        const note = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
+        // A note is "just pressed" if it's on and its on-tick is the current tick.
+        return note[0] && note[2] === __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
     }
     /**
      * Returns an array of MIDI note numbers for all notes currently considered "on".

@@ -5,6 +5,7 @@ import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
 import { saveAsBox, confirmBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
+declare var Tonal: any;
 
 
 // 2D game with canvas example: https://github.com/end3r/Gamedev-Canvas-workshop/blob/gh-pages/lesson10.html
@@ -332,6 +333,8 @@ class Renderer {
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
 
+        const fontSize = bw / 1.5;
+
         for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
             let note = midiRenderingStatus.getNote(i);
             if (!note[0]) {
@@ -351,6 +354,15 @@ class Renderer {
 
             this.#roll.fillStyle = colorStr;
             this.#roll.fillRect(bl, 0, bw, scrollAmount);
+
+            if (midiRenderingStatus.isJustPressed(i)) {
+                const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                console.log(noteName);
+                this.#roll.fillStyle = '#ffff20'; //'var(--main-text-color)';
+                this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
+                this.#roll.textAlign = 'center';
+                this.#roll.fillText(noteName, bl + bw / 2, scrollAmount + fontSize);
+            }
         }
 
         if (coordinator.isShowingVlines) {
@@ -486,6 +498,12 @@ class MidiRenderingStatus {
         } else {
             return [false, 0];
         }
+    }
+
+    isJustPressed(noteIndex: number): boolean {
+        const note = this.#notes[noteIndex]!;
+        // A note is "just pressed" if it's on and its on-tick is the current tick.
+        return note[0] && note[2] === this.#tick;
     }
     
     /**
