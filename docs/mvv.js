@@ -901,52 +901,50 @@ class Coordinator {
         }
         const isRepeat = ev.repeat;
         switch (ev.code) {
-            case 'F1':
             case 'Digit1':
                 if (isRepeat)
                     break;
-                this.toggleVideoMute();
+                this.toggleNoteNames();
+                this.updateUi();
                 break;
-            case 'F2':
             case 'Digit2':
-            case 'Enter':
-                if (isRepeat)
-                    break;
-                this.toggleRollFrozen();
-                break;
-            case 'KeyF':
-                if (isRepeat)
-                    break;
-                this.toggleFullScreen();
-                break;
-            case 'Digit3':
-                if (isRepeat)
-                    break;
-                __classPrivateFieldGet(this, _Coordinator_efps, "f").toggle();
-                break;
-            case 'Digit4':
                 if (isRepeat)
                     break;
                 this.setSharpMode(!this.isSharpMode);
                 this.updateUi();
                 break;
-            case 'Digit5':
+            case 'Digit3':
                 if (isRepeat)
                     break;
                 this.setShowingVlines(!this.isShowingVlines);
                 this.updateUi();
                 break;
-            case 'Digit6':
+            case 'Digit4':
                 if (isRepeat)
                     break;
                 this.toggleScrollSpeedFactor();
                 this.updateUi();
                 break;
-            case 'Digit7':
+            case 'Digit5':
                 if (isRepeat)
                     break;
-                this.toggleNoteNames();
-                this.updateUi();
+                this.toggleVideoMute();
+                break;
+            case 'Digit6':
+            case 'Enter':
+                if (isRepeat)
+                    break;
+                this.toggleRollFrozen();
+                break;
+            case 'Digit9':
+                if (isRepeat)
+                    break;
+                __classPrivateFieldGet(this, _Coordinator_efps, "f").toggle();
+                break;
+            case 'KeyF':
+                if (isRepeat)
+                    break;
+                this.toggleFullScreen();
                 break;
             case 'KeyR':
                 if (isRepeat)
