@@ -184,6 +184,9 @@ canvas#roll2 {
 #speedup.speed-slow {
     background-image: url("res/speed-slow.png");
 }
+#speedup.speed-slowest {
+    background-image: url("res/speed-slowest.png");
+}
 #notenames {
     background-image: url("res/a.png");
 }

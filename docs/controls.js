@@ -12,7 +12,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_notenames, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { coordinator, renderer, recorder } from './mvv.js';
-const speedClassses = ["speed-normal", "speed-fast", "speed-slow"];
+const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
 class Controls {
     constructor() {
         _Controls_top.set(this, void 0);

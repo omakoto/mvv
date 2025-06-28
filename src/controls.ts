@@ -2,7 +2,7 @@
 
 import { coordinator, renderer, recorder } from './mvv.js';
 
-const speedClassses = ["speed-normal", "speed-fast", "speed-slow"];
+const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
 
 class Controls {
     #top;

@@ -48,7 +48,7 @@ const ANIMATION_TIMEOUT_MS = 30_000;
 // Common values
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
 // Dark yellow color for octave lines
-const RGB_OCTAVE_LINES: [number, number, number] = [50, 50, 0];
+const RGB_OCTAVE_LINES: [number, number, number] = [100, 100, 0];
 
 // Utility functions
 
@@ -61,7 +61,7 @@ function s(v: number): number {
 }
 
 // Scroll speed.
-const ROLL_SCROLL_PX = [s(2), s(4), 1];
+const ROLL_SCROLL_PX = [s(2), s(4), 0.25, 1];
 
 function getScrollSpeedPx(index: number) {
     return ROLL_SCROLL_PX[index];
@@ -137,6 +137,9 @@ class Renderer {
 
     // Last frame # when anything was drawn
     #lastDrawFrame = 0;
+
+    // Keep track of subpixel scroll position.
+    #subpixelScroll = 0;
 
     // Last drawn element Y position.
     #lastDrawY = 0;
@@ -241,7 +244,7 @@ class Renderer {
     }
 
     // Draws vertical lines between octaves (B to C).
-    drawOctaveLines(): void {
+    drawOctaveLines(drawHeight: number): void {
         this.#roll.fillStyle = rgbToStr(RGB_OCTAVE_LINES);
         this.#bar.fillStyle = this.#roll.fillStyle
         const OCTAVE_LINE_WIDTH = 2; // Width of the octave line
@@ -260,15 +263,8 @@ class Renderer {
                 const x = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
                 
                 // Draw the vertical line
-                this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#ROLL_H);
+                this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
 
-                // Hack -- draw the lines three times in #bar.
-                // Without this, the lines in #roll would look thicker because
-                // when we scroll it, we just draw itself on top of it with a slight
-                // offset, which would accumulate the subpixel artifacts.
-                // (or something like that.)
-                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
-                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
                 this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
             }
         }
@@ -286,11 +282,20 @@ class Renderer {
     onDraw(): void {
         this.#currentFrame++;
 
-        const scrollAmount = coordinator.scrollSpeedPx;
-        // Scroll the roll.
-        this.#roll.drawImage(this.#croll, 0, scrollAmount);
+        this.#subpixelScroll += coordinator.scrollSpeedPx;
 
-        this.#lastDrawY += int(scrollAmount);
+        const scrollAmount = int(this.#subpixelScroll);
+        const drawHeight = Math.max(scrollAmount, 1);
+        this.#subpixelScroll -= scrollAmount;
+
+        // Scroll the roll.
+        if (scrollAmount >= 1) {
+            this.#roll.drawImage(this.#croll, 0, scrollAmount);
+        }
+
+        this.#lastDrawY += scrollAmount;
+
+        const hlineHeight = s(2);
 
         // Draw the pedals.
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
@@ -300,7 +305,7 @@ class Renderer {
 
 
         this.#roll.fillStyle = rgbToStr(pedalColor);
-        this.#roll.fillRect(0, 0, this.#W, scrollAmount);
+        this.#roll.fillRect(0, 0, this.#W, drawHeight);
         if (pedalColorInt !== this.#lastPedalColorInt) {
             this.#anythingDrawn();
             this.#lastPedalColorInt = pedalColorInt;
@@ -322,7 +327,7 @@ class Renderer {
             // so avoid doing so.
             if (!this.#drewOffLine) {
                 this.#roll.fillStyle = "#008040";
-                this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
+                this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
             }
 
             this.#drewOffLine = true;
@@ -335,7 +340,7 @@ class Renderer {
             this.#anythingDrawn();
 
             this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
-            this.#roll.fillRect(0, scrollAmount - s(2), this.#W, s(2));
+            this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
         }
 
         // Sub lines.
@@ -363,7 +368,7 @@ class Renderer {
             this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
 
             this.#roll.fillStyle = colorStr;
-            this.#roll.fillRect(bl, 0, bw, scrollAmount);
+            this.#roll.fillRect(bl, 0, bw, drawHeight);
 
             if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
                 const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
@@ -371,15 +376,15 @@ class Renderer {
                 this.#roll.textAlign = 'center';
                 this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
                 this.#roll.lineWidth = s(5);
-                this.#roll.strokeText(noteName, bl + bw / 2, scrollAmount + fontSize);
+                this.#roll.strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
                 this.#roll.fillStyle = '#ffff20';
-                this.#roll.fillText(noteName, bl + bw / 2, scrollAmount + fontSize);
+                this.#roll.fillText(noteName, bl + bw / 2, drawHeight + fontSize);
             }
         }
 
         if (coordinator.isShowingVlines) {
             // Draw octave lines.
-            this.drawOctaveLines();
+            this.drawOctaveLines(drawHeight);
         }
         if (this.#lastVlinesOn !== coordinator.isShowingVlines) {
             this.#anythingDrawn();
