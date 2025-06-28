@@ -152,6 +152,7 @@ class Controls {
         control.addClass('button-activated-unclickable');
     }
     update() {
+        console.log("Updating control states...");
         this.activate(__classPrivateFieldGet(this, _Controls_freeze, "f"), renderer.isRollFrozen);
         this.activate(__classPrivateFieldGet(this, _Controls_videoMute, "f"), renderer.isVideoMuted);
         if (recorder.isRecording) {

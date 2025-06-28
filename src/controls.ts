@@ -160,6 +160,7 @@ class Controls {
     }
 
     public update() {
+        console.log("Updating control states...");
         this.activate(this.#freeze, renderer.isRollFrozen);
         this.activate(this.#videoMute, renderer.isVideoMuted);
         if (recorder.isRecording) {

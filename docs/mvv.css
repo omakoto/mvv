@@ -256,6 +256,7 @@ canvas#roll2 {
 /* Style for the note display span */
 #notes {
     position: fixed;
+    display: none;
     right: 10px;
     top: 24px;
     font-size: 14pt;
@@ -273,6 +274,7 @@ canvas#roll2 {
 
 #chords {
     position: fixed;
+    display: none;
     right: 10px;
     top: 50px;
     font-size: 14pt;
