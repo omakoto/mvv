@@ -105,12 +105,14 @@ canvas#roll2 {
     display: inline-block;
 }
 
-.button:hover {
-    filter: brightness(4);
+@media (hover: hover) {
+    .button:hover {
+        filter: brightness(2);
+    }
 }
 
 .button:active {
-    filter: brightness(4) drop-shadow(0px 0px 4px yellow);
+    filter: brightness(6) drop-shadow(0px 0px 4px yellow);
 }
 
 .button-disabled {
@@ -119,11 +121,11 @@ canvas#roll2 {
 }
 
 .button-activated {
-    filter: brightness(4);
+    filter: brightness(6);
 }
 
 .button-activated-unclickable {
-    filter: brightness(4);
+    filter: brightness(6);
     pointer-events: none;
 }
 
