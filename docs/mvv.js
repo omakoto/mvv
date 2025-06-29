@@ -407,20 +407,24 @@ class MidiRenderingStatus {
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
-        if (ev.isNoteOn) { // Note on
-            __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, // Note on
-            (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _b++, _b), "f");
+        if (ev.isNoteOn) {
             let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
+            if (ar[0]) {
+                return; // Already on
+            }
+            __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _b++, _b), "f");
             ar[0] = true;
             ar[1] = data2;
             ar[2] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
             ar[3] = performance.now(); // Store press timestamp
             ar[4] = 0;
         }
-        else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
-            __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, // Note off
-            (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _c++, _c), "f");
+        else if (ev.isNoteOff) {
             let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
+            if (!ar[0]) {
+                return; // Already on
+            }
+            __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _c++, _c), "f");
             ar[0] = false;
             ar[4] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
         }
@@ -483,7 +487,19 @@ class MidiRenderingStatus {
     isJustPressed(noteIndex) {
         const note = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
         // A note is "just pressed" if it's on and its on-tick is the current tick.
-        return note[0] && note[2] === __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
+        // Check if the note is pressed in the same tick and is till on,
+        // or, pressed in the same tick and is already released.
+        if (note[2] !== __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f")) {
+            return false;
+        }
+        if (note[0]) {
+            // Note on, and is pressed in the same tick, so yes.
+            return true;
+        }
+        else {
+            // Note off, but was pressed and released in this tick, so still yes.
+            return note[4] === __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
+        }
     }
     /**
      * Returns an array of MIDI note numbers for all notes currently considered "on".
@@ -1183,7 +1199,7 @@ class Coordinator {
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
         }
-        if (ev.status === 144 || ev.status === 128) {
+        if (ev.isNoteOn || ev.isNoteOff) {
             this.updateNoteInformation();
         }
     }

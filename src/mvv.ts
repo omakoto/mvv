@@ -474,18 +474,24 @@ class MidiRenderingStatus {
         let data1 = ev.data1;
         let data2 = ev.data2;
 
-        if (ev.isNoteOn) { // Note on
-            this.#onNoteCount++;
+        if (ev.isNoteOn) {
             let ar = this.#notes[data1]!;
+            if (ar[0]) {
+                return; // Already on
+            }
+            this.#onNoteCount++;
             ar[0] = true;
             ar[1] = data2;
             ar[2] = this.#tick;
             ar[3] = performance.now(); // Store press timestamp
             ar[4] = 0;
 
-        } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
-            this.#offNoteCount++;
+        } else if (ev.isNoteOff) {
             let ar = this.#notes[data1]!;
+            if (!ar[0]) {
+                return; // Already on
+            }
+            this.#offNoteCount++;
             ar[0] = false;
             ar[4] = this.#tick;
 
@@ -555,9 +561,21 @@ class MidiRenderingStatus {
     isJustPressed(noteIndex: number): boolean {
         const note = this.#notes[noteIndex]!;
         // A note is "just pressed" if it's on and its on-tick is the current tick.
-        return note[0] && note[2] === this.#tick;
+
+        // Check if the note is pressed in the same tick and is till on,
+        // or, pressed in the same tick and is already released.
+        if (note[2] !== this.#tick) {
+            return false;
+        }
+        if (note[0]) {
+            // Note on, and is pressed in the same tick, so yes.
+            return true;
+        } else {
+            // Note off, but was pressed and released in this tick, so still yes.
+            return note[4] === this.#tick
+        }
     }
-    
+
     /**
      * Returns an array of MIDI note numbers for all notes currently considered "on".
      */
@@ -1396,10 +1414,11 @@ class Coordinator {
         this.#normalizeMidiEvent(ev);
 
         midiRenderingStatus.onMidiMessage(ev);
+
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
         }
-        if (ev.status === 144 || ev.status === 128) {
+        if (ev.isNoteOn || ev.isNoteOff) {
             this.updateNoteInformation();
         }
     }
