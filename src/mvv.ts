@@ -365,6 +365,7 @@ class Renderer {
             let note = midiRenderingStatus.getNote(i);
             const on = note[0];
             const velocity = note[1];
+            const offDuration = note[2];
 
             let color = this.getBarColor(velocity)
             const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * note[2]));
@@ -547,7 +548,7 @@ class MidiRenderingStatus {
 
         } else {
             // Off note, still return velocity, but return the off duration.
-            return [false, ar[1], this.#tick - ar[4]];
+            return [false, ar[1], this.#tick - ar[4] + 1];
         }
     }
 
