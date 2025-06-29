@@ -250,7 +250,8 @@ class Renderer {
         }
     }
     needsAnimation() {
-        return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") || __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64); // +64 for safety(?) margin
+        return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") ||
+            (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f") && __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64)); // +64 for safety(?) margin
     }
     onDraw() {
         var _b;

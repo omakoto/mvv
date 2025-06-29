@@ -281,7 +281,8 @@ class Renderer {
     }
 
     needsAnimation(): boolean {
-        return this.#needsAnimation || this.#lastDrawY <= (this.#ROLL_H + 64); // +64 for safety(?) margin
+        return this.#needsAnimation ||
+                (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64)); // +64 for safety(?) margin
     }
 
     onDraw(): void {
