@@ -42,8 +42,6 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
-// To save power, we'll stop animation after this much time since the last midi event.
-const ANIMATION_TIMEOUT_MS = 30000;
 // Common values
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
@@ -239,7 +237,9 @@ class Renderer {
                 // This will be at the left edge of the C note's visual block.
                 const x = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
                 // Draw the vertical line
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
+                if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
+                }
                 __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
             }
         }
@@ -250,57 +250,60 @@ class Renderer {
     onDraw() {
         var _b;
         __classPrivateFieldSet(this, _Renderer_currentFrame, (_b = __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), _b++, _b), "f");
-        __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") + coordinator.scrollSpeedPx, "f");
-        const scrollAmount = int(__classPrivateFieldGet(this, _Renderer_subpixelScroll, "f"));
-        const drawHeight = Math.max(scrollAmount, 1);
-        __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") - scrollAmount, "f");
-        // Scroll the roll.
-        if (scrollAmount >= 1) {
-            __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, scrollAmount);
-        }
-        __classPrivateFieldSet(this, _Renderer_lastDrawY, __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") + scrollAmount, "f");
-        const hlineHeight = s(2);
-        // Draw the pedals.
-        const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
-        const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
-        const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
-        const pedalColorInt = rgbToInt(pedalColor);
-        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(pedalColor);
-        __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), drawHeight);
-        if (pedalColorInt !== __classPrivateFieldGet(this, _Renderer_lastPedalColorInt, "f")) {
-            __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
-            __classPrivateFieldSet(this, _Renderer_lastPedalColorInt, pedalColorInt, "f");
-        }
         // Clear the bar area.
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = 'black';
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_H, "f"));
-        // Individual bar width
-        let bw = __classPrivateFieldGet(this, _Renderer_W, "f") / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1) - 1;
-        // "Off" line
-        if (midiRenderingStatus.offNoteCount > 0) {
-            __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
-            // We don't highlight off lines. Always same color.
-            // However, if we draw two off lines in a raw, it'll look brighter,
-            // so avoid doing so.
-            if (!__classPrivateFieldGet(this, _Renderer_drewOffLine, "f")) {
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = "#008040";
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
-            }
-            __classPrivateFieldSet(this, _Renderer_drewOffLine, true, "f");
-        }
-        else {
-            __classPrivateFieldSet(this, _Renderer_drewOffLine, false, "f");
-        }
-        // "On" line
-        if (midiRenderingStatus.onNoteCount > 0) {
-            __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
-            __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
-            __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
-        }
-        // Sub lines.
+        // Sub bar lines.
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
+        // Individual bar width
+        let bw = __classPrivateFieldGet(this, _Renderer_W, "f") / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1) - 1;
+        var drawHeight = 0;
+        if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
+            __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") + coordinator.scrollSpeedPx, "f");
+            const scrollAmount = int(__classPrivateFieldGet(this, _Renderer_subpixelScroll, "f"));
+            __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") - scrollAmount, "f");
+            const hlineHeight = s(2);
+            drawHeight = Math.max(scrollAmount, hlineHeight);
+            // Scroll the roll.
+            if (scrollAmount >= 1) {
+                __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, scrollAmount);
+            }
+            __classPrivateFieldSet(this, _Renderer_lastDrawY, __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") + scrollAmount, "f");
+            // Draw the pedals.
+            const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+            const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
+            const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+            const pedalColorInt = rgbToInt(pedalColor);
+            __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(pedalColor);
+            __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), drawHeight);
+            if (pedalColorInt !== __classPrivateFieldGet(this, _Renderer_lastPedalColorInt, "f")) {
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+                __classPrivateFieldSet(this, _Renderer_lastPedalColorInt, pedalColorInt, "f");
+            }
+            // "Off" line
+            if (midiRenderingStatus.offNoteCount > 0) {
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+                // We don't highlight off lines. Always same color.
+                // However, if we draw two off lines in a raw, it'll look brighter,
+                // so avoid doing so.
+                if (!__classPrivateFieldGet(this, _Renderer_drewOffLine, "f")) {
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = "#008040";
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
+                }
+                __classPrivateFieldSet(this, _Renderer_drewOffLine, true, "f");
+            }
+            else {
+                __classPrivateFieldSet(this, _Renderer_drewOffLine, false, "f");
+            }
+            // "On" line
+            if (midiRenderingStatus.onNoteCount > 0) {
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
+            }
+        }
         const fontSize = bw * 0.9;
         for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
             let note = midiRenderingStatus.getNote(i);
@@ -315,17 +318,19 @@ class Renderer {
             let bh = __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * note[1] / 127;
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = colorStr;
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(bl, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), bw, -bh);
-            __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
-            __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, drawHeight);
-            if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
-                const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
-                __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
-                __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = 'rgba(0, 0, 0, 0.7)';
-                __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = s(5);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20';
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+            if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, drawHeight);
+                if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
+                    const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = s(5);
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20';
+                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+                }
             }
         }
         if (coordinator.isShowingVlines) {

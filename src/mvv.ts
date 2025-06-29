@@ -42,9 +42,6 @@ const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // We set some styles in JS.
 const BAR_RATIO = 0.3; // Bar : Roll height
 
-// To save power, we'll stop animation after this much time since the last midi event.
-const ANIMATION_TIMEOUT_MS = 30_000;
-
 // Common values
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
 // Dark yellow color for octave lines
@@ -263,7 +260,9 @@ class Renderer {
                 const x = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
                 
                 // Draw the vertical line
-                this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
+                if (!this.#rollFrozen) {
+                    this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
+                }
 
                 this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
             }
@@ -282,71 +281,74 @@ class Renderer {
     onDraw(): void {
         this.#currentFrame++;
 
-        this.#subpixelScroll += coordinator.scrollSpeedPx;
-
-        const scrollAmount = int(this.#subpixelScroll);
-        const drawHeight = Math.max(scrollAmount, 1);
-        this.#subpixelScroll -= scrollAmount;
-
-        // Scroll the roll.
-        if (scrollAmount >= 1) {
-            this.#roll.drawImage(this.#croll, 0, scrollAmount);
-        }
-
-        this.#lastDrawY += scrollAmount;
-
-        const hlineHeight = s(2);
-
-        // Draw the pedals.
-        const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
-        const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
-        const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
-        const pedalColorInt = rgbToInt(pedalColor);
-
-
-        this.#roll.fillStyle = rgbToStr(pedalColor);
-        this.#roll.fillRect(0, 0, this.#W, drawHeight);
-        if (pedalColorInt !== this.#lastPedalColorInt) {
-            this.#anythingDrawn();
-            this.#lastPedalColorInt = pedalColorInt;
-        }
-
         // Clear the bar area.
         this.#bar.fillStyle = 'black';
         this.#bar.fillRect(0, 0, this.#W, this.#H);
 
-        // Individual bar width
-        let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
-
-        // "Off" line
-        if (midiRenderingStatus.offNoteCount > 0) {
-            this.#anythingDrawn();
-
-            // We don't highlight off lines. Always same color.
-            // However, if we draw two off lines in a raw, it'll look brighter,
-            // so avoid doing so.
-            if (!this.#drewOffLine) {
-                this.#roll.fillStyle = "#008040";
-                this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
-            }
-
-            this.#drewOffLine = true;
-        } else {
-            this.#drewOffLine = false;
-        }
-        
-        // "On" line
-        if (midiRenderingStatus.onNoteCount > 0) {
-            this.#anythingDrawn();
-
-            this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
-            this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
-        }
-
-        // Sub lines.
+        // Sub bar lines.
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
+
+        // Individual bar width
+        let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
+
+        var drawHeight: number = 0;
+
+        if (!this.#rollFrozen) {
+            this.#subpixelScroll += coordinator.scrollSpeedPx;
+            const scrollAmount = int(this.#subpixelScroll);
+            this.#subpixelScroll -= scrollAmount;
+
+            const hlineHeight = s(2);
+            drawHeight = Math.max(scrollAmount, hlineHeight);
+
+            // Scroll the roll.
+            if (scrollAmount >= 1) {
+                this.#roll.drawImage(this.#croll, 0, scrollAmount);
+            }
+
+            this.#lastDrawY += scrollAmount;
+
+            // Draw the pedals.
+            const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+            const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
+            const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+            const pedalColorInt = rgbToInt(pedalColor);
+
+            this.#roll.fillStyle = rgbToStr(pedalColor);
+            this.#roll.fillRect(0, 0, this.#W, drawHeight);
+            if (pedalColorInt !== this.#lastPedalColorInt) {
+                this.#anythingDrawn();
+                this.#lastPedalColorInt = pedalColorInt;
+            }
+
+            // "Off" line
+            if (midiRenderingStatus.offNoteCount > 0) {
+                this.#anythingDrawn();
+
+                // We don't highlight off lines. Always same color.
+                // However, if we draw two off lines in a raw, it'll look brighter,
+                // so avoid doing so.
+                if (!this.#drewOffLine) {
+                    this.#roll.fillStyle = "#008040";
+                    this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
+                }
+
+                this.#drewOffLine = true;
+            } else {
+                this.#drewOffLine = false;
+            }
+            
+            // "On" line
+            if (midiRenderingStatus.onNoteCount > 0) {
+                this.#anythingDrawn();
+
+                this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
+                this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
+            }
+
+        }
 
         const fontSize = bw * 0.9;
 
@@ -367,18 +369,20 @@ class Renderer {
             this.#bar.fillStyle = colorStr;
             this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
 
-            this.#roll.fillStyle = colorStr;
-            this.#roll.fillRect(bl, 0, bw, drawHeight);
+            if (!this.#rollFrozen) {
+                this.#roll.fillStyle = colorStr;
+                this.#roll.fillRect(bl, 0, bw, drawHeight);
 
-            if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
-                const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
-                this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
-                this.#roll.textAlign = 'center';
-                this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-                this.#roll.lineWidth = s(5);
-                this.#roll.strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
-                this.#roll.fillStyle = '#ffff20';
-                this.#roll.fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+                if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
+                    const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                    this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
+                    this.#roll.textAlign = 'center';
+                    this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                    this.#roll.lineWidth = s(5);
+                    this.#roll.strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
+                    this.#roll.fillStyle = '#ffff20';
+                    this.#roll.fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+                }
             }
         }
 
