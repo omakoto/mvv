@@ -41,7 +41,7 @@ const RECENT_NOTE_THRESHOLD_MS = 60;
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
-const BAR_RATIO = 0.3; // Bar : Roll height
+const BAR_RATIO = 0.15; // Bar : Roll height
 // Common values
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines

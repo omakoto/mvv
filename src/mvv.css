@@ -31,14 +31,14 @@ body {
 canvas#bar2 {
     margin: 0;
     width: 100%;
-    height: 30%; /* Note we override it in JS */
+    height: 15%; /* Note we override it in JS */
     display: block;
 }
 
 canvas#roll2 {
     margin: 0;
     width: 100%;
-    height: 70%; /* Note we override it in JS */
+    height: 85%; /* Note we override it in JS */
     display: block;
 }
 
