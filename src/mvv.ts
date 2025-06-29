@@ -504,7 +504,7 @@ class MidiRenderingStatus {
         this.#tick = 0;
         this.#notes = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
-            this.#notes[i] = [false, 0, 0, 0, 0];
+            this.#notes[i] = [false, 0, -9999, 0, 0];
         }
         this.#pedal = 0;
         this.#sostenuto = 0;

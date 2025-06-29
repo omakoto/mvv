@@ -438,7 +438,7 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_notes, [], "f");
         for (let i = 0; i < NOTES_COUNT; i++) {
-            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, 0, 0, 0];
+            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -9999, 0, 0];
         }
         __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
