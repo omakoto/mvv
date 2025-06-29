@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_anythingDrawn, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_isHelpVisible, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 import { info, debug, DEBUG } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -35,6 +35,7 @@ const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
 const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
+const ALPHA_DECAY = 10;
 const NOTES_COUNT = 128;
 // Time in milliseconds to highlight a recently pressed note.
 const RECENT_NOTE_THRESHOLD_MS = 60;
@@ -94,12 +95,15 @@ function hsvToRgb(h, s, v) {
         Math.round(b * 255)
     ];
 }
-function rgbToStr(rgb) {
+function rgbToStr(rgb, alpha = 255) {
     // special common cases
-    if (rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0) {
+    if (rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0 && alpha === 255) {
         return "black";
     }
-    return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+    if (alpha === 255) {
+        return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+    }
+    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (alpha / 255) + ')';
 }
 function rgbToInt(rgb) {
     return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
@@ -142,6 +146,7 @@ class Renderer {
         _Renderer_lastDrawY.set(this, 0);
         _Renderer_lastPedalColorInt.set(this, -1);
         _Renderer_lastVlinesOn.set(this, false);
+        _Renderer_needsAnimation.set(this, false);
         // Adjust CSS with the constants.
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");
@@ -244,12 +249,13 @@ class Renderer {
             }
         }
     }
-    isAnythingOnScreen() {
-        return __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64); // +64 for safety(?) margin
+    needsAnimation() {
+        return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") || __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64); // +64 for safety(?) margin
     }
     onDraw() {
         var _b;
         __classPrivateFieldSet(this, _Renderer_currentFrame, (_b = __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), _b++, _b), "f");
+        __classPrivateFieldSet(this, _Renderer_needsAnimation, false, "f");
         // Clear the bar area.
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = 'black';
         __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_H, "f"));
@@ -279,12 +285,12 @@ class Renderer {
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(pedalColor);
             __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), drawHeight);
             if (pedalColorInt !== __classPrivateFieldGet(this, _Renderer_lastPedalColorInt, "f")) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
                 __classPrivateFieldSet(this, _Renderer_lastPedalColorInt, pedalColorInt, "f");
             }
             // "Off" line
             if (midiRenderingStatus.offNoteCount > 0) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
                 // We don't highlight off lines. Always same color.
                 // However, if we draw two off lines in a raw, it'll look brighter,
                 // so avoid doing so.
@@ -299,7 +305,7 @@ class Renderer {
             }
             // "On" line
             if (midiRenderingStatus.onNoteCount > 0) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
             }
@@ -307,17 +313,27 @@ class Renderer {
         const fontSize = bw * 0.9;
         for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
             let note = midiRenderingStatus.getNote(i);
-            if (!note[0]) {
+            const on = note[0];
+            const velocity = note[1];
+            let color = this.getBarColor(velocity);
+            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * note[2]));
+            if (alpha <= 0) {
                 continue;
             }
-            let color = this.getBarColor(note[1]);
-            let colorStr = rgbToStr(color);
+            if (!on) {
+                // If there's an off-note that's still fading out, we still need animation.
+                __classPrivateFieldSet(this, _Renderer_needsAnimation, true, "f");
+            }
+            let colorStr = rgbToStr(color, alpha);
             // bar left
             let bl = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
             // bar height
             let bh = __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * note[1] / 127;
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = colorStr;
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(bl, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), bw, -bh);
+            if (!on) {
+                continue;
+            }
             if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, drawHeight);
@@ -338,7 +354,7 @@ class Renderer {
             this.drawOctaveLines(drawHeight);
         }
         if (__classPrivateFieldGet(this, _Renderer_lastVlinesOn, "f") !== coordinator.isShowingVlines) {
-            __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_anythingDrawn).call(this);
+            __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
             __classPrivateFieldSet(this, _Renderer_lastVlinesOn, coordinator.isShowingVlines, "f");
         }
         // Base line.
@@ -368,7 +384,7 @@ class Renderer {
         return $('#canvases').css('display') === 'none';
     }
 }
-_Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap(), _Renderer_drewOffLine = new WeakMap(), _Renderer_currentFrame = new WeakMap(), _Renderer_lastDrawFrame = new WeakMap(), _Renderer_subpixelScroll = new WeakMap(), _Renderer_lastDrawY = new WeakMap(), _Renderer_lastPedalColorInt = new WeakMap(), _Renderer_lastVlinesOn = new WeakMap(), _Renderer_instances = new WeakSet(), _Renderer_anythingDrawn = function _Renderer_anythingDrawn() {
+_Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap(), _Renderer_drewOffLine = new WeakMap(), _Renderer_currentFrame = new WeakMap(), _Renderer_lastDrawFrame = new WeakMap(), _Renderer_subpixelScroll = new WeakMap(), _Renderer_lastDrawY = new WeakMap(), _Renderer_lastPedalColorInt = new WeakMap(), _Renderer_lastVlinesOn = new WeakMap(), _Renderer_needsAnimation = new WeakMap(), _Renderer_instances = new WeakSet(), _Renderer_barAreaChanged = function _Renderer_barAreaChanged() {
     __classPrivateFieldSet(this, _Renderer_lastDrawFrame, __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), "f");
     __classPrivateFieldSet(this, _Renderer_lastDrawY, 0, "f");
 };
@@ -376,7 +392,7 @@ export const renderer = new Renderer();
 class MidiRenderingStatus {
     constructor() {
         _MidiRenderingStatus_tick.set(this, 0);
-        _MidiRenderingStatus_notes.set(this, []); // on/off, velocity, last on-tick, press timestamp
+        _MidiRenderingStatus_notes.set(this, []); // on/off, velocity, last on-tick, press timestamp, last off-tick
         _MidiRenderingStatus_pedal.set(this, 0);
         _MidiRenderingStatus_sostenuto.set(this, 0);
         _MidiRenderingStatus_onNoteCount.set(this, 0);
@@ -397,11 +413,14 @@ class MidiRenderingStatus {
             ar[1] = data2;
             ar[2] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
             ar[3] = performance.now(); // Store press timestamp
+            ar[4] = 0;
         }
         else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, // Note off
             (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _c++, _c), "f");
-            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1][0] = false;
+            let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
+            ar[0] = false;
+            ar[4] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
         }
         else if (status === 176) { // Control Change
             switch (data1) {
@@ -419,7 +438,7 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_notes, [], "f");
         for (let i = 0; i < NOTES_COUNT; i++) {
-            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -99999, 0]; // on/off, velocity, last on-tick, press timestamp
+            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, 0, 0, 0];
         }
         __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
@@ -448,14 +467,15 @@ class MidiRenderingStatus {
         let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
         if (ar[0]) {
             // Note on
-            return [true, ar[1]];
+            return [true, ar[1], 0];
         }
         else if ((__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - ar[2]) < 2) {
             // Recently turned off, still treat it as on
-            return [true, ar[1]];
+            return [true, ar[1], 0];
         }
         else {
-            return [false, 0];
+            // Off note, still return velocity, but return the off duration.
+            return [false, ar[1], __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - ar[4]];
         }
     }
     isJustPressed(noteIndex) {
@@ -1280,7 +1300,7 @@ class Coordinator {
             renderer.flip();
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = renderer.isAnythingOnScreen() || recorder.isPlaying;
+            const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
             if (needsAnimation) {
                 __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(loop), "f");
             }

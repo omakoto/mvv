@@ -31,6 +31,8 @@ console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
 const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
 
+const ALPHA_DECAY = 10;
+
 const NOTES_COUNT = 128;
 
 // Time in milliseconds to highlight a recently pressed note.
@@ -90,12 +92,15 @@ function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
     ];
 }
 
-function rgbToStr(rgb: [number, number, number]): string {
+function rgbToStr(rgb: [number, number, number], alpha: number = 255): string {
     // special common cases
-    if (rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0) {
+    if (rgb[0] === 0 && rgb[1] === 0 && rgb[2] === 0 && alpha === 255) {
         return "black";
     }
-    return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+    if (alpha === 255) {
+        return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+    }
+    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (alpha / 255) + ')';
 }
 
 function rgbToInt(rgb: [number, number, number]): number {
@@ -144,6 +149,7 @@ class Renderer {
     #lastPedalColorInt = -1;
     #lastVlinesOn = false;
 
+    #needsAnimation = false;
 
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
@@ -269,17 +275,19 @@ class Renderer {
         }
     }
 
-    #anythingDrawn() {
+    #barAreaChanged() {
         this.#lastDrawFrame = this.#currentFrame;
         this.#lastDrawY = 0;
     }
 
-    isAnythingOnScreen(): boolean {
-        return this.#lastDrawY <= (this.#ROLL_H + 64); // +64 for safety(?) margin
+    needsAnimation(): boolean {
+        return this.#needsAnimation || this.#lastDrawY <= (this.#ROLL_H + 64); // +64 for safety(?) margin
     }
 
     onDraw(): void {
         this.#currentFrame++;
+
+        this.#needsAnimation =false;
 
         // Clear the bar area.
         this.#bar.fillStyle = 'black';
@@ -319,13 +327,13 @@ class Renderer {
             this.#roll.fillStyle = rgbToStr(pedalColor);
             this.#roll.fillRect(0, 0, this.#W, drawHeight);
             if (pedalColorInt !== this.#lastPedalColorInt) {
-                this.#anythingDrawn();
+                this.#barAreaChanged();
                 this.#lastPedalColorInt = pedalColorInt;
             }
 
             // "Off" line
             if (midiRenderingStatus.offNoteCount > 0) {
-                this.#anythingDrawn();
+                this.#barAreaChanged();
 
                 // We don't highlight off lines. Always same color.
                 // However, if we draw two off lines in a raw, it'll look brighter,
@@ -342,7 +350,7 @@ class Renderer {
             
             // "On" line
             if (midiRenderingStatus.onNoteCount > 0) {
-                this.#anythingDrawn();
+                this.#barAreaChanged();
 
                 this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
                 this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
@@ -354,11 +362,20 @@ class Renderer {
 
         for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
             let note = midiRenderingStatus.getNote(i);
-            if (!note[0]) {
+            const on = note[0];
+            const velocity = note[1];
+
+            let color = this.getBarColor(velocity)
+            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * note[2]));
+            if (alpha <= 0) {
                 continue;
             }
-            let color = this.getBarColor(note[1])
-            let colorStr = rgbToStr(color);
+            if (!on) {
+                // If there's an off-note that's still fading out, we still need animation.
+                this.#needsAnimation = true;
+            }
+
+            let colorStr = rgbToStr(color, alpha);
 
             // bar left
             let bl = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1)
@@ -368,6 +385,10 @@ class Renderer {
 
             this.#bar.fillStyle = colorStr;
             this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
+
+            if (!on) {
+                continue;
+            }
 
             if (!this.#rollFrozen) {
                 this.#roll.fillStyle = colorStr;
@@ -391,7 +412,7 @@ class Renderer {
             this.drawOctaveLines(drawHeight);
         }
         if (this.#lastVlinesOn !== coordinator.isShowingVlines) {
-            this.#anythingDrawn();
+            this.#barAreaChanged();
             this.#lastVlinesOn = coordinator.isShowingVlines;
         }
 
@@ -434,7 +455,7 @@ export const renderer = new Renderer();
 
 class MidiRenderingStatus {
     #tick = 0;
-    #notes: Array<[boolean, number, number, number]> = []; // on/off, velocity, last on-tick, press timestamp
+    #notes: Array<[boolean, number, number, number, number]> = []; // on/off, velocity, last on-tick, press timestamp, last off-tick
     #pedal = 0;
     #sostenuto = 0;
     #onNoteCount = 0;
@@ -458,11 +479,16 @@ class MidiRenderingStatus {
             ar[1] = data2;
             ar[2] = this.#tick;
             ar[3] = performance.now(); // Store press timestamp
+            ar[4] = 0;
+
         } else if ((status === 128) || (status === 144 && data2 === 0)) { // Note off
             this.#offNoteCount++;
-            this.#notes[data1]![0] = false;
+            let ar = this.#notes[data1]!;
+            ar[0] = false;
+            ar[4] = this.#tick;
+
         } else if (status === 176) { // Control Change
-             switch (data1) {
+            switch (data1) {
                 case 64: // Damper pedal (sustain)
                 case 11: // Expression
                     this.#pedal = data2;
@@ -478,7 +504,7 @@ class MidiRenderingStatus {
         this.#tick = 0;
         this.#notes = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
-            this.#notes[i] = [false, 0, -99999, 0]; // on/off, velocity, last on-tick, press timestamp
+            this.#notes[i] = [false, 0, 0, 0, 0];
         }
         this.#pedal = 0;
         this.#sostenuto = 0;
@@ -508,16 +534,19 @@ class MidiRenderingStatus {
         return this.#sostenuto;
     }
 
-    getNote(noteIndex: number): [boolean, number] {
+    getNote(noteIndex: number): [boolean, number, number] { // on/off, velocity, off-duration
         let ar = this.#notes[noteIndex]!
         if (ar[0]) {
             // Note on
-            return [true, ar[1]];
+            return [true, ar[1], 0];
+
         } else if ((this.#tick - ar[2]) < 2) {
             // Recently turned off, still treat it as on
-            return [true, ar[1]];
+            return [true, ar[1], 0];
+
         } else {
-            return [false, 0];
+            // Off note, still return velocity, but return the off duration.
+            return [false, ar[1], this.#tick - ar[4]];
         }
     }
 
@@ -1045,10 +1074,10 @@ class Coordinator {
 
         // Always allow '?' and 'Escape' to control the help screen.
         if (ev.key === '?') { // '?' key
-             if (ev.repeat) return;
-             this.toggleHelpScreen();
-             ev.preventDefault();
-             return;
+            if (ev.repeat) return;
+            this.toggleHelpScreen();
+            ev.preventDefault();
+            return;
         }
         if (ev.code === 'Escape') {
             if (this.#isHelpVisible) {
@@ -1507,7 +1536,7 @@ class Coordinator {
             
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = renderer.isAnythingOnScreen() || recorder.isPlaying;
+            const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
             if (needsAnimation) {
                 this.#animationFrameId = requestAnimationFrame(loop);
             } else {
