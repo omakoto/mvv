@@ -70,6 +70,17 @@ class ConfirmBox {
         $("#confirm_box").on('popbox_closing', (_ev) => {
             $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
         });
+        $("#confirm_box").on('keydown', (ev) => {
+            ev.stopPropagation();
+            if (ev.code === 'Enter') { // enter
+                $("#confirm_ok").trigger('click');
+                ev.preventDefault();
+            }
+            else if (ev.code === 'Escape') { // escape
+                $("#confirm_cancel").trigger('click');
+                ev.preventDefault();
+            }
+        });
     }
     show(text, okayCallback) {
         $('#confirm_text').text(text);
@@ -90,7 +101,7 @@ class ConfirmBox {
             overlay: true,
         }), "f");
         __classPrivateFieldGet(this, _ConfirmBox_confirm_box, "f").open('confirm_box');
-        $('#confirm_box').focus();
+        $('#confirm_box').attr('tabindex', -1).focus();
     }
 }
 _ConfirmBox_confirm_box = new WeakMap();

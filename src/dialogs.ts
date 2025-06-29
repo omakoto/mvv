@@ -70,6 +70,17 @@ class ConfirmBox {
         $("#confirm_box").on('popbox_closing', (_ev) => {
             $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
         });
+
+        $("#confirm_box").on('keydown', (ev) => {
+            ev.stopPropagation();
+            if (ev.code === 'Enter') { // enter
+                $("#confirm_ok").trigger('click');
+                ev.preventDefault();
+            } else if (ev.code === 'Escape') { // escape
+                $("#confirm_cancel").trigger('click');
+                ev.preventDefault();
+            }
+        });
     }
 
     show(text: string, okayCallback: ()=> void): void {
@@ -91,7 +102,7 @@ class ConfirmBox {
             overlay: true,
         });
         this.#confirm_box.open('confirm_box');
-        $('#confirm_box').focus();
+        $('#confirm_box').attr('tabindex', -1).focus();
     }
 }
 
