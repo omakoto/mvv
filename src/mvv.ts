@@ -284,8 +284,10 @@ class Renderer {
 
         this.#subpixelScroll += coordinator.scrollSpeedPx;
 
+        const hlineHeight = s(2);
+
         const scrollAmount = int(this.#subpixelScroll);
-        const drawHeight = Math.max(scrollAmount, 1);
+        const drawHeight = Math.max(scrollAmount, hlineHeight);
         this.#subpixelScroll -= scrollAmount;
 
         // Scroll the roll.
@@ -294,8 +296,6 @@ class Renderer {
         }
 
         this.#lastDrawY += scrollAmount;
-
-        const hlineHeight = s(2);
 
         // Draw the pedals.
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);

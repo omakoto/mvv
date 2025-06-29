@@ -251,15 +251,15 @@ class Renderer {
         var _b;
         __classPrivateFieldSet(this, _Renderer_currentFrame, (_b = __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), _b++, _b), "f");
         __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") + coordinator.scrollSpeedPx, "f");
+        const hlineHeight = s(2);
         const scrollAmount = int(__classPrivateFieldGet(this, _Renderer_subpixelScroll, "f"));
-        const drawHeight = Math.max(scrollAmount, 1);
+        const drawHeight = Math.max(scrollAmount, hlineHeight);
         __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") - scrollAmount, "f");
         // Scroll the roll.
         if (scrollAmount >= 1) {
             __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, scrollAmount);
         }
         __classPrivateFieldSet(this, _Renderer_lastDrawY, __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") + scrollAmount, "f");
-        const hlineHeight = s(2);
         // Draw the pedals.
         const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
         const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
