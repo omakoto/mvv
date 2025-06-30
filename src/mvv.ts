@@ -694,7 +694,7 @@ class Metronome {
 
     #beat() {
         var notes = [];
-        if ((this.#subBeats === 1) && (this.#pos % this.#beats) === 0) {
+        if ((this.#subBeats === 1) && (this.#beats > 1) && (this.#pos % this.#beats) === 0) {
             // Accent. Only use in a non-polyrhythm mode.
             notes = this.ACCENT_BEAT;
         } else {
@@ -1317,7 +1317,9 @@ class Coordinator {
                     localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_BPM, String(bpm));
                     localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_MAIN_BEATS, String(mainBeats));
                     localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_SUB_BEATS, String(subBeats));
+
                     metronome.start(bpm, mainBeats, subBeats);
+
                     this.updateUi();
                 });
         }

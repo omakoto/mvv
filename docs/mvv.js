@@ -614,7 +614,7 @@ class Metronome {
 _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_beats = new WeakMap(), _Metronome_subBeats = new WeakMap(), _Metronome_pos = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat() {
     var _b;
     var notes = [];
-    if ((__classPrivateFieldGet(this, _Metronome_subBeats, "f") === 1) && (__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0) {
+    if ((__classPrivateFieldGet(this, _Metronome_subBeats, "f") === 1) && (__classPrivateFieldGet(this, _Metronome_beats, "f") > 1) && (__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0) {
         // Accent. Only use in a non-polyrhythm mode.
         notes = this.ACCENT_BEAT;
     }
