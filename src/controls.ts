@@ -1,6 +1,6 @@
 'use strict';
 
-import { coordinator, renderer, recorder } from './mvv.js';
+import { coordinator, renderer, recorder, metronome } from './mvv.js';
 
 const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
 
@@ -24,6 +24,7 @@ class Controls {
     #vlines;
     #speedup;
     #notenames;
+    #metronome;
 
     constructor() {
         this.#top = $("#top");
@@ -49,6 +50,8 @@ class Controls {
         this.#vlines = $("#vlines");
         this.#speedup = $("#speedup");
         this.#notenames = $("#notenames");
+
+        this.#metronome = $("#metronome");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -116,6 +119,11 @@ class Controls {
 
         this.#notenames.on('click', (ev) => {
             coordinator.toggleNoteNames();
+            this.update();
+            ev.stopPropagation();
+        });
+        this.#metronome.on('click', (ev) => {
+            coordinator.toggleMetronome();
             this.update();
             ev.stopPropagation();
         });
@@ -216,6 +224,8 @@ class Controls {
         this.activate(this.#flat, !coordinator.isSharpMode);
         this.activate(this.#vlines, coordinator.isShowingVlines);
         this.activate(this.#notenames, coordinator.isShowingNoteNames);
+
+        this.activate(this.#metronome, metronome.isPlaying);
 
         // Speed button. Select the right icon.
         // Also activate it if the speed isn't the default.

@@ -729,7 +729,7 @@ class Metronome {
     }
 }
 
-const metronome = new Metronome();
+export const metronome = new Metronome();
 
 enum RecorderState {
     Idle,
@@ -1249,11 +1249,7 @@ class Coordinator {
 
             case 'KeyM':
                 if (isRepeat) break;
-                if (metronome.isPlaying) {
-                    metronome.stop();
-                } else {
-                    metronome.start(60, 4, 3);
-                }
+                this.toggleMetronome();
                 break;
 
             case 'KeyR':
@@ -1292,6 +1288,15 @@ class Coordinator {
                 return; // Don't prevent the default behavior.
         }
         ev.preventDefault();
+    }
+
+    toggleMetronome() {
+        if (metronome.isPlaying) {
+            metronome.stop();
+        } else {
+            metronome.start(60, 4, 3);
+        }
+        this.updateUi();
     }
 
     get isSharpMode(): boolean {

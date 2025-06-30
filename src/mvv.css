@@ -158,6 +158,10 @@ canvas#roll2 {
     background-image: url("res/down.png");
     margin-right: 12px;
 }
+#metronome {
+    background-image: url("res/m.png");
+    margin-right: 12px;
+}
 
 #fullscreen {
     background-image: url("res/fullscreen.png");

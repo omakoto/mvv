@@ -640,7 +640,7 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
         __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, "0.05");
     }
 };
-const metronome = new Metronome();
+export const metronome = new Metronome();
 var RecorderState;
 (function (RecorderState) {
     RecorderState[RecorderState["Idle"] = 0] = "Idle";
@@ -1076,12 +1076,7 @@ class Coordinator {
             case 'KeyM':
                 if (isRepeat)
                     break;
-                if (metronome.isPlaying) {
-                    metronome.stop();
-                }
-                else {
-                    metronome.start(60, 4, 3);
-                }
+                this.toggleMetronome();
                 break;
             case 'KeyR':
                 if (isRepeat)
@@ -1125,6 +1120,15 @@ class Coordinator {
                 return; // Don't prevent the default behavior.
         }
         ev.preventDefault();
+    }
+    toggleMetronome() {
+        if (metronome.isPlaying) {
+            metronome.stop();
+        }
+        else {
+            metronome.start(60, 4, 3);
+        }
+        this.updateUi();
     }
     get isSharpMode() {
         return __classPrivateFieldGet(this, _Coordinator_useSharp, "f");
