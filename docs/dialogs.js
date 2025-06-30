@@ -112,6 +112,35 @@ class MetronomeBox {
         $("#metronome_box").on('popbox_closing', (_ev) => {
             $("#metronome_box").trigger('blur');
         });
+        const handleKeyDown = (ev, min) => {
+            let val = parseInt($(ev.target).val());
+            if (ev.code === 'ArrowUp') {
+                val++;
+                $(ev.target).val(val);
+                ev.preventDefault();
+            }
+            else if (ev.code === 'ArrowDown') {
+                val = Math.max(min, val - 1);
+                $(ev.target).val(val);
+                ev.preventDefault();
+            }
+            else if (ev.code === 'PageUp') {
+                val += 10;
+                $(ev.target).val(val);
+                ev.preventDefault();
+            }
+            else if (ev.code === 'PageDown') {
+                val = Math.max(min, val - 10);
+                $(ev.target).val(val);
+                ev.preventDefault();
+            }
+        };
+        $('#metronome_bpm').on('keydown', (ev) => handleKeyDown(ev, 10));
+        $('#metronome_main_beats').on('keydown', (ev) => handleKeyDown(ev, 0));
+        $('#metronome_sub_beats').on('keydown', (ev) => handleKeyDown(ev, 0));
+        $("#metronome_box input").on('focus', function () {
+            $(this).select();
+        });
         $("#metronome_box").on('keydown', (ev) => {
             ev.stopPropagation();
             if (ev.code === 'Enter') {
@@ -146,7 +175,7 @@ class MetronomeBox {
             overlay: true,
         }), "f");
         __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").open('metronome_box');
-        $('#metronome_box').attr('tabindex', -1).focus();
+        $('#metronome_bpm').focus();
     }
 }
 _MetronomeBox_metronome_box = new WeakMap();
