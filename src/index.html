@@ -22,7 +22,7 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script> -->
     <script src="tonal.min.js"></script>
     <script src="Tone.js"></script>
-    <link rel="stylesheet" href="mvv.css?v=20"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
+    <link rel="stylesheet" href="mvv.css?v=22"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
 </head>
 <body>
     <!-- This is used to open a "open file" system dialog box. -->
@@ -85,8 +85,10 @@
             <div class="popbox_container">
                 Save as:
                 <input type="text" id="save_as_filename">
-                <button id="save" data-popbox-close="save_as_box">Save</button>
-                <button id="save_as_cancel" data-popbox-close="save_as_box">Cancel</button>
+                <div class="popbox_buttons">
+                    <button id="save" data-popbox-close="save_as_box">Save</button>
+                    <button id="save_as_cancel" data-popbox-close="save_as_box">Cancel</button>
+                </div>
             </div>
         </div>
         <div id="confirm_box" data-popbox-id="confirm_box" class="popbox">

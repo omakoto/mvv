@@ -306,6 +306,13 @@ canvas#roll2 {
     font-size: 12pt;
 }
 
+.popbox_buttons {
+    margin-top: 8pt;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6pt;
+}
+
 /* unvisited link */
 a:link {
     color: var(--main-text-color);
