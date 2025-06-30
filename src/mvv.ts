@@ -152,6 +152,14 @@ class Renderer {
 
     #needsAnimation = false;
 
+    #extraLineType = -1;
+
+    readonly EXTRA_LINE_COLORS = [
+        "#FFFF50",
+        "#FFC0FF",
+        "#C0C0FF",
+    ];
+
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
         let context = <CanvasRenderingContext2D>canvas.getContext("2d");
@@ -333,6 +341,18 @@ class Renderer {
                 this.#lastPedalColorInt = pedalColorInt;
             }
 
+            // Extra (metronome) line
+            if (this.#extraLineType >= 0) {
+                this.#barAreaChanged();
+
+                const height = hlineHeight + 1;
+
+                this.#roll.fillStyle = this.EXTRA_LINE_COLORS[this.#extraLineType];
+                this.#roll.fillRect(0, Math.max(0, drawHeight - height), this.#W, height);
+
+                this.#extraLineType = -1;
+            }
+
             // "Off" line
             if (midiRenderingStatus.offNoteCount > 0) {
                 this.#barAreaChanged();
@@ -451,6 +471,11 @@ class Renderer {
 
     get isVideoMuted(): boolean {
         return $('#canvases').css('display') === 'none';
+    }
+
+    drawExtraLine(type: number = -1) {
+        this.#extraLineType = type;
+        this.#needsAnimation = true;
     }
 }
 
@@ -697,19 +722,23 @@ class Metronome {
         if ((this.#subBeats === 1) && (this.#beats > 1) && (this.#pos % this.#beats) === 0) {
             // Accent. Only use in a non-polyrhythm mode.
             notes = this.ACCENT_BEAT;
+            renderer.drawExtraLine(0);
         } else {
             const main = (this.#pos % this.#subBeats) === 0;
             const sub = ((this.#pos % this.#beats) === 0) && this.#subBeats > 1;
 
             if (main) {
                 if (sub) {
+                    renderer.drawExtraLine(0);
                     notes = this.DUAL_BEAT;
                 } else {
+                    renderer.drawExtraLine(1);
                     notes = this.MAIN_BEAT;
                 }
             } else {
                 if (sub) {
                     notes = this.SUB_BEAT;
+                    renderer.drawExtraLine(2);
                 }
             }
         }
