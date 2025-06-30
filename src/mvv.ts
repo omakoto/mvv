@@ -6,6 +6,7 @@ import { controls } from './controls.js';
 import { saveAsBox, confirmBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
 declare var Tonal: any;
+declare var Tone: any;
 
 
 // 2D game with canvas example: https://github.com/end3r/Gamedev-Canvas-workshop/blob/gh-pages/lesson10.html
@@ -646,6 +647,90 @@ class MidiOutputManager {
 
 export const midiOutputManager = new MidiOutputManager();
 
+class Metronome {
+    #timerId = -1;
+    #bpm = 0;
+    #beats = 0;
+    #subBeats = 0;
+
+    #pos = 0;
+
+    #synth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+    readonly ACCENT_NOTE = "A5";
+    readonly MAIN_NOTE = "A4";
+    readonly SUB_NOTE = "E5";
+
+    readonly ACCENT_BEAT = [this.ACCENT_NOTE];
+    readonly MAIN_BEAT = [this.MAIN_NOTE];
+    readonly SUB_BEAT = [this.SUB_NOTE];
+    readonly DUAL_BEAT = [this.MAIN_NOTE, this.SUB_NOTE];
+
+    get isPlaying(): boolean {
+        return this.#timerId !== -1;
+    }
+
+    start(bpm: number, beats: number, subBeats: number): void {
+        if (this.isPlaying) {
+            return;
+        }
+        this.#bpm = Math.max(10, bpm);
+        this.#beats = Math.max(1, beats);
+        this.#subBeats = Math.max(1, subBeats);
+        if (this.#beats == this.#subBeats) {
+            this.#subBeats = 1;
+        }
+
+        this.#pos = 0;
+
+        const measureMs = 60_000 / (this.#bpm / this.#beats);
+        const interval = measureMs / (this.#beats * this.#subBeats);
+
+        this.#timerId = setInterval(() => {
+            this.#beat();
+        }, interval);
+        this.#beat();
+    }
+
+    #beat() {
+        var notes = [];
+        if ((this.#subBeats === 1) && (this.#pos % this.#beats) === 0) {
+            // Accent. Only use in a non-polyrhythm mode.
+            notes = this.ACCENT_BEAT;
+        } else {
+            const main = (this.#pos % this.#subBeats) === 0;
+            const sub = ((this.#pos % this.#beats) === 0) && this.#subBeats > 1;
+
+            if (main) {
+                if (sub) {
+                    notes = this.DUAL_BEAT;
+                } else {
+                    notes = this.MAIN_BEAT;
+                }
+            } else {
+                if (sub) {
+                    notes = this.SUB_BEAT;
+                }
+            }
+        }
+        this.#pos++;
+
+        if (notes.length > 0) {
+            this.#synth.triggerAttackRelease(notes, "0.05");
+        }
+    }
+
+    stop() {
+        if (!this.isPlaying) {
+            return;
+        }
+        clearInterval(this.#timerId);
+        this.#timerId = -1;
+    }
+}
+
+const metronome = new Metronome();
+
 enum RecorderState {
     Idle,
     Playing,
@@ -1161,6 +1246,16 @@ class Coordinator {
                 if (isRepeat) break;
                 this.toggleFullScreen();
                 break;
+
+            case 'KeyM':
+                if (isRepeat) break;
+                if (metronome.isPlaying) {
+                    metronome.stop();
+                } else {
+                    metronome.start(60, 4, 3);
+                }
+                break;
+
             case 'KeyR':
                 if (isRepeat) break;
                 this.toggleRecording();
