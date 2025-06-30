@@ -4,6 +4,10 @@ import { recorder } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
 
+function refocusBody() {
+    setTimeout(() => $('body').focus(), 0);
+}
+
 declare var Popbox: any;
 
 class SaveAsBox {
@@ -32,7 +36,7 @@ class SaveAsBox {
         });
 
         $("#save_as_box").on('popbox_closing', (_ev) => {
-            $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
+            refocusBody();
         });
     }
 
@@ -75,7 +79,7 @@ class ConfirmBox {
 
     constructor() {
         $("#confirm_box").on('popbox_closing', (_ev) => {
-            $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
+            refocusBody();
         });
 
         $("#confirm_box").on('keydown', (ev) => {
@@ -120,7 +124,7 @@ class MetronomeBox {
 
     constructor() {
         $("#metronome_box").on('popbox_closing', (_ev) => {
-            $("#metronome_box").trigger('blur');
+            refocusBody();
         });
 
         const handleKeyDown = (ev: JQuery.KeyDownEvent, min: number) => {

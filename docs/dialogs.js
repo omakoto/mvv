@@ -14,6 +14,9 @@ var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box, _MetronomeBox_metronome_box
 import { recorder } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
+function refocusBody() {
+    setTimeout(() => $('body').focus(), 0);
+}
 class SaveAsBox {
     constructor() {
         _SaveAsBox_save_as_box.set(this, null); // Changed Popbox to any to avoid declaration issues
@@ -37,7 +40,7 @@ class SaveAsBox {
             ev.preventDefault();
         });
         $("#save_as_box").on('popbox_closing', (_ev) => {
-            $("#save_as_filename").trigger('blur'); // unfocus, so shortcut keys will start working again
+            refocusBody();
         });
     }
     open() {
@@ -75,7 +78,7 @@ class ConfirmBox {
     constructor() {
         _ConfirmBox_confirm_box.set(this, null); // Changed Popbox to any
         $("#confirm_box").on('popbox_closing', (_ev) => {
-            $("#confirm_box").trigger('blur'); // unfocus, so shortcut keys will start working again
+            refocusBody();
         });
         $("#confirm_box").on('keydown', (ev) => {
             ev.stopPropagation();
@@ -117,7 +120,7 @@ class MetronomeBox {
     constructor() {
         _MetronomeBox_metronome_box.set(this, null);
         $("#metronome_box").on('popbox_closing', (_ev) => {
-            $("#metronome_box").trigger('blur');
+            refocusBody();
         });
         const handleKeyDown = (ev, min) => {
             let val = parseInt($(ev.target).val());
