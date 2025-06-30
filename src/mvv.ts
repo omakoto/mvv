@@ -476,6 +476,7 @@ class Renderer {
     drawExtraLine(type: number = -1) {
         this.#extraLineType = type;
         this.#needsAnimation = true;
+        coordinator.startAnimationLoop();
     }
 }
 
