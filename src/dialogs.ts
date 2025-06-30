@@ -107,3 +107,53 @@ class ConfirmBox {
 }
 
 export var confirmBox = new ConfirmBox();
+
+class MetronomeBox {
+    #metronome_box: any | null = null;
+
+    constructor() {
+        $("#metronome_box").on('popbox_closing', (_ev) => {
+            $("#metronome_box").trigger('blur');
+        });
+
+        $("#metronome_box").on('keydown', (ev) => {
+            ev.stopPropagation();
+            if (ev.code === 'Enter') {
+                $("#metronome_ok").trigger('click');
+                ev.preventDefault();
+            } else if (ev.code === 'Escape') {
+                $("#metronome_cancel").trigger('click');
+                ev.preventDefault();
+            }
+        });
+    }
+
+    show(bpm: number, mainBeats: number, subBeats: number, okayCallback: (bpm: number, mainBeats: number, subBeats: number) => void): void {
+        $('#metronome_bpm').val(bpm);
+        $('#metronome_main_beats').val(mainBeats);
+        $('#metronome_sub_beats').val(subBeats);
+
+        $("#metronome_ok").off('click').on('click', (ev) => {
+            this.#metronome_box!.clear();
+            ev.preventDefault();
+            const bpm = parseInt($('#metronome_bpm').val() as string);
+            const mainBeats = parseInt($('#metronome_main_beats').val() as string);
+            const subBeats = parseInt($('#metronome_sub_beats').val() as string);
+            if (okayCallback) okayCallback(bpm, mainBeats, subBeats);
+        });
+
+        $("#metronome_cancel").off('click').on('click', (ev) => {
+            this.#metronome_box!.clear();
+            ev.preventDefault();
+        });
+
+        this.#metronome_box = new Popbox({
+            blur: true,
+            overlay: true,
+        });
+        this.#metronome_box.open('metronome_box');
+        $('#metronome_box').attr('tabindex', -1).focus();
+    }
+}
+
+export var metronomeBox = new MetronomeBox();

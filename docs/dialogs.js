@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box;
+var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box, _MetronomeBox_metronome_box;
 import { recorder } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
@@ -106,3 +106,48 @@ class ConfirmBox {
 }
 _ConfirmBox_confirm_box = new WeakMap();
 export var confirmBox = new ConfirmBox();
+class MetronomeBox {
+    constructor() {
+        _MetronomeBox_metronome_box.set(this, null);
+        $("#metronome_box").on('popbox_closing', (_ev) => {
+            $("#metronome_box").trigger('blur');
+        });
+        $("#metronome_box").on('keydown', (ev) => {
+            ev.stopPropagation();
+            if (ev.code === 'Enter') {
+                $("#metronome_ok").trigger('click');
+                ev.preventDefault();
+            }
+            else if (ev.code === 'Escape') {
+                $("#metronome_cancel").trigger('click');
+                ev.preventDefault();
+            }
+        });
+    }
+    show(bpm, mainBeats, subBeats, okayCallback) {
+        $('#metronome_bpm').val(bpm);
+        $('#metronome_main_beats').val(mainBeats);
+        $('#metronome_sub_beats').val(subBeats);
+        $("#metronome_ok").off('click').on('click', (ev) => {
+            __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").clear();
+            ev.preventDefault();
+            const bpm = parseInt($('#metronome_bpm').val());
+            const mainBeats = parseInt($('#metronome_main_beats').val());
+            const subBeats = parseInt($('#metronome_sub_beats').val());
+            if (okayCallback)
+                okayCallback(bpm, mainBeats, subBeats);
+        });
+        $("#metronome_cancel").off('click').on('click', (ev) => {
+            __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").clear();
+            ev.preventDefault();
+        });
+        __classPrivateFieldSet(this, _MetronomeBox_metronome_box, new Popbox({
+            blur: true,
+            overlay: true,
+        }), "f");
+        __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").open('metronome_box');
+        $('#metronome_box').attr('tabindex', -1).focus();
+    }
+}
+_MetronomeBox_metronome_box = new WeakMap();
+export var metronomeBox = new MetronomeBox();
