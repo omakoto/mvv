@@ -1,14 +1,14 @@
 'use strict';
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box, _MetronomeBox_metronome_box;
 import { recorder } from './mvv.js';
@@ -18,15 +18,22 @@ class SaveAsBox {
     constructor() {
         _SaveAsBox_save_as_box.set(this, null); // Changed Popbox to any to avoid declaration issues
         $("#save_as_filename").keydown((ev) => {
-            console.log(ev);
             ev.stopPropagation();
             if (ev.code === 'Enter') { // enter
-                this.doDownload();
+                $("#save").trigger('click');
+                ev.preventDefault();
+            }
+            else if (ev.code === 'Escape') {
+                $("#save_as_cancel").trigger('click');
                 ev.preventDefault();
             }
         });
         $("#save").on('click', (ev) => {
             this.doDownload();
+            ev.preventDefault();
+        });
+        $("#save_as_cancel").on('click', (ev) => {
+            __classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f").clear();
             ev.preventDefault();
         });
         $("#save_as_box").on('popbox_closing', (_ev) => {

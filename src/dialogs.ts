@@ -11,16 +11,23 @@ class SaveAsBox {
 
     constructor() {
         $("#save_as_filename").keydown((ev) => {
-            console.log(ev);
             ev.stopPropagation();
             if (ev.code === 'Enter') { // enter
-                this.doDownload();
+                $("#save").trigger('click');
+                ev.preventDefault();
+            } else if (ev.code === 'Escape') {
+                $("#save_as_cancel").trigger('click');
                 ev.preventDefault();
             }
         });
 
         $("#save").on('click', (ev) => {
             this.doDownload();
+            ev.preventDefault();
+        });
+
+        $("#save_as_cancel").on('click', (ev) => {
+            this.#save_as_box!.clear();
             ev.preventDefault();
         });
 
