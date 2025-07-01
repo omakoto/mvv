@@ -447,3 +447,20 @@ kbd:active {
 #help_close:hover {
     color: #fff;
 }
+
+#metronome_keypad {
+    margin-top: 10px;
+}
+
+.keypad_row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.keypad_key {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    margin: 0 2px;
+}

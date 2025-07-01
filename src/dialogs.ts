@@ -119,6 +119,8 @@ class ConfirmBox extends DialogBase {
 export var confirmBox = new ConfirmBox();
 
 class MetronomeBox extends DialogBase {
+    private focusedInput: JQuery<HTMLElement> | null = null;
+
     constructor() {
         super('metronome_box');
         const handleKeyDown = (ev: JQuery.KeyDownEvent, min: number) => {
@@ -146,8 +148,24 @@ class MetronomeBox extends DialogBase {
         $('#metronome_main_beats').on('keydown', (ev) => handleKeyDown(ev, 0));
         $('#metronome_sub_beats').on('keydown', (ev) => handleKeyDown(ev, 0));
 
-        $("#metronome_box input").on('focus', function() {
-            $(this).select();
+        $("#metronome_box input").on('focus', (ev) => {
+            this.focusedInput = $(ev.target);
+            $(ev.target).select();
+        });
+
+        $("#metronome_keypad .keypad_key").on('click', (ev) => {
+            if (!this.focusedInput) return;
+
+            const key = $(ev.target).text();
+            let val = this.focusedInput.val() as string;
+
+            if (key === 'BS') {
+                val = val.slice(0, -1);
+            } else {
+                val += key;
+            }
+            this.focusedInput.val(val);
+            this.focusedInput.focus();
         });
 
         $("#metronome_box").on('keydown', (ev) => {
