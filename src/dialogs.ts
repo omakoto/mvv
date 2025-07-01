@@ -10,19 +10,34 @@ function refocusBody() {
 
 declare var Popbox: any;
 
-class SaveAsBox {
-    #save_as_box: any | null = null; // Changed Popbox to any to avoid declaration issues
+class DialogBase {
+    _box: any | null = null;
+    _id: string;
 
+    constructor(id: string) {
+        this._id = id;
+        $(`#${id}`).on('popbox_closing', (_ev) => {
+            refocusBody();
+        });
+    }
+
+    _handleKeyDown(ev: JQuery.KeyDownEvent, okId: string, cancelId: string) {
+        ev.stopPropagation();
+        if (ev.code === 'Enter') { // enter
+            $(`#${okId}`).trigger('click');
+            ev.preventDefault();
+        } else if (ev.code === 'Escape') {
+            $(`#${cancelId}`).trigger('click');
+            ev.preventDefault();
+        }
+    }
+}
+
+class SaveAsBox extends DialogBase {
     constructor() {
+        super('save_as_box');
         $("#save_as_filename").keydown((ev) => {
-            ev.stopPropagation();
-            if (ev.code === 'Enter') { // enter
-                $("#save").trigger('click');
-                ev.preventDefault();
-            } else if (ev.code === 'Escape') {
-                $("#save_as_cancel").trigger('click');
-                ev.preventDefault();
-            }
+            this._handleKeyDown(ev, 'save', 'save_as_cancel');
         });
 
         $("#save").on('click', (ev) => {
@@ -31,12 +46,8 @@ class SaveAsBox {
         });
 
         $("#save_as_cancel").on('click', (ev) => {
-            this.#save_as_box!.clear();
+            this._box!.clear();
             ev.preventDefault();
-        });
-
-        $("#save_as_box").on('popbox_closing', (_ev) => {
-            refocusBody();
         });
     }
 
@@ -47,20 +58,20 @@ class SaveAsBox {
         }
         let filename = "mvv-" + getCurrentTime();
         $('#save_as_filename').val(filename);
-        this.#save_as_box = new Popbox({
+        this._box = new Popbox({
             blur: true,
             overlay: true,
         });
 
-        this.#save_as_box.open('save_as_box');
+        this._box.open('save_as_box');
         $('#save_as_filename').focus();
     }
 
     doDownload(): void {
-        if (!this.#save_as_box) {
+        if (!this._box) {
             return; // Shouldn't happen
         }
-        this.#save_as_box.clear();
+        this._box.clear();
         let filename = $('#save_as_filename').val() as string;
         if (!filename) {
             info("Empty filename");
@@ -74,23 +85,11 @@ class SaveAsBox {
 
 export var saveAsBox = new SaveAsBox();
 
-class ConfirmBox {
-    #confirm_box: any | null = null; // Changed Popbox to any
-
+class ConfirmBox extends DialogBase {
     constructor() {
-        $("#confirm_box").on('popbox_closing', (_ev) => {
-            refocusBody();
-        });
-
+        super('confirm_box');
         $("#confirm_box").on('keydown', (ev) => {
-            ev.stopPropagation();
-            if (ev.code === 'Enter') { // enter
-                $("#confirm_ok").trigger('click');
-                ev.preventDefault();
-            } else if (ev.code === 'Escape') { // escape
-                $("#confirm_cancel").trigger('click');
-                ev.preventDefault();
-            }
+            this._handleKeyDown(ev, 'confirm_ok', 'confirm_cancel');
         });
     }
 
@@ -98,35 +97,30 @@ class ConfirmBox {
         $('#confirm_text').text(text);
         $("#confirm_ok").off('click').on('click', (ev) => { // Use .off('click') to prevent multiple bindings
             console.log("ok");
-            this.#confirm_box!.clear(); // Close the box
+            this._box!.clear(); // Close the box
             ev.preventDefault();
             if (okayCallback) okayCallback();
         });
         $("#confirm_cancel").off('click').on('click', (ev) => {
             console.log("canceled");
-            this.#confirm_box!.clear(); // Close the box
+            this._box!.clear(); // Close the box
             ev.preventDefault();
         });
 
-        this.#confirm_box = new Popbox({
+        this._box = new Popbox({
             blur: true,
             overlay: true,
         });
-        this.#confirm_box.open('confirm_box');
+        this._box.open('confirm_box');
         $('#confirm_box').attr('tabindex', -1).focus();
     }
 }
 
 export var confirmBox = new ConfirmBox();
 
-class MetronomeBox {
-    #metronome_box: any | null = null;
-
+class MetronomeBox extends DialogBase {
     constructor() {
-        $("#metronome_box").on('popbox_closing', (_ev) => {
-            refocusBody();
-        });
-
+        super('metronome_box');
         const handleKeyDown = (ev: JQuery.KeyDownEvent, min: number) => {
             let val = parseInt($(ev.target).val() as string);
             if (ev.code === 'ArrowUp') {
@@ -157,14 +151,7 @@ class MetronomeBox {
         });
 
         $("#metronome_box").on('keydown', (ev) => {
-            ev.stopPropagation();
-            if (ev.code === 'Enter') {
-                $("#metronome_ok").trigger('click');
-                ev.preventDefault();
-            } else if (ev.code === 'Escape') {
-                $("#metronome_cancel").trigger('click');
-                ev.preventDefault();
-            }
+            this._handleKeyDown(ev, 'metronome_ok', 'metronome_cancel');
         });
     }
 
@@ -174,7 +161,7 @@ class MetronomeBox {
         $('#metronome_sub_beats').val(subBeats);
 
         $("#metronome_ok").off('click').on('click', (ev) => {
-            this.#metronome_box!.clear();
+            this._box!.clear();
             ev.preventDefault();
             const bpm = parseInt($('#metronome_bpm').val() as string);
             const mainBeats = parseInt($('#metronome_main_beats').val() as string);
@@ -183,15 +170,15 @@ class MetronomeBox {
         });
 
         $("#metronome_cancel").off('click').on('click', (ev) => {
-            this.#metronome_box!.clear();
+            this._box!.clear();
             ev.preventDefault();
         });
 
-        this.#metronome_box = new Popbox({
+        this._box = new Popbox({
             blur: true,
             overlay: true,
         });
-        this.#metronome_box.open('metronome_box');
+        this._box.open('metronome_box');
         $('#metronome_bpm').focus();
     }
 }

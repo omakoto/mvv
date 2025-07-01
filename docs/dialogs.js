@@ -1,46 +1,43 @@
 'use strict';
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var _SaveAsBox_save_as_box, _ConfirmBox_confirm_box, _MetronomeBox_metronome_box;
 import { recorder } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
 function refocusBody() {
     setTimeout(() => $('body').focus(), 0);
 }
-class SaveAsBox {
+class DialogBase {
+    constructor(id) {
+        this._box = null;
+        this._id = id;
+        $(`#${id}`).on('popbox_closing', (_ev) => {
+            refocusBody();
+        });
+    }
+    _handleKeyDown(ev, okId, cancelId) {
+        ev.stopPropagation();
+        if (ev.code === 'Enter') { // enter
+            $(`#${okId}`).trigger('click');
+            ev.preventDefault();
+        }
+        else if (ev.code === 'Escape') {
+            $(`#${cancelId}`).trigger('click');
+            ev.preventDefault();
+        }
+    }
+}
+class SaveAsBox extends DialogBase {
     constructor() {
-        _SaveAsBox_save_as_box.set(this, null); // Changed Popbox to any to avoid declaration issues
+        super('save_as_box');
         $("#save_as_filename").keydown((ev) => {
-            ev.stopPropagation();
-            if (ev.code === 'Enter') { // enter
-                $("#save").trigger('click');
-                ev.preventDefault();
-            }
-            else if (ev.code === 'Escape') {
-                $("#save_as_cancel").trigger('click');
-                ev.preventDefault();
-            }
+            this._handleKeyDown(ev, 'save', 'save_as_cancel');
         });
         $("#save").on('click', (ev) => {
             this.doDownload();
             ev.preventDefault();
         });
         $("#save_as_cancel").on('click', (ev) => {
-            __classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f").clear();
+            this._box.clear();
             ev.preventDefault();
-        });
-        $("#save_as_box").on('popbox_closing', (_ev) => {
-            refocusBody();
         });
     }
     open() {
@@ -50,18 +47,18 @@ class SaveAsBox {
         }
         let filename = "mvv-" + getCurrentTime();
         $('#save_as_filename').val(filename);
-        __classPrivateFieldSet(this, _SaveAsBox_save_as_box, new Popbox({
+        this._box = new Popbox({
             blur: true,
             overlay: true,
-        }), "f");
-        __classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f").open('save_as_box');
+        });
+        this._box.open('save_as_box');
         $('#save_as_filename').focus();
     }
     doDownload() {
-        if (!__classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f")) {
+        if (!this._box) {
             return; // Shouldn't happen
         }
-        __classPrivateFieldGet(this, _SaveAsBox_save_as_box, "f").clear();
+        this._box.clear();
         let filename = $('#save_as_filename').val();
         if (!filename) {
             info("Empty filename");
@@ -72,56 +69,40 @@ class SaveAsBox {
         info("Saved as " + filename);
     }
 }
-_SaveAsBox_save_as_box = new WeakMap();
 export var saveAsBox = new SaveAsBox();
-class ConfirmBox {
+class ConfirmBox extends DialogBase {
     constructor() {
-        _ConfirmBox_confirm_box.set(this, null); // Changed Popbox to any
-        $("#confirm_box").on('popbox_closing', (_ev) => {
-            refocusBody();
-        });
+        super('confirm_box');
         $("#confirm_box").on('keydown', (ev) => {
-            ev.stopPropagation();
-            if (ev.code === 'Enter') { // enter
-                $("#confirm_ok").trigger('click');
-                ev.preventDefault();
-            }
-            else if (ev.code === 'Escape') { // escape
-                $("#confirm_cancel").trigger('click');
-                ev.preventDefault();
-            }
+            this._handleKeyDown(ev, 'confirm_ok', 'confirm_cancel');
         });
     }
     show(text, okayCallback) {
         $('#confirm_text').text(text);
         $("#confirm_ok").off('click').on('click', (ev) => {
             console.log("ok");
-            __classPrivateFieldGet(this, _ConfirmBox_confirm_box, "f").clear(); // Close the box
+            this._box.clear(); // Close the box
             ev.preventDefault();
             if (okayCallback)
                 okayCallback();
         });
         $("#confirm_cancel").off('click').on('click', (ev) => {
             console.log("canceled");
-            __classPrivateFieldGet(this, _ConfirmBox_confirm_box, "f").clear(); // Close the box
+            this._box.clear(); // Close the box
             ev.preventDefault();
         });
-        __classPrivateFieldSet(this, _ConfirmBox_confirm_box, new Popbox({
+        this._box = new Popbox({
             blur: true,
             overlay: true,
-        }), "f");
-        __classPrivateFieldGet(this, _ConfirmBox_confirm_box, "f").open('confirm_box');
+        });
+        this._box.open('confirm_box');
         $('#confirm_box').attr('tabindex', -1).focus();
     }
 }
-_ConfirmBox_confirm_box = new WeakMap();
 export var confirmBox = new ConfirmBox();
-class MetronomeBox {
+class MetronomeBox extends DialogBase {
     constructor() {
-        _MetronomeBox_metronome_box.set(this, null);
-        $("#metronome_box").on('popbox_closing', (_ev) => {
-            refocusBody();
-        });
+        super('metronome_box');
         const handleKeyDown = (ev, min) => {
             let val = parseInt($(ev.target).val());
             if (ev.code === 'ArrowUp') {
@@ -152,15 +133,7 @@ class MetronomeBox {
             $(this).select();
         });
         $("#metronome_box").on('keydown', (ev) => {
-            ev.stopPropagation();
-            if (ev.code === 'Enter') {
-                $("#metronome_ok").trigger('click');
-                ev.preventDefault();
-            }
-            else if (ev.code === 'Escape') {
-                $("#metronome_cancel").trigger('click');
-                ev.preventDefault();
-            }
+            this._handleKeyDown(ev, 'metronome_ok', 'metronome_cancel');
         });
     }
     show(bpm, mainBeats, subBeats, okayCallback) {
@@ -168,7 +141,7 @@ class MetronomeBox {
         $('#metronome_main_beats').val(mainBeats);
         $('#metronome_sub_beats').val(subBeats);
         $("#metronome_ok").off('click').on('click', (ev) => {
-            __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").clear();
+            this._box.clear();
             ev.preventDefault();
             const bpm = parseInt($('#metronome_bpm').val());
             const mainBeats = parseInt($('#metronome_main_beats').val());
@@ -177,16 +150,15 @@ class MetronomeBox {
                 okayCallback(bpm, mainBeats, subBeats);
         });
         $("#metronome_cancel").off('click').on('click', (ev) => {
-            __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").clear();
+            this._box.clear();
             ev.preventDefault();
         });
-        __classPrivateFieldSet(this, _MetronomeBox_metronome_box, new Popbox({
+        this._box = new Popbox({
             blur: true,
             overlay: true,
-        }), "f");
-        __classPrivateFieldGet(this, _MetronomeBox_metronome_box, "f").open('metronome_box');
+        });
+        this._box.open('metronome_box');
         $('#metronome_bpm').focus();
     }
 }
-_MetronomeBox_metronome_box = new WeakMap();
 export var metronomeBox = new MetronomeBox();
