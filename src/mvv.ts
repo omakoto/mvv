@@ -716,39 +716,64 @@ class Metronome {
             this.#beat();
         }, interval);
         this.#beat();
+        Tone.start();
     }
 
     #beat() {
         var notes = [];
+        var lineType = -1;
         if ((this.#subBeats === 1) && (this.#beats > 1) && (this.#pos % this.#beats) === 0) {
             // Accent. Only use in a non-polyrhythm mode.
             notes = this.ACCENT_BEAT;
-            renderer.drawExtraLine(0);
+            // renderer.drawExtraLine(0);
+            lineType = 0;
         } else {
             const main = (this.#pos % this.#subBeats) === 0;
             const sub = ((this.#pos % this.#beats) === 0) && this.#subBeats > 1;
 
             if (main) {
                 if (sub) {
-                    renderer.drawExtraLine(0);
+                    // renderer.drawExtraLine(0);
+                    lineType = 0;
                     notes = this.DUAL_BEAT;
                 } else {
-                    renderer.drawExtraLine(1);
+                    // renderer.drawExtraLine(1);
+                    lineType = 1;
                     notes = this.MAIN_BEAT;
                 }
             } else {
                 if (sub) {
                     notes = this.SUB_BEAT;
-                    renderer.drawExtraLine(2);
+                    // renderer.drawExtraLine(2);
+                    lineType = 2;
                 }
             }
         }
         this.#pos++;
 
-        if (notes.length > 0) {
-            // Note, duration, start time ("+0" == now), volume [0, 1].
-            this.#synth.triggerAttackRelease(notes, 0.05, "+0", 0.8);
+        if (notes.length < 1) {
+            return;
         }
+        // // Note, duration, start time ("+0" == now), volume [0, 1].
+        // this.#synth.triggerAttackRelease(notes, 0.05, "+0", 0.8);
+
+            // if (lineType >= 0) {
+            //         renderer.drawExtraLine(lineType);
+            // }
+
+        Tone.Transport.schedule((time) => {
+            // // Trigger the synth at the scheduled time
+            // synth.triggerAttackRelease("C4", "8n", time);
+
+            this.#synth.triggerAttackRelease(notes, 0.05, time, 0.8);
+
+            if (lineType >= 0) {
+                Tone.Draw.schedule(() => {
+                    renderer.drawExtraLine(lineType);
+                }, time);
+            }
+        }, "+0.05");
+        Tone.Transport.start();
     }
 
     stop() {
@@ -757,6 +782,7 @@ class Metronome {
         }
         clearInterval(this.#timerId);
         this.#timerId = -1;
+        Tone.Transport.stop();
     }
 }
 

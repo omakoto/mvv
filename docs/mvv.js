@@ -621,6 +621,7 @@ class Metronome {
             __classPrivateFieldGet(this, _Metronome_instances, "m", _Metronome_beat).call(this);
         }, interval), "f");
         __classPrivateFieldGet(this, _Metronome_instances, "m", _Metronome_beat).call(this);
+        Tone.start();
     }
     stop() {
         if (!this.isPlaying) {
@@ -628,41 +629,62 @@ class Metronome {
         }
         clearInterval(__classPrivateFieldGet(this, _Metronome_timerId, "f"));
         __classPrivateFieldSet(this, _Metronome_timerId, -1, "f");
+        Tone.Transport.stop();
     }
 }
 _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_beats = new WeakMap(), _Metronome_subBeats = new WeakMap(), _Metronome_pos = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat() {
     var _b;
     var notes = [];
+    var lineType = -1;
     if ((__classPrivateFieldGet(this, _Metronome_subBeats, "f") === 1) && (__classPrivateFieldGet(this, _Metronome_beats, "f") > 1) && (__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0) {
         // Accent. Only use in a non-polyrhythm mode.
         notes = this.ACCENT_BEAT;
-        renderer.drawExtraLine(0);
+        // renderer.drawExtraLine(0);
+        lineType = 0;
     }
     else {
         const main = (__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_subBeats, "f")) === 0;
         const sub = ((__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0) && __classPrivateFieldGet(this, _Metronome_subBeats, "f") > 1;
         if (main) {
             if (sub) {
-                renderer.drawExtraLine(0);
+                // renderer.drawExtraLine(0);
+                lineType = 0;
                 notes = this.DUAL_BEAT;
             }
             else {
-                renderer.drawExtraLine(1);
+                // renderer.drawExtraLine(1);
+                lineType = 1;
                 notes = this.MAIN_BEAT;
             }
         }
         else {
             if (sub) {
                 notes = this.SUB_BEAT;
-                renderer.drawExtraLine(2);
+                // renderer.drawExtraLine(2);
+                lineType = 2;
             }
         }
     }
     __classPrivateFieldSet(this, _Metronome_pos, (_b = __classPrivateFieldGet(this, _Metronome_pos, "f"), _b++, _b), "f");
-    if (notes.length > 0) {
-        // Note, duration, start time ("+0" == now), volume [0, 1].
-        __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, "+0", 0.8);
+    if (notes.length < 1) {
+        return;
     }
+    // // Note, duration, start time ("+0" == now), volume [0, 1].
+    // this.#synth.triggerAttackRelease(notes, 0.05, "+0", 0.8);
+    // if (lineType >= 0) {
+    //         renderer.drawExtraLine(lineType);
+    // }
+    Tone.Transport.schedule((time) => {
+        // // Trigger the synth at the scheduled time
+        // synth.triggerAttackRelease("C4", "8n", time);
+        __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, time, 0.8);
+        if (lineType >= 0) {
+            Tone.Draw.schedule(() => {
+                renderer.drawExtraLine(lineType);
+            }, time);
+        }
+    }, "+0.05");
+    Tone.Transport.start();
 };
 export const metronome = new Metronome();
 var RecorderState;
