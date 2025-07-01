@@ -195,29 +195,18 @@ class MetronomeBox extends DialogBase {
             if (!this.focusedInput) return;
 
             const inputEl = this.focusedInput[0] as HTMLInputElement;
-            const key = $(ev.target).text().trim();
+
+            const key = $(ev.target)
+            const adj = parseInt(key.attr('adj') || "0");
+            const factor = parseFloat(key.attr('factor') || "0");
+
             let val = parseInt(inputEl.value, 10);
             if (isNaN(val)) val = 0;
 
-            switch (key) {
-                case '-1':
-                    val -= 1;
-                    break;
-                case '+1':
-                    val += 1;
-                    break;
-                case '-10':
-                    val -= 10;
-                    break;
-                case '+10':
-                    val += 10;
-                    break;
-                case '50%':
-                    val = Math.round(val / 2);
-                    break;
-                case '200%':
-                    val = val * 2;
-                    break;
+            if (adj != 0) {
+                val += adj;
+            } else if (factor != 0) {
+                val = Math.round(val * factor);
             }
             const min = parseInt(this.focusedInput.attr('min') || "0");
             const max = parseInt(this.focusedInput.attr('max') || "0");
