@@ -756,7 +756,7 @@ class Metronome {
         }
 
         Tone.Transport.schedule((time) => {
-            // Note, duration, start time ("+0" == now), volume [0, 1].
+            // Note, duration, start time, volume [0, 1].
             this.#synth.triggerAttackRelease(notes, 0.05, time, 0.8);
 
             if (lineType >= 0) {
