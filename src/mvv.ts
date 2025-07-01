@@ -754,17 +754,9 @@ class Metronome {
         if (notes.length < 1) {
             return;
         }
-        // // Note, duration, start time ("+0" == now), volume [0, 1].
-        // this.#synth.triggerAttackRelease(notes, 0.05, "+0", 0.8);
-
-            // if (lineType >= 0) {
-            //         renderer.drawExtraLine(lineType);
-            // }
 
         Tone.Transport.schedule((time) => {
-            // // Trigger the synth at the scheduled time
-            // synth.triggerAttackRelease("C4", "8n", time);
-
+            // Note, duration, start time ("+0" == now), volume [0, 1].
             this.#synth.triggerAttackRelease(notes, 0.05, time, 0.8);
 
             if (lineType >= 0) {
