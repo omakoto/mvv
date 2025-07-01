@@ -123,10 +123,16 @@ class MetronomeBox extends DialogBase {
 
     constructor() {
         super('metronome_box');
-        const handleKeyDown = (ev: JQuery.KeyDownEvent, min: number) => {
+        const handleKeyDown = (ev: JQuery.KeyDownEvent) => {
+            if (!this.focusedInput) return;
+
             let val = parseInt($(ev.target).val() as string);
+
+            const min = parseInt(this.focusedInput.attr('min') || "0");
+            const max = parseInt(this.focusedInput.attr('max') || "0");
+
             if (ev.code === 'ArrowUp') {
-                val++;
+                val = Math.min(max, val + 1);
                 $(ev.target).val(val);
                 ev.preventDefault();
             } else if (ev.code === 'ArrowDown') {
@@ -134,7 +140,7 @@ class MetronomeBox extends DialogBase {
                 $(ev.target).val(val);
                 ev.preventDefault();
             } else if (ev.code === 'PageUp') {
-                val += 10;
+                val = Math.min(max, val + 10);
                 $(ev.target).val(val);
                 ev.preventDefault();
             } else if (ev.code === 'PageDown') {
@@ -144,9 +150,9 @@ class MetronomeBox extends DialogBase {
             }
         };
 
-        $('#metronome_bpm').on('keydown', (ev) => handleKeyDown(ev, 10));
-        $('#metronome_main_beats').on('keydown', (ev) => handleKeyDown(ev, 0));
-        $('#metronome_sub_beats').on('keydown', (ev) => handleKeyDown(ev, 0));
+        $('#metronome_bpm').on('keydown', (ev) => handleKeyDown(ev));
+        $('#metronome_main_beats').on('keydown', (ev) => handleKeyDown(ev));
+        $('#metronome_sub_beats').on('keydown', (ev) => handleKeyDown(ev));
 
         $("#metronome_box input").on('focus', (ev) => {
             this.focusedInput = $(ev.target);
@@ -236,7 +242,10 @@ class MetronomeBox extends DialogBase {
         $("#metronome_ok").off('click').on('click', (ev) => {
             ev.preventDefault();
 
-            const check = (el: JQuery<HTMLElement>, min: number, max: number, defValue: number): number | null => {
+            const check = (el: JQuery<HTMLElement>, defValue: number): number | null => {
+                const min = parseInt(el.attr('min') || "0");
+                const max = parseInt(el.attr('max') || "0");
+
                 const valStr = (el.val() as string).trim();
                 el.val(valStr);
                 if (valStr.length === 0 && defValue >= 0) {
@@ -261,13 +270,13 @@ class MetronomeBox extends DialogBase {
                 return val;
             };
 
-            const bpm = check($('#metronome_bpm'), 10, 600, -1);
+            const bpm = check($('#metronome_bpm'), -1);
             if (bpm === null) return;
 
-            const mainBeats = check($('#metronome_main_beats'), 1, 32, 4);
+            const mainBeats = check($('#metronome_main_beats'), 4);
             if (mainBeats === null) return;
 
-            const subBeats = check($('#metronome_sub_beats'), 0, 32, 0);
+            const subBeats = check($('#metronome_sub_beats'), 0);
             if (subBeats === null) return;
 
             this._box!.clear();
