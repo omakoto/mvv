@@ -455,6 +455,22 @@ kbd:active {
     align-items: center;
 }
 
+#metronome_box .popbox_container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#metronome_box .inputs {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#metronome_adj_keys {
+    margin-left: 10px;
+}
+
 .keypad_row {
     display: flex;
     justify-content: center;
@@ -466,4 +482,13 @@ kbd:active {
     height: 40px;
     font-size: 20px;
     margin: 0 2px;
+}
+
+.adj_key {
+    font-size: 16px;
+}
+
+#metronome_box input {
+    font-size: 16px;
+    text-align: right;
 }

@@ -185,6 +185,44 @@ class MetronomeBox extends DialogBase {
             inputEl.setSelectionRange(newCursorPos, newCursorPos);
         });
 
+        $("#metronome_adj_keys .adj_key").on('click', (ev) => {
+            if (!this.focusedInput) return;
+
+            const inputEl = this.focusedInput[0] as HTMLInputElement;
+            const key = $(ev.target).text().trim();
+            let val = parseInt(inputEl.value, 10);
+            if (isNaN(val)) val = 0;
+
+            switch (key) {
+                case '-1':
+                    val -= 1;
+                    break;
+                case '+1':
+                    val += 1;
+                    break;
+                case '-10':
+                    val -= 10;
+                    break;
+                case '+10':
+                    val += 10;
+                    break;
+                case '50%':
+                    val = Math.round(val / 2);
+                    break;
+                case '200%':
+                    val = val * 2;
+                    break;
+            }
+            const min = parseInt(this.focusedInput.attr('min') || "0");
+            const max = parseInt(this.focusedInput.attr('max') || "0");
+            if (val < min) {
+                val = min;
+            } else if (val > max) {
+                val = max;
+            }
+            inputEl.value = val.toString();
+        });
+
         $("#metronome_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'metronome_ok', 'metronome_cancel');
         });
