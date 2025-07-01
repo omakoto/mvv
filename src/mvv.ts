@@ -717,6 +717,7 @@ class Metronome {
         }, interval);
         this.#beat();
         Tone.start();
+        Tone.Transport.start();
     }
 
     #beat() {
@@ -755,7 +756,11 @@ class Metronome {
             return;
         }
 
+        // console.log("beep", notes);
+
         Tone.Transport.schedule((time) => {
+            // console.log("schedule", time);
+
             // Note, duration, start time, volume [0, 1].
             this.#synth.triggerAttackRelease(notes, 0.05, time, 0.8);
 
@@ -765,7 +770,6 @@ class Metronome {
                 }, time);
             }
         }, "+0.05");
-        Tone.Transport.start();
     }
 
     stop() {
@@ -774,7 +778,6 @@ class Metronome {
         }
         clearInterval(this.#timerId);
         this.#timerId = -1;
-        Tone.Transport.stop();
     }
 }
 

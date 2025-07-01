@@ -622,6 +622,7 @@ class Metronome {
         }, interval), "f");
         __classPrivateFieldGet(this, _Metronome_instances, "m", _Metronome_beat).call(this);
         Tone.start();
+        Tone.Transport.start();
     }
     stop() {
         if (!this.isPlaying) {
@@ -629,7 +630,6 @@ class Metronome {
         }
         clearInterval(__classPrivateFieldGet(this, _Metronome_timerId, "f"));
         __classPrivateFieldSet(this, _Metronome_timerId, -1, "f");
-        Tone.Transport.stop();
     }
 }
 _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_beats = new WeakMap(), _Metronome_subBeats = new WeakMap(), _Metronome_pos = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat() {
@@ -669,7 +669,9 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
     if (notes.length < 1) {
         return;
     }
+    // console.log("beep", notes);
     Tone.Transport.schedule((time) => {
+        // console.log("schedule", time);
         // Note, duration, start time, volume [0, 1].
         __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, time, 0.8);
         if (lineType >= 0) {
@@ -678,7 +680,6 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
             }, time);
         }
     }, "+0.05");
-    Tone.Transport.start();
 };
 export const metronome = new Metronome();
 var RecorderState;
