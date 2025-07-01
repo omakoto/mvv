@@ -141,11 +141,30 @@ class MetronomeBox extends DialogBase {
         $('#metronome_main_beats').val(mainBeats);
         $('#metronome_sub_beats').val(subBeats);
         $("#metronome_ok").off('click').on('click', (ev) => {
-            this._box.clear();
             ev.preventDefault();
-            const bpm = parseInt($('#metronome_bpm').val());
-            const mainBeats = parseInt($('#metronome_main_beats').val());
-            const subBeats = parseInt($('#metronome_sub_beats').val());
+            const check = (el, min) => {
+                const valStr = el.val();
+                if (!/^\d+$/.test(valStr)) {
+                    el.focus();
+                    return null;
+                }
+                const val = parseInt(valStr, 10);
+                if (val < min) {
+                    el.focus();
+                    return null;
+                }
+                return val;
+            };
+            const bpm = check($('#metronome_bpm'), 1);
+            if (bpm === null)
+                return;
+            const mainBeats = check($('#metronome_main_beats'), 1);
+            if (mainBeats === null)
+                return;
+            const subBeats = check($('#metronome_sub_beats'), 0);
+            if (subBeats === null)
+                return;
+            this._box.clear();
             if (okayCallback)
                 okayCallback(bpm, mainBeats, subBeats);
         });
