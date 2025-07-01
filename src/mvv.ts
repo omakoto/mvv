@@ -354,7 +354,7 @@ class Renderer {
             }
 
             // "Off" line
-            if (midiRenderingStatus.offNoteCount > 0) {
+            if (midiRenderingStatus.offNoteCount > 0 && coordinator.isShowingNoteOffLines) {
                 this.#barAreaChanged();
 
                 // We don't highlight off lines. Always same color.
@@ -1175,6 +1175,8 @@ class Coordinator {
     #showVlines: boolean;
     #showNoteNames: boolean;
     #scrollSpeedIndex: number;
+    #showNoteOffLins = false;
+
     #isHelpVisible = false;
     #metronomeBpm: number;
     #metronomeMainBeats: number;
@@ -1185,6 +1187,7 @@ class Coordinator {
     static readonly #STORAGE_KEY_SHOW_VLINES = 'mvv_showVlines';
     static readonly #STORAGE_KEY_SHOW_NOTE_NAMES = 'mvv_showNoteNames';
     static readonly #STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
+    static readonly #STORAGE_KEY_NOTE_OFF_LINES = 'note_off_lines';
     static readonly #STORAGE_KEY_METRONOME_BPM = 'mvv_metronomeBpm';
     static readonly #STORAGE_KEY_METRONOME_MAIN_BEATS = 'mvv_metronomeMainBeats';
     static readonly #STORAGE_KEY_METRONOME_SUB_BEATS = 'mvv_metronomeSubBeats';
@@ -1208,6 +1211,9 @@ class Coordinator {
 
         const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
         this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed) : 0;
+
+        const noteOffLines = localStorage.getItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES);
+        this.#showNoteOffLins = noteOffLines === null ? true : noteOffLines === 'true';
 
         const storedBpm = localStorage.getItem(Coordinator.#STORAGE_KEY_METRONOME_BPM);
         this.#metronomeBpm = storedBpm ? parseInt(storedBpm) : 60;
@@ -1273,10 +1279,16 @@ class Coordinator {
 
             case 'Digit5':
                 if (isRepeat) break;
-                this.toggleVideoMute();
+                this.toggleNoteOffLines();
+                this.updateUi();
                 break;
 
             case 'Digit6':
+                if (isRepeat) break;
+                this.toggleVideoMute();
+                break;
+
+            case 'Digit7':
             case 'Enter':
                 if (isRepeat) break;
                 this.toggleRollFrozen();
@@ -1412,6 +1424,17 @@ class Coordinator {
             $('#help_overlay').fadeOut('fast');
             $('#help_box').fadeOut('fast');
         }
+    }
+
+    get isShowingNoteOffLines(): boolean {
+        return this.#showNoteOffLins;
+    }
+
+    toggleNoteOffLines(): void {
+        info("Toggle note-off lines");
+        this.#showNoteOffLins = !this.#showNoteOffLins;
+        localStorage.setItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES, String(this.#showNoteOffLins));
+        this.updateUi();
     }
 
     toggleVideoMute(): void {

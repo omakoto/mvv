@@ -196,6 +196,9 @@ canvas#roll2 {
 #notenames {
     background-image: url("res/a.png");
 }
+#off-lines {
+    background-image: url("res/off-line.png");
+}
 #source {
     background-image: url("res/source.png");
     margin-right: 12px;

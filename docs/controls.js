@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_notenames, _Controls_metronome, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { coordinator, renderer, recorder, metronome } from './mvv.js';
 const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
 class Controls {
@@ -34,6 +34,7 @@ class Controls {
         _Controls_vlines.set(this, void 0);
         _Controls_speedup.set(this, void 0);
         _Controls_notenames.set(this, void 0);
+        _Controls_noteOffLines.set(this, void 0);
         _Controls_metronome.set(this, void 0);
         _Controls_isPositionDragging.set(this, false);
         _Controls_wasPlayingBeforeDrag.set(this, false);
@@ -56,6 +57,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_vlines, $("#vlines"), "f");
         __classPrivateFieldSet(this, _Controls_speedup, $("#speedup"), "f");
         __classPrivateFieldSet(this, _Controls_notenames, $("#notenames"), "f");
+        __classPrivateFieldSet(this, _Controls_noteOffLines, $("#off-lines"), "f");
         __classPrivateFieldSet(this, _Controls_metronome, $("#metronome"), "f");
         __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
             coordinator.moveToStart();
@@ -117,6 +119,11 @@ class Controls {
         });
         __classPrivateFieldGet(this, _Controls_notenames, "f").on('click', (ev) => {
             coordinator.toggleNoteNames();
+            this.update();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_noteOffLines, "f").on('click', (ev) => {
+            coordinator.toggleNoteOffLines();
             this.update();
             ev.stopPropagation();
         });
@@ -213,6 +220,7 @@ class Controls {
         this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
         this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingVlines);
         this.activate(__classPrivateFieldGet(this, _Controls_notenames, "f"), coordinator.isShowingNoteNames);
+        this.activate(__classPrivateFieldGet(this, _Controls_noteOffLines, "f"), coordinator.isShowingNoteOffLines);
         this.activate(__classPrivateFieldGet(this, _Controls_metronome, "f"), metronome.isPlaying);
         // Speed button. Select the right icon.
         // Also activate it if the speed isn't the default.
@@ -270,5 +278,5 @@ class Controls {
         coordinator.moveToPercent(ev.offsetX / max);
     }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_speedup = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_speedup = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
 export const controls = new Controls();

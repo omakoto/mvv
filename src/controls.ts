@@ -24,6 +24,7 @@ class Controls {
     #vlines;
     #speedup;
     #notenames;
+    #noteOffLines;
     #metronome;
 
     constructor() {
@@ -50,6 +51,7 @@ class Controls {
         this.#vlines = $("#vlines");
         this.#speedup = $("#speedup");
         this.#notenames = $("#notenames");
+        this.#noteOffLines = $("#off-lines");
 
         this.#metronome = $("#metronome");
 
@@ -119,6 +121,11 @@ class Controls {
 
         this.#notenames.on('click', (ev) => {
             coordinator.toggleNoteNames();
+            this.update();
+            ev.stopPropagation();
+        });
+        this.#noteOffLines.on('click', (ev) => {
+            coordinator.toggleNoteOffLines();
             this.update();
             ev.stopPropagation();
         });
@@ -224,6 +231,7 @@ class Controls {
         this.activate(this.#flat, !coordinator.isSharpMode);
         this.activate(this.#vlines, coordinator.isShowingVlines);
         this.activate(this.#notenames, coordinator.isShowingNoteNames);
+        this.activate(this.#noteOffLines, coordinator.isShowingNoteOffLines);
 
         this.activate(this.#metronome, metronome.isPlaying);
 

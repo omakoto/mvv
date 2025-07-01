@@ -22,7 +22,7 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script> -->
     <script src="tonal.min.js"></script>
     <script src="Tone.js"></script>
-    <link rel="stylesheet" href="mvv.css?v=23"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
+    <link rel="stylesheet" href="mvv.css?v=24"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
 </head>
 <body tabindex="-1">
     <!-- This is used to open a "open file" system dialog box. -->
@@ -65,8 +65,11 @@
 
             <div id="vlines" class="button" title="Toggle octave lines [3]"></div>
             <div id="speedup" class="button speed-normal" title="Toggle scroll speed [4]"></div>
-            <div id="video-mute" class="button" title="Hide screen [5]"></div>
-            <div id="freeze" class="button" title="Freeze role pane [6] / [Enter]"></div>
+
+            <div id="off-lines" class="button" title="Toggle note-off lines [5]"></div>
+
+            <div id="video-mute" class="button" title="Hide screen [6]"></div>
+            <div id="freeze" class="button" title="Freeze role pane [7] / [Enter]"></div>
 
             <div id="fullscreen" class="button" title="Fullscreen [F]"></div>
         </div>
@@ -120,8 +123,9 @@
                 <tr><td><kbd>2</kbd></td><td>Toggle between ♯ and ♭ for key/chord names</td></tr>
                 <tr><td><kbd>3</kbd></td><td>Toggle octave lines</td></tr>
                 <tr><td><kbd>4</kbd></td><td>Toggle scroll speed</td></tr>
-                <tr><td><kbd>5</kbd></td><td>Hide screen</td></tr>
-                <tr><td><kbd>6</kbd> or <kbd>Enter</kbd></td><td>Freeze roll pane</td></tr>
+                <tr><td><kbd>5</kbd></td><td>Toggle note-off lines</td></tr>
+                <tr><td><kbd>6</kbd></td><td>Hide screen</td></tr>
+                <tr><td><kbd>7</kbd> or <kbd>Enter</kbd></td><td>Freeze roll pane</td></tr>
 
                 <tr><td><kbd>R</kbd></td><td>Record start/stop</td></tr>
                 <tr><td><kbd>Space</kbd></td><td>Playback start / pause</td></tr>
