@@ -137,16 +137,35 @@ class MetronomeBox extends DialogBase {
         $("#metronome_keypad .keypad_key").on('click', (ev) => {
             if (!this.focusedInput)
                 return;
+            const inputEl = this.focusedInput[0];
             const key = $(ev.target).text();
-            let val = this.focusedInput.val();
+            let val = inputEl.value;
+            const selectionStart = inputEl.selectionStart || 0;
+            const selectionEnd = inputEl.selectionEnd || 0;
+            const anythingSelected = (selectionStart !== selectionEnd);
             if (key === 'BS') {
-                val = val.slice(0, -1);
+                if (!anythingSelected) {
+                    // No selection, delete the last character
+                    val = val.slice(0, -1);
+                }
+                else {
+                    // Selection exists, assume it's selecting the whole text, and delete all.
+                    val = "";
+                }
             }
             else {
-                val += key;
+                if (!anythingSelected) {
+                    // No selection, add the digit.
+                    val = val + key;
+                }
+                else {
+                    // Selection exists, assume it's selecting the whole text, and replace all.
+                    val = key;
+                }
             }
-            this.focusedInput.val(val);
-            this.focusedInput.focus();
+            inputEl.value = val;
+            const newCursorPos = val.length;
+            inputEl.setSelectionRange(newCursorPos, newCursorPos);
         });
         $("#metronome_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'metronome_ok', 'metronome_cancel');
@@ -159,7 +178,8 @@ class MetronomeBox extends DialogBase {
         $("#metronome_ok").off('click').on('click', (ev) => {
             ev.preventDefault();
             const check = (el, min) => {
-                const valStr = el.val();
+                const valStr = el.val().trim();
+                el.val(valStr);
                 if (!/^\d+$/.test(valStr)) {
                     el.focus();
                     return null;
