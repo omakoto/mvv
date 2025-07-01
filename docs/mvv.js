@@ -630,6 +630,7 @@ class Metronome {
         }
         clearInterval(__classPrivateFieldGet(this, _Metronome_timerId, "f"));
         __classPrivateFieldSet(this, _Metronome_timerId, -1, "f");
+        Tone.Transport.stop();
     }
 }
 _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_beats = new WeakMap(), _Metronome_subBeats = new WeakMap(), _Metronome_pos = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat() {
@@ -670,7 +671,7 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
         return;
     }
     // console.log("beep", notes);
-    Tone.Transport.schedule((time) => {
+    Tone.Transport.scheduleOnce((time) => {
         // console.log("schedule", time);
         // Note, duration, start time, volume [0, 1].
         __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, time, 0.8);

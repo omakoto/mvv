@@ -716,6 +716,7 @@ class Metronome {
             this.#beat();
         }, interval);
         this.#beat();
+
         Tone.start();
         Tone.Transport.start();
     }
@@ -758,7 +759,7 @@ class Metronome {
 
         // console.log("beep", notes);
 
-        Tone.Transport.schedule((time) => {
+        Tone.Transport.scheduleOnce((time) => {
             // console.log("schedule", time);
 
             // Note, duration, start time, volume [0, 1].
@@ -778,6 +779,8 @@ class Metronome {
         }
         clearInterval(this.#timerId);
         this.#timerId = -1;
+
+        Tone.Transport.stop();
     }
 }
 
