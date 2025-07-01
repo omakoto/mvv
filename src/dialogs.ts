@@ -198,7 +198,7 @@ class MetronomeBox extends DialogBase {
         $("#metronome_ok").off('click').on('click', (ev) => {
             ev.preventDefault();
 
-            const check = (el: JQuery<HTMLElement>, min: number): number | null => {
+            const check = (el: JQuery<HTMLElement>, min: number, max: number): number | null => {
                 const valStr = (el.val() as string).trim();
                 el.val(valStr);
                 if (!/^\d+$/.test(valStr)) {
@@ -207,19 +207,25 @@ class MetronomeBox extends DialogBase {
                 }
                 const val = parseInt(valStr, 10);
                 if (val < min) {
+                    el.val("" + min);
+                    el.focus();
+                    return null;
+                }
+                if (val > max) {
+                    el.val("" + max);
                     el.focus();
                     return null;
                 }
                 return val;
             };
 
-            const bpm = check($('#metronome_bpm'), 1);
+            const bpm = check($('#metronome_bpm'), 10, 600);
             if (bpm === null) return;
 
-            const mainBeats = check($('#metronome_main_beats'), 1);
+            const mainBeats = check($('#metronome_main_beats'), 1, 32);
             if (mainBeats === null) return;
 
-            const subBeats = check($('#metronome_sub_beats'), 0);
+            const subBeats = check($('#metronome_sub_beats'), 0, 32);
             if (subBeats === null) return;
 
             this._box!.clear();
