@@ -746,7 +746,8 @@ class Metronome {
         this.#pos++;
 
         if (notes.length > 0) {
-            this.#synth.triggerAttackRelease(notes, "0.05");
+            // Note, duration, start time ("+0" == now), volume [0, 1].
+            this.#synth.triggerAttackRelease(notes, 0.05, "+0", 1);
         }
     }
 

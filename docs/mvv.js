@@ -660,7 +660,8 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
     }
     __classPrivateFieldSet(this, _Metronome_pos, (_b = __classPrivateFieldGet(this, _Metronome_pos, "f"), _b++, _b), "f");
     if (notes.length > 0) {
-        __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, "0.05");
+        // Note, duration, start time ("+0" == now), volume [0, 1].
+        __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, "+0", 1);
     }
 };
 export const metronome = new Metronome();
