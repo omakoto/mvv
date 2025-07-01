@@ -449,7 +449,10 @@ kbd:active {
 }
 
 #metronome_keypad {
-    margin-top: 10px;
+    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .keypad_row {
@@ -461,6 +464,6 @@ kbd:active {
 .keypad_key {
     width: 40px;
     height: 40px;
-    font-size: 16px;
+    font-size: 20px;
     margin: 0 2px;
 }
