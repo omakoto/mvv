@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Metronome_instances, _Metronome_timerId, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_pos, _Metronome_synth, _Metronome_beat, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_pos, _Metronome_synth, _Metronome_beat, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showVlines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_lastRewindPressTime, _Coordinator_onRewindPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds, _Coordinator_getHumanReadableCurrentPlaybackTimestamp_lastResult, _Coordinator_animationFrameId, _Coordinator_updateTimestamp, _Coordinator_onPlaybackTimer_lastShownPlaybackTimestamp;
 import { info, debug, DEBUG } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -587,7 +587,7 @@ export const midiOutputManager = new MidiOutputManager();
 class Metronome {
     constructor() {
         _Metronome_instances.add(this);
-        _Metronome_timerId.set(this, -1);
+        _Metronome_playing.set(this, false);
         _Metronome_bpm.set(this, 0);
         _Metronome_beats.set(this, 0);
         _Metronome_subBeats.set(this, 0);
@@ -602,7 +602,7 @@ class Metronome {
         this.DUAL_BEAT = [this.MAIN_NOTE, this.SUB_NOTE];
     }
     get isPlaying() {
-        return __classPrivateFieldGet(this, _Metronome_timerId, "f") !== -1;
+        return __classPrivateFieldGet(this, _Metronome_playing, "f");
     }
     start(bpm, beats, subBeats) {
         if (this.isPlaying) {
@@ -616,31 +616,28 @@ class Metronome {
         }
         __classPrivateFieldSet(this, _Metronome_pos, 0, "f");
         const measureMs = 60000 / (__classPrivateFieldGet(this, _Metronome_bpm, "f") / __classPrivateFieldGet(this, _Metronome_beats, "f"));
-        const interval = measureMs / (__classPrivateFieldGet(this, _Metronome_beats, "f") * __classPrivateFieldGet(this, _Metronome_subBeats, "f"));
-        __classPrivateFieldSet(this, _Metronome_timerId, setInterval(() => {
-            __classPrivateFieldGet(this, _Metronome_instances, "m", _Metronome_beat).call(this);
-        }, interval), "f");
-        __classPrivateFieldGet(this, _Metronome_instances, "m", _Metronome_beat).call(this);
+        const intervalSec = (measureMs / (__classPrivateFieldGet(this, _Metronome_beats, "f") * __classPrivateFieldGet(this, _Metronome_subBeats, "f"))) / 1000.0;
         Tone.start();
         Tone.Transport.start();
+        Tone.Transport.scheduleRepeat((time) => __classPrivateFieldGet(this, _Metronome_instances, "m", _Metronome_beat).call(this, time), "" + intervalSec);
+        __classPrivateFieldSet(this, _Metronome_playing, true, "f");
     }
     stop() {
         if (!this.isPlaying) {
             return;
         }
-        clearInterval(__classPrivateFieldGet(this, _Metronome_timerId, "f"));
-        __classPrivateFieldSet(this, _Metronome_timerId, -1, "f");
+        __classPrivateFieldSet(this, _Metronome_playing, false, "f");
         Tone.Transport.stop();
+        Tone.Transport.cancel();
     }
 }
-_Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_beats = new WeakMap(), _Metronome_subBeats = new WeakMap(), _Metronome_pos = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat() {
+_Metronome_playing = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_beats = new WeakMap(), _Metronome_subBeats = new WeakMap(), _Metronome_pos = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat(time) {
     var _b;
     var notes = [];
     var lineType = -1;
     if ((__classPrivateFieldGet(this, _Metronome_subBeats, "f") === 1) && (__classPrivateFieldGet(this, _Metronome_beats, "f") > 1) && (__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0) {
         // Accent. Only use in a non-polyrhythm mode.
         notes = this.ACCENT_BEAT;
-        // renderer.drawExtraLine(0);
         lineType = 0;
     }
     else {
@@ -648,12 +645,10 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
         const sub = ((__classPrivateFieldGet(this, _Metronome_pos, "f") % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0) && __classPrivateFieldGet(this, _Metronome_subBeats, "f") > 1;
         if (main) {
             if (sub) {
-                // renderer.drawExtraLine(0);
                 lineType = 0;
                 notes = this.DUAL_BEAT;
             }
             else {
-                // renderer.drawExtraLine(1);
                 lineType = 1;
                 notes = this.MAIN_BEAT;
             }
@@ -661,7 +656,6 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
         else {
             if (sub) {
                 notes = this.SUB_BEAT;
-                // renderer.drawExtraLine(2);
                 lineType = 2;
             }
         }
@@ -671,16 +665,13 @@ _Metronome_timerId = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
         return;
     }
     // console.log("beep", notes);
-    Tone.Transport.scheduleOnce((time) => {
-        // console.log("schedule", time);
-        // Note, duration, start time, volume [0, 1].
-        __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, time, 0.8);
-        if (lineType >= 0) {
-            Tone.Draw.schedule(() => {
-                renderer.drawExtraLine(lineType);
-            }, time);
-        }
-    }, "+0.05");
+    // Note, duration, start time, volume [0, 1].
+    __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(notes, 0.05, time, 0.8);
+    if (lineType >= 0) {
+        Tone.Draw.schedule(() => {
+            renderer.drawExtraLine(lineType);
+        }, time);
+    }
 };
 export const metronome = new Metronome();
 var RecorderState;
@@ -1419,6 +1410,12 @@ class Coordinator {
     updateNoteInformation() {
         // Build note names.
         const now = performance.now();
+        // TODO: getPressedNotesInfo() has this compensation logic for too short notes,
+        // and if that happens, we'd fail to remove the note because nothing
+        // calls updateNoteInformation() when that logic expires. We need to fix it somehow.
+        // But using the "raw" information has a downside that if two short notes
+        // happen back to back, the first note would be deleted right away,
+        // as opposed to both getting shown at the same time.
         const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
         let lastOctave = 0;
         const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
@@ -1768,3 +1765,4 @@ $(window).on('unload', () => {
 // Start the new vsync-based animation loop.
 coordinator.startAnimationLoop();
 coordinator.updateUi();
+//# sourceMappingURL=mvv.js.map

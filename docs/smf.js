@@ -575,3 +575,4 @@ export function loadMidi(file) {
 function t() {
     (new SmfWriter()).download();
 }
+//# sourceMappingURL=smf.js.map
