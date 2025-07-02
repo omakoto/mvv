@@ -154,7 +154,7 @@ class Renderer {
             "#C0C0FF", // #C0C0FF
         ]);
         _Renderer_EXTRA_LINE_HEIGHT.set(this, s(3));
-        _Renderer_EXTRA_LINE_DASH.set(this, [__classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 4, __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 4]);
+        _Renderer_EXTRA_LINE_DASH.set(this, [__classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 4, __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 8]);
         // Adjust CSS with the constants.
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");

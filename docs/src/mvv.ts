@@ -161,7 +161,7 @@ class Renderer {
     ];
 
     readonly #EXTRA_LINE_HEIGHT = s(3);
-    readonly #EXTRA_LINE_DASH = [this.#EXTRA_LINE_HEIGHT * 4, this.#EXTRA_LINE_HEIGHT * 4];
+    readonly #EXTRA_LINE_DASH = [this.#EXTRA_LINE_HEIGHT * 4, this.#EXTRA_LINE_HEIGHT * 8];
 
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
