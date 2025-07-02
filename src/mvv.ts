@@ -1685,6 +1685,13 @@ class Coordinator {
     updateNoteInformation(): void {
         // Build note names.
         const now = performance.now();
+
+        // TODO: getPressedNotesInfo() has this compensation logic for too short notes,
+        // and if that happens, we'd fail to remove the note because nothing
+        // calls updateNoteInformation() when that logic expires. We need to fix it somehow.
+        // But using the "raw" information has a downside that if two short notes
+        // happen back to back, the first note would be deleted right away,
+        // as opposed to both getting shown at the same time.
         const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
 
         let lastOctave = 0;
