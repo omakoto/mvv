@@ -1623,7 +1623,7 @@ class Coordinator {
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
         }
-        if (ev.isNoteOn || ev.isNoteOff) {
+        if (this.isShowingNoteNames && (ev.isNoteOn || ev.isNoteOff) ) {
             this.updateNoteInformation();
         }
     }
