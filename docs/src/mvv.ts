@@ -438,13 +438,13 @@ class Renderer {
             }
         }
 
-        if (coordinator.isShowingVlines) {
+        if (coordinator.isShowingOctaveLines) {
             // Draw octave lines.
             this.drawOctaveLines(drawHeight);
         }
-        if (this.#lastVlinesOn !== coordinator.isShowingVlines) {
+        if (this.#lastVlinesOn !== coordinator.isShowingOctaveLines) {
             this.#barAreaChanged();
-            this.#lastVlinesOn = coordinator.isShowingVlines;
+            this.#lastVlinesOn = coordinator.isShowingOctaveLines;
         }
 
         // Base line.
@@ -1195,7 +1195,7 @@ class Coordinator {
     #notes;
     #chords;
     #useSharp: boolean;
-    #showVlines: boolean;
+    #showOctaveLines: boolean;
     #showNoteNames: boolean;
     #scrollSpeedIndex: number;
     #showNoteOffLins = false;
@@ -1227,7 +1227,7 @@ class Coordinator {
         this.#useSharp = storedSharp === null ? true : storedSharp === 'true';
 
         const storedVlines = localStorage.getItem(Coordinator.#STORAGE_KEY_SHOW_VLINES);
-        this.#showVlines = storedVlines === null ? true : storedVlines === 'true';
+        this.#showOctaveLines = storedVlines === null ? true : storedVlines === 'true';
 
         const storedNoteNames = localStorage.getItem(Coordinator.#STORAGE_KEY_SHOW_NOTE_NAMES);
         this.#showNoteNames = storedNoteNames === null ? true : storedNoteNames === 'true';
@@ -1291,7 +1291,7 @@ class Coordinator {
                 break;
             case 'Digit3':
                 if (isRepeat) break;
-                this.setShowingVlines(!this.isShowingVlines);
+                this.setShowingOctaveLines(!this.isShowingOctaveLines);
                 this.updateUi();
                 break;
             case 'Digit4':
@@ -1401,12 +1401,12 @@ class Coordinator {
         localStorage.setItem(Coordinator.#STORAGE_KEY_USE_SHARP, String(useSharp));
     }
 
-    get isShowingVlines(): boolean {
-        return this.#showVlines;
+    get isShowingOctaveLines(): boolean {
+        return this.#showOctaveLines;
     }
 
-    setShowingVlines(show: boolean): void {
-        this.#showVlines = show
+    setShowingOctaveLines(show: boolean): void {
+        this.#showOctaveLines = show
         localStorage.setItem(Coordinator.#STORAGE_KEY_SHOW_VLINES, String(show));
         this.startAnimationLoop();
     }

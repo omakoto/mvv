@@ -108,7 +108,7 @@ class Controls {
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_vlines, "f").on('click', (ev) => {
-            coordinator.setShowingVlines(!coordinator.isShowingVlines);
+            coordinator.setShowingOctaveLines(!coordinator.isShowingOctaveLines);
             this.update();
             ev.stopPropagation();
         });
@@ -218,7 +218,7 @@ class Controls {
         }
         this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), coordinator.isSharpMode);
         this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
-        this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingVlines);
+        this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingOctaveLines);
         this.activate(__classPrivateFieldGet(this, _Controls_notenames, "f"), coordinator.isShowingNoteNames);
         this.activate(__classPrivateFieldGet(this, _Controls_noteOffLines, "f"), coordinator.isShowingNoteOffLines);
         this.activate(__classPrivateFieldGet(this, _Controls_metronome, "f"), metronome.isPlaying);

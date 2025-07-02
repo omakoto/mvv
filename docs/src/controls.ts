@@ -109,7 +109,7 @@ class Controls {
         });
 
         this.#vlines.on('click', (ev) => {
-            coordinator.setShowingVlines(!coordinator.isShowingVlines);
+            coordinator.setShowingOctaveLines(!coordinator.isShowingOctaveLines);
             this.update();
             ev.stopPropagation();
         });
@@ -229,7 +229,7 @@ class Controls {
         }
         this.activate(this.#sharp, coordinator.isSharpMode);
         this.activate(this.#flat, !coordinator.isSharpMode);
-        this.activate(this.#vlines, coordinator.isShowingVlines);
+        this.activate(this.#vlines, coordinator.isShowingOctaveLines);
         this.activate(this.#notenames, coordinator.isShowingNoteNames);
         this.activate(this.#noteOffLines, coordinator.isShowingNoteOffLines);
 
