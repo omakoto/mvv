@@ -500,3 +500,8 @@ kbd:active {
     font-size: 16px;
     text-align: right;
 }
+
+.dialog-button {
+    font-size: 16px;
+    height: 30px;
+}

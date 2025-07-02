@@ -22,7 +22,7 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script> -->
     <script src="tonal.min.js"></script>
     <script src="Tone.js"></script>
-    <link rel="stylesheet" href="mvv.css?v=26"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
+    <link rel="stylesheet" href="mvv.css?v=27"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
 </head>
 <body tabindex="-1">
     <!-- This is used to open a "open file" system dialog box. -->
@@ -89,16 +89,16 @@
                 Save as:
                 <input type="text" id="save_as_filename">
                 <div class="popbox_buttons">
-                    <button id="save" data-popbox-close="save_as_box">Save</button>
-                    <button id="save_as_cancel" data-popbox-close="save_as_box">Cancel</button>
+                    <button id="save" class="dialog-button">Save</button>
+                    <button id="save_as_cancel" class="dialog-button">Cancel</button>
                 </div>
             </div>
         </div>
         <div id="confirm_box" data-popbox-id="confirm_box" class="popbox">
             <div class="popbox_container">
                 <div id="confirm_text"></div>
-                <button id="confirm_ok" data-popbox-close="confirm_box">OK</button>
-                <button id="confirm_cancel" data-popbox-close="confirm_box">Cancel</button>
+                <button id="confirm_ok" class="dialog-button">OK</button>
+                <button id="confirm_cancel" class="dialog-button">Cancel</button>
             </div>
         </div>
         <div id="metronome_box" data-popbox-id="metronome_box" class="popbox">
@@ -150,8 +150,8 @@
                     </div>
                 </div>
                 <div class="popbox_buttons">
-                    <button id="metronome_ok">OK</button>
-                    <button id="metronome_cancel" data-popbox-close="metronome_box">Cancel</button>
+                    <button id="metronome_ok" class="dialog-button" >OK</button>
+                    <button id="metronome_cancel" class="dialog-button">Cancel</button>
                 </div>
             </div>
         </div>

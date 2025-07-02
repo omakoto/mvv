@@ -41,6 +41,7 @@ class SaveAsBox extends DialogBase {
         });
 
         $("#save").on('click', (ev) => {
+            this._box.clear();
             this.doDownload();
             ev.preventDefault();
         });
@@ -68,10 +69,6 @@ class SaveAsBox extends DialogBase {
     }
 
     doDownload(): void {
-        if (!this._box) {
-            return; // Shouldn't happen
-        }
-        this._box.clear();
         let filename = $('#save_as_filename').val() as string;
         if (!filename) {
             info("Empty filename");
