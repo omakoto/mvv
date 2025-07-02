@@ -293,7 +293,6 @@ class Renderer {
     }
 
     needsAnimation(): boolean {
-        console.log("#lastDrawY", this.#lastDrawY);
         return this.#needsAnimation ||
                 (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64)); // +64 for safety(?) margin
     }
