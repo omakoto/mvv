@@ -154,11 +154,14 @@ class Renderer {
 
     #extraLineType = -1;
 
-    readonly EXTRA_LINE_COLORS = [
-        "#FFFF50",
-        "#FFC0FF",
-        "#C0C0FF",
+    readonly #EXTRA_LINE_COLORS = [
+        "#FF9090", // #FF9090
+        "#FFC0FF", // #FFC0FF
+        "#C0C0FF", // #C0C0FF
     ];
+
+    readonly #EXTRA_LINE_HEIGHT = s(3);
+    readonly #EXTRA_LINE_DASH = [this.#EXTRA_LINE_HEIGHT * 4, this.#EXTRA_LINE_HEIGHT * 4];
 
     static getCanvas(name: string): [HTMLCanvasElement, CanvasRenderingContext2D] {
         let canvas = <HTMLCanvasElement>document.getElementById(name);
@@ -341,18 +344,6 @@ class Renderer {
                 this.#lastPedalColorInt = pedalColorInt;
             }
 
-            // Extra (metronome) line
-            if (this.#extraLineType >= 0) {
-                this.#barAreaChanged();
-
-                const height = hlineHeight + 1;
-
-                this.#roll.fillStyle = this.EXTRA_LINE_COLORS[this.#extraLineType];
-                this.#roll.fillRect(0, Math.max(0, drawHeight - height), this.#W, height);
-
-                this.#extraLineType = -1;
-            }
-
             // "Off" line
             if (midiRenderingStatus.offNoteCount > 0 && coordinator.isShowingNoteOffLines) {
                 this.#barAreaChanged();
@@ -377,6 +368,23 @@ class Renderer {
                 this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
                 this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
             }
+
+            // Extra (metronome) line
+            if (this.#extraLineType >= 0) {
+                this.#barAreaChanged();
+
+                this.#roll.strokeStyle = this.#EXTRA_LINE_COLORS[this.#extraLineType];
+                this.#roll.setLineDash(this.#EXTRA_LINE_DASH);
+                this.#roll.lineWidth = this.#EXTRA_LINE_HEIGHT;
+
+                this.#roll.beginPath();
+                this.#roll.moveTo(0, drawHeight - this.#EXTRA_LINE_HEIGHT);
+                this.#roll.lineTo(this.#W, 0)
+                this.#roll.stroke();
+
+                this.#extraLineType = -1;
+            }
+
 
         }
 
