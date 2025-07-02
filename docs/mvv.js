@@ -258,6 +258,7 @@ class Renderer {
         }
     }
     needsAnimation() {
+        console.log("#lastDrawY", __classPrivateFieldGet(this, _Renderer_lastDrawY, "f"));
         return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") ||
             (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f") && __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64)); // +64 for safety(?) margin
     }
@@ -357,6 +358,7 @@ class Renderer {
                 continue;
             }
             if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
+                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, drawHeight);
                 if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {

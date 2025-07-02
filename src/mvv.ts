@@ -422,6 +422,8 @@ class Renderer {
             }
 
             if (!this.#rollFrozen) {
+                this.#barAreaChanged();
+
                 this.#roll.fillStyle = colorStr;
                 this.#roll.fillRect(bl, 0, bw, drawHeight);
 
