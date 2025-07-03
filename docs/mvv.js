@@ -1479,7 +1479,7 @@ class Coordinator {
             return;
         }
         console.log("Animation started");
-        const loop = (forceRequest) => {
+        const loop = () => {
             var _b;
             // #flips is for the FPS counter, representing screen updates.
             __classPrivateFieldSet(this, _Coordinator_flips, (_b = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _b++, _b), "f");
@@ -1490,16 +1490,16 @@ class Coordinator {
             renderer.flip();
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = forceRequest || renderer.needsAnimation() || recorder.isPlaying;
+            const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
             if (needsAnimation) {
-                __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(() => loop(false)), "f");
+                __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(loop), "f");
             }
             else {
                 this.stopAnimationLoop();
             }
         };
         // Start the loop.
-        loop(true);
+        loop();
     }
     /**
      * Stops the main animation loop.

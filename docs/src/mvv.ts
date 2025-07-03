@@ -1756,7 +1756,7 @@ class Coordinator {
         }
         console.log("Animation started")
 
-        const loop = (forceRequest: boolean) => {
+        const loop = () => {
             // #flips is for the FPS counter, representing screen updates.
             this.#flips++; 
             
@@ -1769,16 +1769,16 @@ class Coordinator {
             
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = forceRequest || renderer.needsAnimation() || recorder.isPlaying;
+            const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
             if (needsAnimation) {
-                this.#animationFrameId = requestAnimationFrame(() => loop(false));
+                this.#animationFrameId = requestAnimationFrame(loop);
             } else {
                 this.stopAnimationLoop();
             }
         };
         
         // Start the loop.
-        loop(true);
+        loop();
     }
 
     /**
