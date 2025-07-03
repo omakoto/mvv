@@ -694,18 +694,11 @@ class Metronome {
     #beats = 0;
     #subBeats = 0;
 
+    // #beats * #subBeats
+    #cycle = 0;
     #pos = 0;
 
     #synth = new Tone.PolySynth(Tone.Synth).toDestination();
-
-    readonly ACCENT_NOTE = "A5";
-    readonly MAIN_NOTE = "A4";
-    readonly SUB_NOTE = "E5";
-
-    readonly ACCENT_BEAT = [this.ACCENT_NOTE];
-    readonly MAIN_BEAT = [this.MAIN_NOTE];
-    readonly SUB_BEAT = [this.SUB_NOTE];
-    readonly DUAL_BEAT = [this.MAIN_NOTE, this.SUB_NOTE];
 
     get isPlaying(): boolean {
         return this.#playing;
@@ -722,10 +715,12 @@ class Metronome {
             this.#subBeats = 1;
         }
 
-        this.#pos = 0;
+        this.#cycle = this.#beats * this.#subBeats;
 
         const measureMs = 60_000 / (this.#bpm / this.#beats);
-        const intervalSec = (measureMs / (this.#beats * this.#subBeats)) / 1000.0;
+        const intervalSec = (measureMs / this.#cycle) / 1000.0;
+
+        this.#pos = -1;
 
         Tone.start();
         Tone.Transport.start();
@@ -735,41 +730,33 @@ class Metronome {
     }
 
     #beat(time: any) {
-        var notes = [];
+        var pos = this.#pos + 1;
+        if (pos >= this.#cycle) {
+            pos = 0;
+        }
+        this.#pos = pos;
+
+        const accent = (pos == 0 && this.#beats > 1);
+
         var lineType = -1;
-        if ((this.#subBeats === 1) && (this.#beats > 1) && (this.#pos % this.#beats) === 0) {
-            // Accent. Only use in a non-polyrhythm mode.
-            notes = this.ACCENT_BEAT;
-            lineType = 0;
-        } else {
-            const main = (this.#pos % this.#subBeats) === 0;
-            const sub = ((this.#pos % this.#beats) === 0) && this.#subBeats > 1;
 
-            if (main) {
-                if (sub) {
-                    lineType = 0;
-                    notes = this.DUAL_BEAT;
-                } else {
-                    lineType = 1;
-                    notes = this.MAIN_BEAT;
-                }
-            } else {
-                if (sub) {
-                    notes = this.SUB_BEAT;
-                    lineType = 2;
-                }
-            }
+        if (this.#subBeats > 1 && ((pos % this.#beats) == 0)) {
+            lineType = 2;
+
+            // Use accent on first beat.
+            const note = (pos == 0) ? "E6" : "E5";
+            this.#synth.triggerAttackRelease(note, 0.05, time, 0.8);
         }
-        this.#pos++;
+        if ((pos % this.#subBeats) == 0) {
+            lineType = 1;
 
-        if (notes.length < 1) {
-            return;
+            // Use accent on first beat, but only if beats > 1.
+            const note = accent ? "A5" : "A4";
+            this.#synth.triggerAttackRelease(note, 0.05, time, 0.8);
         }
-
-        // console.log("beep", notes);
-
-        // Note, duration, start time, volume [0, 1].
-        this.#synth.triggerAttackRelease(notes, 0.05, time, 0.8);
+        if (accent) {
+            lineType = 0; // Force accent color
+        }
 
         if (lineType >= 0) {
             Tone.Draw.schedule(() => {
