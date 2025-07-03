@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "baseUrl": "./src",
-        "outDir": "./docs",
+        "outDir": "./serve-root",
         "target": "es6",
         "module": "es6",
         "moduleResolution": "node",

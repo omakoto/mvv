@@ -1,0 +1,200 @@
+// Note names
+
+import { note } from "tonal";
+
+
+// TODO Use import. For that, I need to bundle tonal to the app.
+// import { Chord, Note } from "tonal";
+declare var Tonal: any;
+
+
+//const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
+const NOTE_NAMES_SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const NOTE_NAMES_FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+
+const EMPTY_STRS: string[] = [];
+
+function getNoteName(note: number, sharp: boolean) {
+    return (sharp ? NOTE_NAMES_SHARPS : NOTE_NAMES_FLATS)[note % 12]!!;
+}
+
+/**
+ * Converts a MIDI note number to its common English name with its octave.
+ * @param note The MIDI note number (0-127).
+ * @returns The note name string (e.g., "C4").
+ */
+function getNoteFullName(note: number, sharp: boolean): string {
+    if (note < 0 || note >= 128) {
+        return "";
+    }
+    const octave = Math.floor(note / 12) - 1;
+    return getNoteName(note, sharp) + octave;
+}
+
+/**
+ * Chord definitions are split into three groups for prioritization.
+ * Primary chords.
+ */
+const CHORD_DEFINITIONS_1: { [name: string]: number[] } = {
+    'M': [0, 4, 7],         // Major
+    'm': [0, 3, 7],         // Minor
+    'dim': [0, 3, 6],       // Diminished
+    '7': [0, 4, 7, 10],     // Dominant 7th
+    'M7': [0, 4, 7, 11],    // Major 7th
+    'm7': [0, 3, 7, 10],    // Minor 7th
+    'dim7': [0, 3, 6, 9],   // Diminished 7th
+    'm7♭5': [0, 3, 6, 10],  // Half-diminished 7th (Minor 7th flat 5)
+};
+
+/**
+ * Secondary.
+ */
+const CHORD_DEFINITIONS_2: { [name: string]: number[] } = {
+    '7(omit3rd)': [0, 7, 10],     // Dominant 7th
+    'M7(omit3rd)': [0, 7, 11],    // Major 7th
+    'dim7(omit3rd)': [0, 6, 9],   // Diminished 7th
+
+    '7(omit5th)': [0, 4, 10],     // Dominant 7th
+    'M7(omit5th)': [0, 4, 11],    // Major 7th
+    'dim7(omit5th)': [0, 3, 9],   // Diminished 7th
+};
+
+/**
+ * Sus chords are checked only if no other chords matches.
+ */
+const CHORD_DEFINITIONS_3: { [name: string]: number[] } = {
+    'sus4': [0, 5, 7],      // Sustained 4th
+    'sus2': [0, 2, 7],      // Sustained 2nd
+};
+
+/**
+ * 2 note chords.
+ */
+const CHORD_DEFINITIONS_TWO_NOTES: { [name: string]: number[] } = {
+    'm3': [0, 3],
+    'M3': [0, 4],
+    'P5': [0, 7],
+};
+
+const ALL_CHORDS = [CHORD_DEFINITIONS_1, CHORD_DEFINITIONS_2, CHORD_DEFINITIONS_3, CHORD_DEFINITIONS_TWO_NOTES];
+
+/**
+ * Generates all combinations of a given size from an array.
+ * @param array The source array.
+ * @param size The size of each combination.
+ * @returns An array of arrays, where each inner array is a combination.
+ */
+function getCombinations<T>(array: T[], size: number): T[][] {
+    if (size > array.length || size <= 0) {
+        return [];
+    }
+    if (size === array.length) {
+        return [array];
+    }
+    if (size === 1) {
+        return array.map(item => [item]);
+    }
+
+    const combinations: T[][] = [];
+    for (let i = 0; i < array.length - size + 1; i++) {
+        const head = array.slice(i, i + 1);
+        const tailCombinations = getCombinations(array.slice(i + 1), size - 1);
+        for (const tail of tailCombinations) {
+            combinations.push(head.concat(tail));
+        }
+    }
+    return combinations;
+}
+
+/**
+ * A helper that checks a given combination of notes against a dictionary of chord definitions.
+ * @param pitchClasses A single combination of notes.
+ * @param definitions The chord dictionary to use for matching.
+ * @returns The name of the chord if a match is found, otherwise null.
+ */
+function findChordInDictionary(pitchClasses: number[], definitions: { [name: string]: number[] }, sharp: boolean): string | null {
+    if (pitchClasses.length < 2) {
+        return null;
+    }
+    // Try each note as a potential root to handle inversions.
+    for (let i = 0; i < pitchClasses.length; i++) {
+        const root = pitchClasses[i]!;
+        const intervals = pitchClasses.map(pc => (pc - root + 12) % 12).sort((a, b) => a - b);
+        
+        for (const chordType in definitions) {
+            const definedIntervals = definitions[chordType]!;
+            if (definedIntervals.length === intervals.length &&
+                definedIntervals.every((val, index) => val === intervals[index])) {
+                return getNoteName(root % 12, sharp) + chordType;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Analyzes an array of MIDI notes to identify the best-fit chord.
+ * It prioritizes primary chords over suspended chords, and larger chords over smaller ones.
+ * @param notes An array of MIDI note numbers.
+ * @returns The name of the chord (e.g., "CM", "Dm7") or null if no chord is recognized.
+ */
+function analyzeChord1(notes: number[], sharp: boolean): string | null {
+    if (notes.length < 2) {
+        return null;
+    }
+    const pitchClasses = [...new Set(notes.map(note => note % 12))].sort((a, b) => a - b);
+    if (pitchClasses.length < 2) {
+        return null;
+    }
+
+    // Performance guardrail: Don't analyze overly complex note clusters.
+    if (pitchClasses.length > 7) {
+        return null;
+    }
+    for (const chords of ALL_CHORDS) {
+        for (let size = pitchClasses.length; size >= 2; size--) {
+            const combinations = getCombinations(pitchClasses, size);
+            for (const combo of combinations) {
+                const chord = findChordInDictionary(combo, chords, sharp);
+                if (chord) {
+                    return chord;
+                }
+            }
+        }
+    }
+
+    return null; // No matching chord found.
+}
+
+/**
+ * Analyzes an array of MIDI notes to identify possible chords using the Tonal.js library.
+ * @param notes An array of MIDI note numbers.
+ * @param sharp Whether to use sharp notation for note names.
+ * @returns A string containing all possible chord names, separated by commas, or null if no chord is recognized.
+ */
+function analyzeChordTonalInner(notes: number[], sharp: boolean, assumePerfectFifth: boolean): string[] {
+    if (notes.length < 2) {
+        return EMPTY_STRS;
+    }
+    // Tonal.js's chord detection works with note names (e.g., "C", "E", "G").
+    notes.sort();
+    const noteNames = notes.map(pc => Tonal.Midi.midiToNoteName(pc, {sharps: sharp}));
+    //console.log(noteNames);
+
+    const chords = Tonal.Chord.detect(noteNames, {assumePerfectFifth: true});
+    if (chords === null) {
+        return EMPTY_STRS;
+    } else {
+        return chords;
+    }
+}
+
+function analyzeChordTonal(notes: number[], sharp: boolean): string[] {
+    return analyzeChordTonalInner(notes, sharp, false);
+}
+
+function analyzeChord(notes: number[], sharp: boolean): string[] {
+    return analyzeChordTonal(notes, sharp);
+}
+
+export { getNoteFullName, analyzeChord };
