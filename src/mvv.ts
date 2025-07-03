@@ -292,6 +292,11 @@ class Renderer {
         this.#lastDrawY = 0;
     }
 
+    // Let renderer know something is coming so it should start requesting animation.
+    warmUp() {
+        this.#barAreaChanged();
+    }
+
     needsAnimation(): boolean {
         return this.#needsAnimation ||
                 (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64)); // +64 for safety(?) margin
@@ -1755,6 +1760,8 @@ class Coordinator {
             return;
         }
         console.log("Animation started")
+
+        renderer.warmUp();
 
         const loop = () => {
             // #flips is for the FPS counter, representing screen updates.
