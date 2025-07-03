@@ -1257,8 +1257,8 @@ class Recorder {
         // Start but paused, so we can move the position.
         this.startPaused();
 
-        // Move to the [last - 1 second] position. 
-        this.adjustPlaybackPosition(this.lastEventTimestamp - 1000);
+        // Move to the [last - 3 second] position. 
+        this.adjustPlaybackPosition(this.lastEventTimestamp - 3000);
 
         coordinator.updateUi();
     }
@@ -1443,6 +1443,10 @@ class Coordinator {
             case 'Space':
                 if (isRepeat) break;
                 this.togglePlayback();
+                break;
+            case 'ArrowUp':
+                if (isRepeat) break;
+                this.moveToStart();
                 break;
             case 'ArrowLeft':
                 this.#onRewindPressed(isRepeat);
@@ -1664,20 +1668,10 @@ class Coordinator {
     }
 
     #ignoreRepeatedRewindKey = false;
-    #lastRewindPressTime = 0;
 
     #onRewindPressed(isRepeat: boolean): void {
         if (recorder.isRecording) {
             return;
-        }
-        // If non-repeat left is pressed twice within a timeout, move to start.
-        if (!isRepeat) {
-            const now = performance.now();
-            if ((now - this.#lastRewindPressTime) <= 150) {
-                this.moveToStart();
-                return;
-            }
-            this.#lastRewindPressTime = now;
         }
         if (isRepeat && this.#ignoreRepeatedRewindKey) {
             return;
