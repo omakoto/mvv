@@ -1691,25 +1691,32 @@ class Coordinator {
         midiOutputManager.reset();
     }
 
-    #getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = -1;
-    #getHumanReadableCurrentPlaybackTimestamp_lastResult = "";
-
     getHumanReadableCurrentPlaybackTimestamp(): string {
-        const totalSeconds = int(recorder.currentPlaybackTimestamp / 1000);
-        if (totalSeconds === this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds) {
-            return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
+        if (recorder.isAnythingRecorded) {
+            return this.#getHumanReadableTimestamp(recorder.currentPlaybackTimestamp);
+        } else {
+            return "0:00";
         }
+    }
+
+    getHumanReadableTotalRecordingTime(): string {
+        if (recorder.isAnythingRecorded) {
+            return this.#getHumanReadableTimestamp(recorder.lastEventTimestamp);
+        } else {
+            return "0:00";
+        }
+    }
+
+    #getHumanReadableTimestamp(time: number): string {
+        const totalSeconds = int(time / 1000);
 
         if (totalSeconds <= 0) {
-            this.#getHumanReadableCurrentPlaybackTimestamp_lastResult = "0:00";
+            return "0:00";
         } else {
             const minutes = int(totalSeconds / 60);
             const seconds = totalSeconds % 60;
-            this.#getHumanReadableCurrentPlaybackTimestamp_lastTotalSeconds = totalSeconds;
-            this.#getHumanReadableCurrentPlaybackTimestamp_lastResult =
-                minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
         }
-        return this.#getHumanReadableCurrentPlaybackTimestamp_lastResult;
     }
 
     onDraw(): void {
@@ -1852,25 +1859,22 @@ class Coordinator {
     }
 
     #updateTimestamp(): void {
-        if (recorder.isPlaying || recorder.isPausing || (recorder.isIdle && recorder.isAnythingRecorded)) {
-            // Update the time indicator
-            const timeStamp = this.getHumanReadableCurrentPlaybackTimestamp();
-            if (timeStamp != this.#onPlaybackTimer_lastShownPlaybackTimestamp) {
-                this.#timestamp.text(timeStamp);
-                this.#onPlaybackTimer_lastShownPlaybackTimestamp = timeStamp;
-            }
-            controls.setCurrentPosition(recorder.currentPlaybackTimestamp, recorder.lastEventTimestamp);
-        } else if (recorder.isRecording) {
-            this.#timestamp.text("-");
+        if (recorder.isRecording) {
+            // TODO: We want to show this.getHumanReadableTotalRecordingTime(),
+            // but when recording, we don't have any timer to update it, so just show "-"
+            // for now.
             controls.setCurrentPosition(0, 0);
+            this.#timestamp.text("-");
+            return;
+        }
+        controls.setCurrentPosition(recorder.currentPlaybackTimestamp, recorder.lastEventTimestamp);
+        if (recorder.isAnythingRecorded) {
+            this.#timestamp.text(this.getHumanReadableCurrentPlaybackTimestamp() + "/" + this.getHumanReadableTotalRecordingTime());
         } else {
             this.#timestamp.text("0:00");
-            controls.setCurrentPosition(0, 0);
         }
     }
     
-    #onPlaybackTimer_lastShownPlaybackTimestamp = "";
-
     downloadRequested(): void {
         saveAsBox.open();
     }
