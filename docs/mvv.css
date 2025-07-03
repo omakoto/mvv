@@ -6,6 +6,7 @@ html {
     --icon-size: 32px;
     --icon-space: 12px;
     --control-margin: 4px;
+    --narrow-window-width: 1024px;
 }
 body {
     width: 100%;
@@ -79,6 +80,10 @@ canvas#roll2 {
     display: inline-block;
     height: var(--icon-size);
 }
+#controls_middle_wrapper {
+    display: flex;
+    flex-grow: 1;
+}
 #controls_middle {
     display: inline-block;
     height: var(--icon-size);
@@ -95,6 +100,28 @@ canvas#roll2 {
     grid-template-columns: 100%;
     grid-template-rows: 100%;
 }
+
+@media (max-width: 1024px) {
+    #bottom_mask {
+        height: calc(var(--icon-size) * 3 + var(--control-margin) * 2);
+    }
+    #controls {
+        flex-direction: column;
+        align-items: center;
+        height: calc(var(--icon-size) * 3);
+    }
+    #controls_left {
+        order: 1;
+    }
+    #controls_middle_wrapper {
+        order: 2;
+        width: 100%;
+    }
+    #controls_right {
+        order: 3;
+    }
+}
+
 
 
 .button {
