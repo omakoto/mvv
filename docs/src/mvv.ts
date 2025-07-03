@@ -849,7 +849,7 @@ class Recorder {
         return true;
     }
 
-    startPlaying(): boolean {
+    startPlaying(pauseRightAway: boolean = false): boolean {
         if (!this.isIdle) {
             return false;
         }
@@ -857,8 +857,15 @@ class Recorder {
             info("Nothing recorded yet");
             return false;
         }
-        this.#startPlaying();
+        this.#startPlaying(pauseRightAway);
+        if (pauseRightAway) {
+            this.pause();
+        }
         return true;
+    }
+
+    startPaused(): boolean {
+        return this.startPlaying(true);
     }
 
     stopPlaying(): boolean {
@@ -950,7 +957,7 @@ class Recorder {
         coordinator.onRecorderStatusChanged();
     }
 
-    #startPlaying(): void {
+    #startPlaying(pauseRightAway: boolean = false): void {
         info("Playback started");
 
         this.#state = RecorderState.Playing;
@@ -963,7 +970,9 @@ class Recorder {
     
         coordinator.onRecorderStatusChanged();
 
-        this.#startTimer();
+        if (!pauseRightAway) {
+            this.#startTimer();
+        }
 
         coordinator.startAnimationLoop();
     }
@@ -1220,6 +1229,13 @@ class Recorder {
         this.setEvents(newEvents);
         this.#isDirty = true; // Mark as dirty so the user can save it.
         info("Copied " + newEvents.length + " events from the background buffer.");
+
+        // Start but paused, so we can move the position.
+        this.startPaused();
+
+        // Move to the [last - 1 second] position. 
+        this.adjustPlaybackPosition(this.lastEventTimestamp - 1000);
+
         coordinator.updateUi();
     }
 }

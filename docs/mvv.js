@@ -729,7 +729,7 @@ class Recorder {
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_stopRecording).call(this);
         return true;
     }
-    startPlaying() {
+    startPlaying(pauseRightAway = false) {
         if (!this.isIdle) {
             return false;
         }
@@ -737,8 +737,14 @@ class Recorder {
             info("Nothing recorded yet");
             return false;
         }
-        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startPlaying).call(this);
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startPlaying).call(this, pauseRightAway);
+        if (pauseRightAway) {
+            this.pause();
+        }
         return true;
+    }
+    startPaused() {
+        return this.startPlaying(true);
     }
     stopPlaying() {
         if (!(this.isPlaying || this.isPausing)) {
@@ -954,6 +960,10 @@ class Recorder {
         this.setEvents(newEvents);
         __classPrivateFieldSet(this, _Recorder_isDirty, true, "f"); // Mark as dirty so the user can save it.
         info("Copied " + newEvents.length + " events from the background buffer.");
+        // Start but paused, so we can move the position.
+        this.startPaused();
+        // Move to the [last - 1 second] position. 
+        this.adjustPlaybackPosition(this.lastEventTimestamp - 1000);
         coordinator.updateUi();
     }
 }
@@ -967,7 +977,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     info("Recording stopped (" + __classPrivateFieldGet(this, _Recorder_events, "f").length + " events recorded)");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
     coordinator.onRecorderStatusChanged();
-}, _Recorder_startPlaying = function _Recorder_startPlaying() {
+}, _Recorder_startPlaying = function _Recorder_startPlaying(pauseRightAway = false) {
     info("Playback started");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
     __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
@@ -976,7 +986,9 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
     __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, this.currentPlaybackTimestamp, null);
     coordinator.onRecorderStatusChanged();
-    __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startTimer).call(this);
+    if (!pauseRightAway) {
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startTimer).call(this);
+    }
     coordinator.startAnimationLoop();
 }, _Recorder_stopPlaying = function _Recorder_stopPlaying() {
     info("Playback stopped");
