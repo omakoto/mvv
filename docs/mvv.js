@@ -47,7 +47,7 @@ const BAR_RATIO = 0.15; // Bar : Roll height
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES = [100, 100, 0];
-const ALWAYS_RECORD_SECONDS = 60 * 3;
+const ALWAYS_RECORD_SECONDS = 60 * 5;
 // Utility functions
 function int(v) {
     return Math.floor(v);
@@ -954,9 +954,29 @@ class Recorder {
         }
         this.stopPlaying();
         this.stopRecording();
+        // Skip all the events before the first note-on, and all the events
+        // after the last note-off.
+        // Find the first note on event.
+        const firstNoteOnIndex = eventsToCopy.findIndex(ev => ev.isNoteOn);
+        if (firstNoteOnIndex === -1) {
+            info("No note-on events found in the buffer.");
+            return;
+        }
+        // Find the last note off event.
+        let lastNoteOffIndex = -1;
+        for (let i = eventsToCopy.length - 1; i >= 0; i--) {
+            if (eventsToCopy[i].isNoteOff) {
+                lastNoteOffIndex = i;
+                break;
+            }
+        }
+        if (lastNoteOffIndex === -1) {
+            lastNoteOffIndex = eventsToCopy.length - 1;
+        }
+        const trimmedEvents = eventsToCopy.slice(firstNoteOnIndex, lastNoteOffIndex + 1);
         // Normalize timestamps to start from 0
-        const firstTimestamp = eventsToCopy[0].timeStamp;
-        const newEvents = eventsToCopy.map(ev => ev.withTimestamp(ev.timeStamp - firstTimestamp));
+        const firstTimestamp = trimmedEvents[0].timeStamp;
+        const newEvents = trimmedEvents.map(ev => ev.withTimestamp(ev.timeStamp - firstTimestamp));
         this.setEvents(newEvents);
         __classPrivateFieldSet(this, _Recorder_isDirty, true, "f"); // Mark as dirty so the user can save it.
         info("Copied " + newEvents.length + " events from the background buffer.");
