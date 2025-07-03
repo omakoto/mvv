@@ -292,11 +292,6 @@ class Renderer {
         this.#lastDrawY = 0;
     }
 
-    // Let renderer know something is coming so it should start requesting animation.
-    warmUp() {
-        this.#barAreaChanged();
-    }
-
     needsAnimation(): boolean {
         return this.#needsAnimation ||
                 (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64)); // +64 for safety(?) margin
@@ -510,8 +505,6 @@ class MidiRenderingStatus {
     }
 
     onMidiMessage(ev: MidiEvent): void {
-        coordinator.startAnimationLoop();
-
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
@@ -548,6 +541,7 @@ class MidiRenderingStatus {
                     break;
             }
         }
+        coordinator.startAnimationLoop();
     }
 
     reset(): void {
@@ -923,7 +917,6 @@ class Recorder {
 
     #startPlaying(): void {
         info("Playback started");
-        coordinator.startAnimationLoop();
 
         this.#state = RecorderState.Playing;
         this.#playbackStartTimestamp = performance.now();
@@ -936,6 +929,8 @@ class Recorder {
         coordinator.onRecorderStatusChanged();
 
         this.#startTimer();
+
+        coordinator.startAnimationLoop();
     }
 
     #stopPlaying(): void {
@@ -1686,13 +1681,13 @@ class Coordinator {
         // as opposed to both getting shown at the same time.
         const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
 
-        let lastOctave = 0;
+        let lastOctave = -1;
         const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
             const noteName = getNoteFullName(note, this.#useSharp);
 
             // Add extra space between octaves.
             const octave = int(note / 12);
-            const spacing = (octave === lastOctave ? "" : "&nbsp;&nbsp;");
+            const spacing = (lastOctave < 0|| octave === lastOctave) ? "" : "&nbsp;&nbsp;";
             lastOctave = octave;
 
             // Check if the note was pressed recently.
@@ -1746,11 +1741,9 @@ class Coordinator {
             // Loop is already running.
             return;
         }
-        console.log("Animation started")
+        debug("Animation started")
 
-        renderer.warmUp();
-
-        const loop = () => {
+        const loop = (forceRequest: boolean) => {
             // #flips is for the FPS counter, representing screen updates.
             this.#flips++; 
             
@@ -1764,15 +1757,15 @@ class Coordinator {
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
             const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
-            if (needsAnimation) {
-                this.#animationFrameId = requestAnimationFrame(loop);
+            if (forceRequest || needsAnimation) {
+                this.#animationFrameId = requestAnimationFrame(() => loop(false));
             } else {
                 this.stopAnimationLoop();
             }
         };
         
         // Start the loop.
-        loop();
+        loop(true);
     }
 
     /**
@@ -1782,7 +1775,7 @@ class Coordinator {
         if (this.#animationFrameId !== null) {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
-            console.log("Animation stopped")
+            debug("Animation stopped")
         }
     }
 

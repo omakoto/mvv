@@ -257,10 +257,6 @@ class Renderer {
             }
         }
     }
-    // Let renderer know something is coming so it should start requesting animation.
-    warmUp() {
-        __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-    }
     needsAnimation() {
         return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") ||
             (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f") && __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64)); // +64 for safety(?) margin
@@ -433,7 +429,6 @@ class MidiRenderingStatus {
     }
     onMidiMessage(ev) {
         var _b, _c;
-        coordinator.startAnimationLoop();
         let status = ev.status;
         let data1 = ev.data1;
         let data2 = ev.data2;
@@ -469,6 +464,7 @@ class MidiRenderingStatus {
                     break;
             }
         }
+        coordinator.startAnimationLoop();
     }
     reset() {
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, 0, "f");
@@ -928,7 +924,6 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     coordinator.onRecorderStatusChanged();
 }, _Recorder_startPlaying = function _Recorder_startPlaying() {
     info("Playback started");
-    coordinator.startAnimationLoop();
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
     __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
     // Do not reset playbackTimeAdjustment. It contains the start offset.
@@ -937,6 +932,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
     __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, this.currentPlaybackTimestamp, null);
     coordinator.onRecorderStatusChanged();
     __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startTimer).call(this);
+    coordinator.startAnimationLoop();
 }, _Recorder_stopPlaying = function _Recorder_stopPlaying() {
     info("Playback stopped");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
@@ -1411,12 +1407,12 @@ class Coordinator {
         // happen back to back, the first note would be deleted right away,
         // as opposed to both getting shown at the same time.
         const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
-        let lastOctave = 0;
+        let lastOctave = -1;
         const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
             const noteName = getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
             // Add extra space between octaves.
             const octave = int(note / 12);
-            const spacing = (octave === lastOctave ? "" : "&nbsp;&nbsp;");
+            const spacing = (lastOctave < 0 || octave === lastOctave) ? "" : "&nbsp;&nbsp;";
             lastOctave = octave;
             // Check if the note was pressed recently.
             const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
@@ -1465,9 +1461,8 @@ class Coordinator {
             // Loop is already running.
             return;
         }
-        console.log("Animation started");
-        renderer.warmUp();
-        const loop = () => {
+        debug("Animation started");
+        const loop = (forceRequest) => {
             var _b;
             // #flips is for the FPS counter, representing screen updates.
             __classPrivateFieldSet(this, _Coordinator_flips, (_b = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _b++, _b), "f");
@@ -1479,15 +1474,15 @@ class Coordinator {
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
             const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
-            if (needsAnimation) {
-                __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(loop), "f");
+            if (forceRequest || needsAnimation) {
+                __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(() => loop(false)), "f");
             }
             else {
                 this.stopAnimationLoop();
             }
         };
         // Start the loop.
-        loop();
+        loop(true);
     }
     /**
      * Stops the main animation loop.
@@ -1496,7 +1491,7 @@ class Coordinator {
         if (__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") !== null) {
             cancelAnimationFrame(__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f"));
             __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
-            console.log("Animation stopped");
+            debug("Animation stopped");
         }
     }
     onPlaybackTimer() {
