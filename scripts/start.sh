@@ -6,7 +6,7 @@ cd "${0%/*}/.." # Move to the top dir
 
 ./scripts/build.sh
 
-cd serve-root
+cd docs
 
 port=11080
 (
