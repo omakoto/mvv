@@ -386,6 +386,8 @@ body .ui-tooltip {
     z-index: 999;
     min-width: 450px;
     max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 #help_box h2 {
