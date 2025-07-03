@@ -8,6 +8,8 @@ import { getNoteFullName, analyzeChord } from './chords.js';
 declare var Tonal: any;
 declare var Tone: any;
 
+const ALWAYS_RECORD_SECONDS = 120;
+
 
 // 2D game with canvas example: https://github.com/end3r/Gamedev-Canvas-workshop/blob/gh-pages/lesson10.html
 // Get screen size: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
@@ -772,6 +774,36 @@ class Metronome {
 
 export const metronome = new Metronome();
 
+class AlwaysRecorder {
+    #events: Array<MidiEvent> = [];
+
+    constructor() {
+    }
+
+    recordEvent(ev: MidiEvent): void {
+        // Add event with its original timestamp.
+        this.#events.push(ev);
+
+        // Prune old events.
+        const cutoffTimestamp = performance.now() - (ALWAYS_RECORD_SECONDS * 1000);
+
+        let i = 0;
+        for (; i < this.#events.length; i++) {
+            if (this.#events[i]!.timeStamp >= cutoffTimestamp) {
+                break;
+            }
+        }
+        if (i > 0) {
+            this.#events.splice(0, i);
+        }
+    }
+
+    getEvents(): Array<MidiEvent> {
+        return this.#events;
+    }
+}
+export const alwaysRecorder = new AlwaysRecorder();
+
 enum RecorderState {
     Idle,
     Playing,
@@ -1090,13 +1122,13 @@ class Recorder {
         // Current timestamp
         let ts = this.#getCurrentPlaybackTimestamp();
         if (DEBUG) {
-            debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
+            // debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
 
         const stillPlaying = this.#moveUpToTimestamp(ts, (ev: MidiEvent) => {
             if (DEBUG) {
-                debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
-                        " index=" + (this.#nextPlaybackIndex - 1), ev);
+                // debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
+                //         " index=" + (this.#nextPlaybackIndex - 1), ev);
             }
             midiRenderingStatus.onMidiMessage(ev);
             midiOutputManager.sendEvent(ev.getDataAsArray(), 0)
@@ -1166,6 +1198,26 @@ class Recorder {
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
         info(message);
         this.moveToStart();
+    }
+
+    copyFromAlwaysRecorder(alwaysRecorder: AlwaysRecorder): void {
+        const eventsToCopy = alwaysRecorder.getEvents();
+        if (eventsToCopy.length === 0) {
+            info("No events in the buffer to copy.");
+            return;
+        }
+
+        this.stopPlaying();
+        this.stopRecording();
+
+        // Normalize timestamps to start from 0
+        const firstTimestamp = eventsToCopy[0]!.timeStamp;
+        const newEvents = eventsToCopy.map(ev => ev.withTimestamp(ev.timeStamp - firstTimestamp));
+
+        this.setEvents(newEvents);
+        this.#isDirty = true; // Mark as dirty so the user can save it.
+        info("Copied " + newEvents.length + " events from the background buffer.");
+        coordinator.updateUi();
     }
 }
 
@@ -1336,6 +1388,10 @@ class Coordinator {
             case 'KeyZ':
                 if (isRepeat) break;
                 this.stop();
+                break;
+            case 'KeyP':
+                if (isRepeat) break;
+                this.replayFromAlwaysRecordingBuffer()
                 break;
             case 'KeyT':
                 if (isRepeat) break;
@@ -1549,6 +1605,12 @@ class Coordinator {
         this.updateUi();
     }
 
+    replayFromAlwaysRecordingBuffer(): void {
+        this.withOverwriteConfirm(() => {
+            recorder.copyFromAlwaysRecorder(alwaysRecorder);
+        });
+    }
+
     updateUi(): void {
         this.#updateTimestamp();
         controls.update();
@@ -1604,6 +1666,8 @@ class Coordinator {
         this.extendWakelock();
 
         this.#normalizeMidiEvent(ev);
+
+        alwaysRecorder.recordEvent(ev);
 
         midiRenderingStatus.onMidiMessage(ev);
 
