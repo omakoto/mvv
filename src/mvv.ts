@@ -8,9 +8,6 @@ import { getNoteFullName, analyzeChord } from './chords.js';
 declare var Tonal: any;
 declare var Tone: any;
 
-const ALWAYS_RECORD_SECONDS = 120;
-
-
 // 2D game with canvas example: https://github.com/end3r/Gamedev-Canvas-workshop/blob/gh-pages/lesson10.html
 // Get screen size: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
 // and window.screen.{width,height{
@@ -51,6 +48,8 @@ const BAR_RATIO = 0.15; // Bar : Roll height
 const RGB_BLACK: [number, number, number] = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES: [number, number, number] = [100, 100, 0];
+
+const ALWAYS_RECORD_SECONDS = 60 * 3;
 
 // Utility functions
 
@@ -780,7 +779,7 @@ class AlwaysRecorder {
     constructor() {
     }
 
-    recordEvent(ev: MidiEvent): void {
+    recordEvent(ev: MidiEvent) {
         // Add event with its original timestamp.
         this.#events.push(ev);
 
@@ -800,6 +799,10 @@ class AlwaysRecorder {
 
     getEvents(): Array<MidiEvent> {
         return this.#events;
+    }
+
+    get isAvailable(): boolean {
+        return this.#events.length > 0;
     }
 }
 export const alwaysRecorder = new AlwaysRecorder();
@@ -1611,6 +1614,10 @@ class Coordinator {
         });
     }
 
+    get isReplayAvailable(): boolean {
+        return alwaysRecorder.isAvailable;
+    }
+
     updateUi(): void {
         this.#updateTimestamp();
         controls.update();
@@ -1667,8 +1674,6 @@ class Coordinator {
 
         this.#normalizeMidiEvent(ev);
 
-        alwaysRecorder.recordEvent(ev);
-
         midiRenderingStatus.onMidiMessage(ev);
 
         if (recorder.isRecording) {
@@ -1676,6 +1681,14 @@ class Coordinator {
         }
         if (this.isShowingNoteNames && (ev.isNoteOn || ev.isNoteOff) ) {
             this.updateNoteInformation();
+        }
+
+        // Always record it. If it's the first recorded event, update the UI
+        // to enable the button.
+        const ar = alwaysRecorder.isAvailable
+        alwaysRecorder.recordEvent(ev);
+        if (alwaysRecorder.isAvailable != ar) {
+            this.updateUi();
         }
     }
 

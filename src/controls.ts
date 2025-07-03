@@ -1,6 +1,6 @@
 'use strict';
 
-import { coordinator, renderer, recorder, metronome } from './mvv.js';
+import { coordinator, renderer, recorder, metronome, alwaysRecorder } from './mvv.js';
 
 const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
 
@@ -12,6 +12,7 @@ class Controls {
     #ff;
     #stop;
     #record;
+    #replay;
     #up;
     #down;
     #position;
@@ -33,6 +34,7 @@ class Controls {
         this.#pause = $("#pause");
         this.#stop = $("#stop");
         this.#record = $("#record");
+        this.#replay = $("#replay");
         this.#rewind = $("#rewind");
         this.#ff = $("#ff");
 
@@ -73,6 +75,10 @@ class Controls {
         });
         this.#record.on('click', (ev) => {
             coordinator.startRecording();
+            ev.stopPropagation();
+        });
+        this.#replay.on('click', (ev) => {
+            coordinator.replayFromAlwaysRecordingBuffer();
             ev.stopPropagation();
         });
 
@@ -226,6 +232,11 @@ class Controls {
             this.enable(this.#play);
             this.enable(this.#down);
             this.enable(this.#position);
+        }
+        if (coordinator.isReplayAvailable) {
+            this.enable(this.#replay);
+        } else {
+            this.disable(this.#replay);
         }
         this.activate(this.#sharp, coordinator.isSharpMode);
         this.activate(this.#flat, !coordinator.isSharpMode);

@@ -150,6 +150,10 @@ canvas#roll2 {
 #record {
     background-image: url("res/record.png");
 }
+#replay {
+    background-image: url("res/replay.png");
+    margin-left: 12px;
+}
 #up {
     background-image: url("res/up.png");
     margin-left: var(--icon-space);

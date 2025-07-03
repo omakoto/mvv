@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_speedup, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { coordinator, renderer, recorder, metronome } from './mvv.js';
 const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
 class Controls {
@@ -22,6 +22,7 @@ class Controls {
         _Controls_ff.set(this, void 0);
         _Controls_stop.set(this, void 0);
         _Controls_record.set(this, void 0);
+        _Controls_replay.set(this, void 0);
         _Controls_up.set(this, void 0);
         _Controls_down.set(this, void 0);
         _Controls_position.set(this, void 0);
@@ -43,6 +44,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_pause, $("#pause"), "f");
         __classPrivateFieldSet(this, _Controls_stop, $("#stop"), "f");
         __classPrivateFieldSet(this, _Controls_record, $("#record"), "f");
+        __classPrivateFieldSet(this, _Controls_replay, $("#replay"), "f");
         __classPrivateFieldSet(this, _Controls_rewind, $("#rewind"), "f");
         __classPrivateFieldSet(this, _Controls_ff, $("#ff"), "f");
         __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
@@ -77,6 +79,10 @@ class Controls {
         });
         __classPrivateFieldGet(this, _Controls_record, "f").on('click', (ev) => {
             coordinator.startRecording();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_replay, "f").on('click', (ev) => {
+            coordinator.replayFromAlwaysRecordingBuffer();
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_up, "f").on('click', (ev) => {
@@ -216,6 +222,12 @@ class Controls {
             this.enable(__classPrivateFieldGet(this, _Controls_down, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
         }
+        if (coordinator.isReplayAvailable) {
+            this.enable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+        }
+        else {
+            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+        }
         this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), coordinator.isSharpMode);
         this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
         this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingOctaveLines);
@@ -278,6 +290,6 @@ class Controls {
         coordinator.moveToPercent(ev.offsetX / max);
     }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_speedup = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_speedup = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
 export const controls = new Controls();
 //# sourceMappingURL=controls.js.map

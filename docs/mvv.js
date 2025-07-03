@@ -25,7 +25,6 @@ import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
 import { saveAsBox, confirmBox, metronomeBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
-const ALWAYS_RECORD_SECONDS = 120;
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
@@ -48,6 +47,7 @@ const BAR_RATIO = 0.15; // Bar : Roll height
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES = [100, 100, 0];
+const ALWAYS_RECORD_SECONDS = 60 * 3;
 // Utility functions
 function int(v) {
     return Math.floor(v);
@@ -686,6 +686,9 @@ class AlwaysRecorder {
     }
     getEvents() {
         return __classPrivateFieldGet(this, _AlwaysRecorder_events, "f");
+    }
+    get isAvailable() {
+        return __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").length > 0;
     }
 }
 _AlwaysRecorder_events = new WeakMap();
@@ -1381,6 +1384,9 @@ class Coordinator {
             recorder.copyFromAlwaysRecorder(alwaysRecorder);
         });
     }
+    get isReplayAvailable() {
+        return alwaysRecorder.isAvailable;
+    }
     updateUi() {
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateTimestamp).call(this);
         controls.update();
@@ -1393,13 +1399,19 @@ class Coordinator {
         }
         this.extendWakelock();
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_normalizeMidiEvent).call(this, ev);
-        alwaysRecorder.recordEvent(ev);
         midiRenderingStatus.onMidiMessage(ev);
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
         }
         if (this.isShowingNoteNames && (ev.isNoteOn || ev.isNoteOff)) {
             this.updateNoteInformation();
+        }
+        // Always record it. If it's the first recorded event, update the UI
+        // to enable the button.
+        const ar = alwaysRecorder.isAvailable;
+        alwaysRecorder.recordEvent(ev);
+        if (alwaysRecorder.isAvailable != ar) {
+            this.updateUi();
         }
     }
     reset() {
