@@ -66,7 +66,7 @@ function getNextScrollSpeedIndex(index) {
     return (index + 1) % ROLL_SCROLL_PX.length;
 }
 const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4, 8];
-function getPlaySpeed(index) {
+function getPlaySpeedFactor(index) {
     return PLAY_SPEEDS[index];
 }
 function getNextPlaySpeedIndex(index) {
@@ -1329,6 +1329,9 @@ class Coordinator {
     }
     get playSpeedIndex() {
         return __classPrivateFieldGet(this, _Coordinator_playSpeedIndex, "f");
+    }
+    get playSpeedFactor() {
+        return getPlaySpeedFactor(this.playSpeedIndex);
     }
     rotatePlaySpeed() {
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_setPlaySpeedIndex).call(this, getNextPlaySpeedIndex(this.playSpeedIndex));

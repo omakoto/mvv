@@ -76,7 +76,7 @@ function getNextScrollSpeedIndex(index: number): number {
 
 const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4, 8];
 
-function getPlaySpeed(index: number) {
+function getPlaySpeedFactor(index: number) {
     return PLAY_SPEEDS[index];
 }
 
@@ -1566,6 +1566,10 @@ class Coordinator {
 
     get playSpeedIndex(): number {
         return this.#playSpeedIndex;
+    }
+
+    get playSpeedFactor(): number {
+        return getPlaySpeedFactor(this.playSpeedIndex);
     }
 
     #setPlaySpeedIndex(index: number): void {
