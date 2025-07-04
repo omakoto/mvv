@@ -6,6 +6,40 @@ const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-s
 const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400", "play-speed-800"];
 
 
+class TimeKeeper {
+    #second: number = null;
+    #text: string = null;
+
+    constructor() {
+    }
+
+    get second(): number {
+        return this.#second;
+    }
+
+    setSecond(second: number): boolean {
+        const n = Math.floor(second);
+        if (n === this.#second) {
+            return false;
+        }
+        this.#text = null;
+        this.#second = n;
+        return true;
+    }
+
+    getHumanReadable(): string {
+        if (this.#text == null) {
+            const s = this.#second;
+
+            const minutes = Math.floor(s / 60);
+            const seconds = s % 60;
+            return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        }
+        return this.#text;
+    }
+}
+
+
 class Controls {
     #top;
     #rewind;
@@ -30,6 +64,14 @@ class Controls {
     #notenames;
     #noteOffLines;
     #metronome;
+
+    #timestamp;
+    #cachedTimestamp = "";
+
+    #currentTime: TimeKeeper = new TimeKeeper();
+    #totalTime: TimeKeeper = new TimeKeeper();
+
+    #cachedPercent = 0;
 
     constructor() {
         this.#top = $("#top");
@@ -60,6 +102,8 @@ class Controls {
         this.#noteOffLines = $("#off-lines");
 
         this.#metronome = $("#metronome");
+
+        this.#timestamp = $("#timestamp");
 
         this.#top.on('click', (ev) => {
             coordinator.moveToStart();
@@ -197,6 +241,9 @@ class Controls {
     public update() {
         // console.log("Updating control states...");
 
+        // Always update the timestamp.s
+        this.updateTimestamp();
+
         // First, update the controls that are always available.
 
         // Speed button. Select the right icon.
@@ -289,16 +336,49 @@ class Controls {
         }
     }
 
-    setCurrentPosition(positionMillis: number, totalMillis: number) {
-        if (this.#isPositionDragging) {
-            // Dragging, ignore it.
+    #setTimestamp(text: string) {
+        if (this.#cachedTimestamp == text) {
             return;
         }
-        let percent = 0;
-        if (totalMillis > 0) {
-            percent = Math.min(100, positionMillis / totalMillis * 100);
+        this.#cachedTimestamp = text;
+        this.#timestamp.text(text);
+    }
+
+    #setTimePercent(percent: number) {
+        if (this.#cachedPercent != percent) {
+            this.#position.css('left', percent + '%');
+            this.#cachedPercent = percent;
         }
-        this.#position.css('left', percent + '%');
+    }
+
+    updateTimestamp() {
+        if (recorder.isRecording)  {
+            this.#setTimestamp("-");
+            this.#setTimePercent(0);
+            return;
+        }
+
+        const totalTime = recorder.lastEventTimestamp;
+        const currentTime = recorder.currentPlaybackTimestamp;
+        
+        // First, update the text.
+        if (recorder.isAnythingRecorded) {
+            var changed = false;
+            changed ||= this.#totalTime.setSecond(totalTime / 1000);
+            changed ||= this.#currentTime.setSecond(currentTime / 1000);
+
+            if (changed) {
+                this.#setTimestamp(this.#currentTime.getHumanReadable() + "/" + this.#totalTime.getHumanReadable());
+            }
+        } else {
+            this.#setTimestamp("-");
+        }
+
+        let percent = 0;
+        if (totalTime > 0) {
+            percent = Math.min(100, currentTime / totalTime * 100);
+        }
+        this.#setTimePercent(percent);
     }
 
     #isPositionDragging = false;
