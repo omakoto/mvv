@@ -191,8 +191,37 @@ class Controls {
 
     public update() {
         // console.log("Updating control states...");
+
+        // First, update the controls that are always available.
+
+        // Speed button. Select the right icon.
+        // Also activate it if the speed isn't the default.
+        for (let i = 0; i < rollSpeedClassses.length; i++) {
+            this.#rollSpeed.removeClass(rollSpeedClassses[i]);
+        }
+        this.#rollSpeed.addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
+        this.activate(this.#rollSpeed, coordinator.scrollSpeedIndex > 0);
+
+        // Play speed button
+        for (let i = 0; i < playSpeedClasses.length; i++) {
+            this.#playSpeed.removeClass(playSpeedClasses[i]);
+        }
+        this.#playSpeed.addClass(playSpeedClasses[coordinator.playSpeedIndex]);
+        this.activate(this.#playSpeed, coordinator.playSpeedIndex != 3);
+
+        // Roll freeze and video mute.
         this.activate(this.#freeze, renderer.isRollFrozen);
         this.activate(this.#videoMute, renderer.isVideoMuted);
+
+        this.activate(this.#sharp, coordinator.isSharpMode);
+        this.activate(this.#flat, !coordinator.isSharpMode);
+        this.activate(this.#vlines, coordinator.isShowingOctaveLines);
+        this.activate(this.#notenames, coordinator.isShowingNoteNames);
+        this.activate(this.#noteOffLines, coordinator.isShowingNoteOffLines);
+
+        this.activate(this.#metronome, metronome.isPlaying);
+
+        // Playback control buttons...
         if (recorder.isRecording) {
             this.disable(this.#top);
             this.disable(this.#play);
@@ -202,6 +231,8 @@ class Controls {
             this.disable(this.#rewind);
             this.disable(this.#ff);
             this.disable(this.#position);
+
+            this.disable(this.#replay);
             return;
         }
         if (recorder.isPlaying) {
@@ -213,6 +244,8 @@ class Controls {
             this.enable(this.#rewind);
             this.enable(this.#ff);
             this.enable(this.#position);
+
+            this.disable(this.#replay);
             return;
         }
         if (recorder.isPausing) {
@@ -224,6 +257,8 @@ class Controls {
             this.enable(this.#rewind);
             this.enable(this.#ff);
             this.enable(this.#position);
+
+            this.disable(this.#replay);
             return;
         }
         this.disable(this.#top);
@@ -247,28 +282,6 @@ class Controls {
         } else {
             this.disable(this.#replay);
         }
-        this.activate(this.#sharp, coordinator.isSharpMode);
-        this.activate(this.#flat, !coordinator.isSharpMode);
-        this.activate(this.#vlines, coordinator.isShowingOctaveLines);
-        this.activate(this.#notenames, coordinator.isShowingNoteNames);
-        this.activate(this.#noteOffLines, coordinator.isShowingNoteOffLines);
-
-        this.activate(this.#metronome, metronome.isPlaying);
-
-        // Speed button. Select the right icon.
-        // Also activate it if the speed isn't the default.
-        for (let i = 0; i < rollSpeedClassses.length; i++) {
-            this.#rollSpeed.removeClass(rollSpeedClassses[i]);
-        }
-        this.#rollSpeed.addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
-        this.activate(this.#rollSpeed, coordinator.scrollSpeedIndex > 0);
-
-        // Play speed button
-        for (let i = 0; i < playSpeedClasses.length; i++) {
-            this.#playSpeed.removeClass(playSpeedClasses[i]);
-        }
-        this.#playSpeed.addClass(playSpeedClasses[coordinator.playSpeedIndex]);
-        this.activate(this.#playSpeed, coordinator.playSpeedIndex != 3);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {

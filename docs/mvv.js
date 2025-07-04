@@ -906,12 +906,6 @@ class Recorder {
             this.unpause();
         }
     }
-    // #getUpdatedCurrentPlaybackTimestamp(): number {
-    //     if (this.isRecording) return 0;
-    //     if (this.isIdle) return this.#playbackTimeAdjustment;
-    //     return (performance.now() - this.#playbackStartTimestamp) +
-    //             this.#playbackTimeAdjustment - this.#getPausingDuration();
-    // }
     playbackUpToNow(deltaMs) {
         if (!this.isPlaying) {
             return;
@@ -1638,7 +1632,7 @@ class Coordinator {
         __classPrivateFieldSet(this, _Coordinator_playbackTicks, (_b = __classPrivateFieldGet(this, _Coordinator_playbackTicks, "f"), _b++, _b), "f");
         if (recorder.isPlaying) {
             const now = performance.now();
-            recorder.playbackUpToNow(now - __classPrivateFieldGet(this, _Coordinator_playbackTimerLastNow, "f"));
+            recorder.playbackUpToNow((now - __classPrivateFieldGet(this, _Coordinator_playbackTimerLastNow, "f")) * this.playSpeedFactor);
             __classPrivateFieldSet(this, _Coordinator_playbackTimerLastNow, now, "f");
             __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateTimestamp).call(this);
         }
@@ -1699,6 +1693,7 @@ _a = Coordinator, _Coordinator_now = new WeakMap(), _Coordinator_nextSecond = ne
     __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, index, "f");
     localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_PLAY_SPEED), String(index));
     this.updateUi();
+    console.log("Speed changed", index, this.playSpeedFactor);
 }, _Coordinator_onRewindPressed = function _Coordinator_onRewindPressed(isRepeat) {
     if (recorder.isRecording) {
         return;

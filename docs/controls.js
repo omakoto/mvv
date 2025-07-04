@@ -181,8 +181,30 @@ class Controls {
     }
     update() {
         // console.log("Updating control states...");
+        // First, update the controls that are always available.
+        // Speed button. Select the right icon.
+        // Also activate it if the speed isn't the default.
+        for (let i = 0; i < rollSpeedClassses.length; i++) {
+            __classPrivateFieldGet(this, _Controls_rollSpeed, "f").removeClass(rollSpeedClassses[i]);
+        }
+        __classPrivateFieldGet(this, _Controls_rollSpeed, "f").addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
+        this.activate(__classPrivateFieldGet(this, _Controls_rollSpeed, "f"), coordinator.scrollSpeedIndex > 0);
+        // Play speed button
+        for (let i = 0; i < playSpeedClasses.length; i++) {
+            __classPrivateFieldGet(this, _Controls_playSpeed, "f").removeClass(playSpeedClasses[i]);
+        }
+        __classPrivateFieldGet(this, _Controls_playSpeed, "f").addClass(playSpeedClasses[coordinator.playSpeedIndex]);
+        this.activate(__classPrivateFieldGet(this, _Controls_playSpeed, "f"), coordinator.playSpeedIndex != 3);
+        // Roll freeze and video mute.
         this.activate(__classPrivateFieldGet(this, _Controls_freeze, "f"), renderer.isRollFrozen);
         this.activate(__classPrivateFieldGet(this, _Controls_videoMute, "f"), renderer.isVideoMuted);
+        this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), coordinator.isSharpMode);
+        this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
+        this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingOctaveLines);
+        this.activate(__classPrivateFieldGet(this, _Controls_notenames, "f"), coordinator.isShowingNoteNames);
+        this.activate(__classPrivateFieldGet(this, _Controls_noteOffLines, "f"), coordinator.isShowingNoteOffLines);
+        this.activate(__classPrivateFieldGet(this, _Controls_metronome, "f"), metronome.isPlaying);
+        // Playback control buttons...
         if (recorder.isRecording) {
             this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_play, "f"));
@@ -192,6 +214,7 @@ class Controls {
             this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
             this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
             return;
         }
         if (recorder.isPlaying) {
@@ -203,6 +226,7 @@ class Controls {
             this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
             return;
         }
         if (recorder.isPausing) {
@@ -214,6 +238,7 @@ class Controls {
             this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
+            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
             return;
         }
         this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
@@ -236,25 +261,6 @@ class Controls {
         else {
             this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
         }
-        this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), coordinator.isSharpMode);
-        this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !coordinator.isSharpMode);
-        this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), coordinator.isShowingOctaveLines);
-        this.activate(__classPrivateFieldGet(this, _Controls_notenames, "f"), coordinator.isShowingNoteNames);
-        this.activate(__classPrivateFieldGet(this, _Controls_noteOffLines, "f"), coordinator.isShowingNoteOffLines);
-        this.activate(__classPrivateFieldGet(this, _Controls_metronome, "f"), metronome.isPlaying);
-        // Speed button. Select the right icon.
-        // Also activate it if the speed isn't the default.
-        for (let i = 0; i < rollSpeedClassses.length; i++) {
-            __classPrivateFieldGet(this, _Controls_rollSpeed, "f").removeClass(rollSpeedClassses[i]);
-        }
-        __classPrivateFieldGet(this, _Controls_rollSpeed, "f").addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
-        this.activate(__classPrivateFieldGet(this, _Controls_rollSpeed, "f"), coordinator.scrollSpeedIndex > 0);
-        // Play speed button
-        for (let i = 0; i < playSpeedClasses.length; i++) {
-            __classPrivateFieldGet(this, _Controls_playSpeed, "f").removeClass(playSpeedClasses[i]);
-        }
-        __classPrivateFieldGet(this, _Controls_playSpeed, "f").addClass(playSpeedClasses[coordinator.playSpeedIndex]);
-        this.activate(__classPrivateFieldGet(this, _Controls_playSpeed, "f"), coordinator.playSpeedIndex != 3);
     }
     setCurrentPosition(positionMillis, totalMillis) {
         if (__classPrivateFieldGet(this, _Controls_isPositionDragging, "f")) {

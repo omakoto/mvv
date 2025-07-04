@@ -1130,15 +1130,6 @@ class Recorder {
         }
     }
 
-    // #getUpdatedCurrentPlaybackTimestamp(): number {
-    //     if (this.isRecording) return 0;
-    //     if (this.isIdle) return this.#playbackTimeAdjustment;
-    
-    //     return (performance.now() - this.#playbackStartTimestamp) +
-    //             this.#playbackTimeAdjustment - this.#getPausingDuration();
-    // }
-
-
     playbackUpToNow(deltaMs: number) {
         if (!this.isPlaying) {
             return;
@@ -1576,6 +1567,7 @@ class Coordinator {
         this.#playSpeedIndex = index;
         localStorage.setItem(Coordinator.#STORAGE_KEY_PLAY_SPEED, String(index));
         this.updateUi();
+        console.log("Speed changed", index, this.playSpeedFactor);
     }
 
     rotatePlaySpeed(): void {
@@ -1974,7 +1966,7 @@ class Coordinator {
         this.#playbackTicks++;
         if (recorder.isPlaying) {
             const now = performance.now();
-            recorder.playbackUpToNow(now - this.#playbackTimerLastNow);
+            recorder.playbackUpToNow((now - this.#playbackTimerLastNow) * this.playSpeedFactor);
 
             this.#playbackTimerLastNow = now;
 
