@@ -72,6 +72,9 @@ function getPlaySpeed(index) {
 function getNextPlaySpeedIndex(index) {
     return (index + 1) % PLAY_SPEEDS.length;
 }
+function getPreviousPlaySpeedIndex(index) {
+    return (index - 1 + PLAY_SPEEDS.length) % PLAY_SPEEDS.length;
+}
 function hsvToRgb(h, s, v) {
     let r = 0, g = 0, b = 0, i, f, p, q, t;
     i = Math.floor(h * 6);
@@ -1262,6 +1265,10 @@ class Coordinator {
                 this.rotatePlaySpeed();
                 this.updateUi();
                 break;
+            case 'ArrowDown':
+                this.rotatePlaySpeed(true);
+                this.updateUi();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
@@ -1329,8 +1336,13 @@ class Coordinator {
         __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, index, "f");
         localStorage.setItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_PLAY_SPEED), String(index));
     }
-    rotatePlaySpeed() {
-        this.setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
+    rotatePlaySpeed(reverse = false) {
+        if (reverse) {
+            this.setPlaySpeedIndex(getPreviousPlaySpeedIndex(this.playSpeedIndex));
+        }
+        else {
+            this.setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
+        }
     }
     toggleHelpScreen() {
         __classPrivateFieldSet(this, _Coordinator_isHelpVisible, !__classPrivateFieldGet(this, _Coordinator_isHelpVisible, "f"), "f");
