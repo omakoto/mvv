@@ -8,6 +8,7 @@ html {
     --control-margin: 4px;
 
     --note-font-size: 14pt;
+    --timestamp-font-size: 14pt;
 
     --button-width: 40px;
     --button-wide-width: 60px;
@@ -25,6 +26,7 @@ html {
         --control-margin: 2px;
 
         --note-font-size: 10pt;
+        --timestamp-font-size: 10pt;
 
         --button-width: 30px;
         --button-wide-width: 44px;
@@ -263,7 +265,7 @@ canvas#roll2 {
 
 #timestamp {
     display: inline-block;
-    font-size: 14pt;
+    font-size: var(--timestamp-font-size);
     padding-top: 4pt;
     width: 4em;
     text-align: center;
