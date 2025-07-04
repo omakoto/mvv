@@ -1452,7 +1452,8 @@ class Coordinator {
                 if (isRepeat) break;
                 this.togglePlayback();
                 break;
-            case 'ArrowUp':
+            case 'KeyA':
+            case 'Home':
                 if (isRepeat) break;
                 this.moveToStart();
                 break;
