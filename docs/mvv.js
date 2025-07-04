@@ -1343,7 +1343,7 @@ class Coordinator {
     }
     startRecording() {
         if (!recorder.isRecording) {
-            this.withOverwriteConfirm(() => recorder.startRecording());
+            this.withOverwriteConfirm("Start new recording.", () => recorder.startRecording());
         }
         this.updateUi();
     }
@@ -1416,7 +1416,7 @@ class Coordinator {
         this.updateUi();
     }
     replayFromAlwaysRecordingBuffer() {
-        this.withOverwriteConfirm(() => {
+        this.withOverwriteConfirm("Restoring recent play as recording.", () => {
             recorder.copyFromAlwaysRecorder(alwaysRecorder);
         });
     }
@@ -1604,13 +1604,13 @@ class Coordinator {
         saveAsBox.open();
     }
     uploadRequested() {
-        coordinator.withOverwriteConfirm(() => {
+        coordinator.withOverwriteConfirm("Uploading a MIDI file.", () => {
             $('#open_file').trigger('click');
         });
     }
-    withOverwriteConfirm(callback) {
+    withOverwriteConfirm(message, callback) {
         if (recorder.isDirty) {
-            confirmBox.show("Discard recording?", () => callback());
+            confirmBox.show(message + " Discard current recording?", () => callback());
         }
         else {
             callback();
@@ -1782,7 +1782,7 @@ $("body").on("drop", function (ev) {
     let oev = ev.originalEvent;
     const file = oev.dataTransfer.files[0];
     console.log("File dropped", file, oev.dataTransfer);
-    coordinator.withOverwriteConfirm(() => {
+    coordinator.withOverwriteConfirm("Uploading a MIDI file.", () => {
         loadMidiFile(file);
     });
 });
