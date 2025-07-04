@@ -240,16 +240,16 @@ canvas#roll2 {
 #vlines {
     background-image: url("res/triple-line.png");
 }
-#speedup.speed-normal {
+#roll-speed.roll-speed-normal {
     background-image: url("res/speed-1x.png");
 }
-#speedup.speed-fast {
+#roll-speed.roll-speed-fast {
     background-image: url("res/speed-2x.png");
 }
-#speedup.speed-slow {
+#roll-speed.roll-speed-slow {
     background-image: url("res/speed-slow.png");
 }
-#speedup.speed-slowest {
+#roll-speed.roll-speed-slowest {
     background-image: url("res/speed-slowest.png");
 }
 #notenames {

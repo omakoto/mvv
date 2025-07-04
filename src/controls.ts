@@ -2,7 +2,7 @@
 
 import { coordinator, renderer, recorder, metronome, alwaysRecorder } from './mvv.js';
 
-const speedClassses = ["speed-normal", "speed-fast", "speed-slowest", "speed-slow"];
+const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
 
 class Controls {
     #top;
@@ -23,7 +23,7 @@ class Controls {
     #sharp;
     #flat;
     #vlines;
-    #speedup;
+    #rollSpeed;
     #notenames;
     #noteOffLines;
     #metronome;
@@ -51,7 +51,7 @@ class Controls {
         this.#flat = $("#flat");
 
         this.#vlines = $("#vlines");
-        this.#speedup = $("#speedup");
+        this.#rollSpeed = $("#roll-speed");
         this.#notenames = $("#notenames");
         this.#noteOffLines = $("#off-lines");
 
@@ -119,7 +119,7 @@ class Controls {
             this.update();
             ev.stopPropagation();
         });
-        this.#speedup.on('click', (ev) => {
+        this.#rollSpeed.on('click', (ev) => {
             coordinator.rotateScrollSpeed();
             this.update();
             ev.stopPropagation();
@@ -181,7 +181,7 @@ class Controls {
     }
 
     public update() {
-        console.log("Updating control states...");
+        // console.log("Updating control states...");
         this.activate(this.#freeze, renderer.isRollFrozen);
         this.activate(this.#videoMute, renderer.isVideoMuted);
         if (recorder.isRecording) {
@@ -248,11 +248,11 @@ class Controls {
 
         // Speed button. Select the right icon.
         // Also activate it if the speed isn't the default.
-        for (let i = 0; i < speedClassses.length; i++) {
-            this.#speedup.removeClass(speedClassses[i]);
+        for (let i = 0; i < rollSpeedClassses.length; i++) {
+            this.#rollSpeed.removeClass(rollSpeedClassses[i]);
         }
-        this.#speedup.addClass(speedClassses[coordinator.scrollSpeedIndex]);
-        this.activate(this.#speedup, coordinator.scrollSpeedIndex > 0);
+        this.#rollSpeed.addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
+        this.activate(this.#rollSpeed, coordinator.scrollSpeedIndex > 0);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {
