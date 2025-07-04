@@ -1239,8 +1239,8 @@ class Recorder {
             return;
         }
 
-        // A section starts with a note-on after more than 2 seconds of silence.
-        const silenceThreshold = 2000; // 2 seconds in milliseconds
+        // A section starts with a note-on after this duration.
+        const silenceThresholdMs = 1500;
 
         const notesOn = new Set<number>();
         let lastNoteOffTime = 0;
@@ -1258,7 +1258,7 @@ class Recorder {
             if (ev.isNoteOn) {
                 if (notesOn.size === 0) { // First note on after silence
                     const silenceDuration = ev.timeStamp - lastNoteOffTime;
-                    if (silenceDuration > silenceThreshold) {
+                    if (silenceDuration > silenceThresholdMs) {
                         this.#sections.push(ev.timeStamp);
                     }
                 }

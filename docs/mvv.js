@@ -1106,8 +1106,8 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
     if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
         return;
     }
-    // A section starts with a note-on after more than 2 seconds of silence.
-    const silenceThreshold = 2000; // 2 seconds in milliseconds
+    // A section starts with a note-on after this duration.
+    const silenceThresholdMs = 1500;
     const notesOn = new Set();
     let lastNoteOffTime = 0;
     // Find the first note-on event to start the first section.
@@ -1123,7 +1123,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
         if (ev.isNoteOn) {
             if (notesOn.size === 0) { // First note on after silence
                 const silenceDuration = ev.timeStamp - lastNoteOffTime;
-                if (silenceDuration > silenceThreshold) {
+                if (silenceDuration > silenceThresholdMs) {
                     __classPrivateFieldGet(this, _Recorder_sections, "f").push(ev.timeStamp);
                 }
             }
