@@ -252,6 +252,24 @@ canvas#roll2 {
 #roll-speed.roll-speed-slowest {
     background-image: url("res/speed-slowest.png");
 }
+#play-speed.play-speed-0125 {
+    background-image: url("res/speed-0.125.png");
+}
+#play-speed.play-speed-025 {
+    background-image: url("res/speed-0.25.png");
+}
+#play-speed.play-speed-050 {
+    background-image: url("res/speed-0.5.png");
+}
+#play-speed.play-speed-100 {
+    background-image: url("res/speed-1.png");
+}
+#play-speed.play-speed-200 {
+    background-image: url("res/speed-2.png");
+}
+#play-speed.play-speed-400 {
+    background-image: url("res/speed-4.png");
+}
 #notenames {
     background-image: url("res/a.png");
 }
