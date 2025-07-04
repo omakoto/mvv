@@ -26,3 +26,10 @@ It visualizes:
 ## Shortcut Keys
 
 Press '?' for help
+
+## TODO
+
+- [ ] Playback speed (1/4, 1/2, x2, x4)
+- [ ] Playback
+  - [ ] Gap detection and shortcut keys to prev/next gaps
+  - [ ] Show gaps on the playback bar and snap touch.
