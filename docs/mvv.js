@@ -1356,8 +1356,10 @@ class Coordinator {
             case 'KeyD':
                 toggleDebug();
                 break;
-            case 'KeyD':
-                toggleDebug();
+            case 'KeyC':
+                alwaysRecorder.clear();
+                this.updateUi();
+                info("Always recording buffer cleared");
                 break;
             default:
                 return; // Don't prevent the default behavior.
