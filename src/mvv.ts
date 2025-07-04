@@ -84,10 +84,9 @@ function getNextPlaySpeedIndex(index: number): number {
     return (index + 1) % PLAY_SPEEDS.length;
 }
 
-function getPreviousPlaySpeedIndex(index: number): number {
-    return (index - 1 + PLAY_SPEEDS.length) % PLAY_SPEEDS.length;
+function getCappedPlayIndex(index: number): number {
+    return Math.max(0, Math.min(index, PLAY_SPEEDS.length - 1));
 }
-
 
 function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
     let r = 0, g = 0, b = 0, i, f, p, q, t;
@@ -1486,12 +1485,10 @@ class Coordinator {
                 this.#onFastForwardPressed(isRepeat);
                 break;
             case 'ArrowUp':
-                this.rotatePlaySpeed();
-                this.updateUi();
+                this.shiftPlaySpeed(1);
                 break;
             case 'ArrowDown':
-                this.rotatePlaySpeed(true);
-                this.updateUi();
+                this.shiftPlaySpeed(-1);
                 break;
             default:
                 return; // Don't prevent the default behavior.
@@ -1571,17 +1568,18 @@ class Coordinator {
         return this.#playSpeedIndex;
     }
 
-    setPlaySpeedIndex(index: number): void {
+    #setPlaySpeedIndex(index: number): void {
         this.#playSpeedIndex = index;
         localStorage.setItem(Coordinator.#STORAGE_KEY_PLAY_SPEED, String(index));
+        this.updateUi();
     }
 
-    rotatePlaySpeed(reverse: boolean = false): void {
-        if (reverse) {
-            this.setPlaySpeedIndex(getPreviousPlaySpeedIndex(this.playSpeedIndex));
-        } else {
-            this.setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
-        }
+    rotatePlaySpeed(): void {
+        this.#setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
+    }
+
+    shiftPlaySpeed(increment: number): void {
+        this.#setPlaySpeedIndex(getCappedPlayIndex(this.playSpeedIndex + increment));
     }
 
     toggleHelpScreen(): void {
