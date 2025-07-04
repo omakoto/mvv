@@ -55,6 +55,7 @@ class Controls {
     #position;
     #positionOuter;
     #positionBar;
+    #sectionMarkersContainer;
     #freeze;
     #videoMute;
     #sharp;
@@ -90,6 +91,7 @@ class Controls {
         this.#position = $("#position");
         this.#positionOuter = $("#position_outer");
         this.#positionBar = $("#position_bar");
+        this.#sectionMarkersContainer = $("#section-markers-container");
         this.#freeze = $("#freeze");
         this.#videoMute = $("#video-mute");
 
@@ -243,6 +245,19 @@ class Controls {
 
         // Always update the timestamp.s
         this.updateTimestamp();
+
+        // Update section markers
+        this.#sectionMarkersContainer.empty();
+        const sections = recorder.sections;
+        const totalTime = recorder.lastEventTimestamp;
+        if (totalTime > 0) {
+            for (const sectionTime of sections) {
+                const percent = (sectionTime / totalTime) * 100;
+                const marker = $('<div class="section-marker"></div>');
+                marker.css('left', percent + '%');
+                this.#sectionMarkersContainer.append(marker);
+            }
+        }
 
         // First, update the controls that are always available.
 

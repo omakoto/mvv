@@ -967,6 +967,10 @@ class Recorder {
         return !this.isAnythingRecorded ? 0 : this.#lastEventTimestamp;
     }
 
+    get sections(): readonly number[] {
+        return this.#sections;
+    }
+
     #startRecording(): void {
         info("Recording started");
 

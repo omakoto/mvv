@@ -822,6 +822,9 @@ class Recorder {
     get lastEventTimestamp() {
         return !this.isAnythingRecorded ? 0 : __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f");
     }
+    get sections() {
+        return __classPrivateFieldGet(this, _Recorder_sections, "f");
+    }
     recordEvent(ev) {
         if (!this.isRecording) {
             return false;
