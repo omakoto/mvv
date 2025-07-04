@@ -66,6 +66,7 @@ function getNextScrollSpeedIndex(index) {
     return (index + 1) % ROLL_SCROLL_PX.length;
 }
 const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4, 8];
+export const DEFAULT_PLAY_SPEED_INDEX = 3;
 function getPlaySpeedFactor(index) {
     return PLAY_SPEEDS[index];
 }
@@ -1112,7 +1113,7 @@ class Coordinator {
         const storedSpeed = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_SCROLL_SPEED));
         __classPrivateFieldSet(this, _Coordinator_scrollSpeedIndex, storedSpeed ? parseInt(storedSpeed) : 0, "f");
         const storedPlaySpeed = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_PLAY_SPEED));
-        __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, storedPlaySpeed ? parseInt(storedPlaySpeed) : 3, "f");
+        __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, storedPlaySpeed ? parseInt(storedPlaySpeed) : DEFAULT_PLAY_SPEED_INDEX, "f");
         const noteOffLines = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_NOTE_OFF_LINES));
         __classPrivateFieldSet(this, _Coordinator_showNoteOffLins, noteOffLines === null ? true : noteOffLines === 'true', "f");
         const storedBpm = localStorage.getItem(__classPrivateFieldGet(_a, _a, "f", _Coordinator_STORAGE_KEY_METRONOME_BPM));
@@ -1258,6 +1259,9 @@ class Coordinator {
             case 'ArrowDown':
                 this.shiftPlaySpeed(-1);
                 break;
+            case 'Digit0':
+                this.resetPlaySpeed();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
@@ -1326,6 +1330,9 @@ class Coordinator {
     }
     rotatePlaySpeed() {
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_setPlaySpeedIndex).call(this, getNextPlaySpeedIndex(this.playSpeedIndex));
+    }
+    resetPlaySpeed() {
+        __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_setPlaySpeedIndex).call(this, DEFAULT_PLAY_SPEED_INDEX);
     }
     shiftPlaySpeed(increment) {
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_setPlaySpeedIndex).call(this, getCappedPlayIndex(this.playSpeedIndex + increment));

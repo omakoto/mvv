@@ -75,6 +75,7 @@ function getNextScrollSpeedIndex(index: number): number {
 }
 
 const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4, 8];
+export const DEFAULT_PLAY_SPEED_INDEX = 3;
 
 function getPlaySpeedFactor(index: number) {
     return PLAY_SPEEDS[index];
@@ -1337,7 +1338,7 @@ class Coordinator {
         this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed) : 0;
 
         const storedPlaySpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_PLAY_SPEED);
-        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed) : 3;
+        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed) : DEFAULT_PLAY_SPEED_INDEX;
 
         const noteOffLines = localStorage.getItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES);
         this.#showNoteOffLins = noteOffLines === null ? true : noteOffLines === 'true';
@@ -1481,6 +1482,9 @@ class Coordinator {
             case 'ArrowDown':
                 this.shiftPlaySpeed(-1);
                 break;
+            case 'Digit0':
+                this.resetPlaySpeed();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
@@ -1572,6 +1576,10 @@ class Coordinator {
 
     rotatePlaySpeed(): void {
         this.#setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
+    }
+
+    resetPlaySpeed(): void {
+        this.#setPlaySpeedIndex(DEFAULT_PLAY_SPEED_INDEX);
     }
 
     shiftPlaySpeed(increment: number): void {
