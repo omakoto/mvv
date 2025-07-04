@@ -51,7 +51,7 @@ const RGB_OCTAVE_LINES: [number, number, number] = [100, 100, 0];
 
 // Always recording capacity.
 const ALWAYS_RECORD_SECONDS = 60 * 20;
-const ALWAYS_RECORD_MAX_EVENTS = 1 * 1024 * 1024;
+const ALWAYS_RECORD_MAX_EVENTS = ALWAYS_RECORD_SECONDS * 100;
 
 // Utility functions
 
