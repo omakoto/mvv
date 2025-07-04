@@ -361,8 +361,15 @@ canvas#roll2 {
 }
 
 #save_as_filename {
-    width: 20em;
+    flex-grow: 1;
+    margin: 0 4px;
     font-size: var(--dialog-font-size);
+}
+
+.save-as-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
 #confirm_box {
