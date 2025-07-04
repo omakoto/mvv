@@ -350,9 +350,13 @@ canvas#roll2 {
     padding: 6px;
 }
 
+.popbox {
+    padding: 0px;
+}
+
 .popbox_container {
     color: #202020;
-    max-width: 500px;
+    max-width: min(500px, 80%);
     font-size: var(--dialog-font-size);
 }
 
