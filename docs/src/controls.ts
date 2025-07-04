@@ -3,7 +3,7 @@
 import { coordinator, renderer, recorder, metronome, alwaysRecorder } from './mvv.js';
 
 const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
-const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400"];
+const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400", "play-speed-800"];
 
 
 class Controls {

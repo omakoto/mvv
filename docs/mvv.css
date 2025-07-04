@@ -270,6 +270,9 @@ canvas#roll2 {
 #play-speed.play-speed-400 {
     background-image: url("res/speed-4.png");
 }
+#play-speed.play-speed-800 {
+    background-image: url("res/speed-8.png");
+}
 #notenames {
     background-image: url("res/a.png");
 }

@@ -65,7 +65,7 @@ function getScrollSpeedPx(index) {
 function getNextScrollSpeedIndex(index) {
     return (index + 1) % ROLL_SCROLL_PX.length;
 }
-const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4];
+const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4, 8];
 function getPlaySpeed(index) {
     return PLAY_SPEEDS[index];
 }
