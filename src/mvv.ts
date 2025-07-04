@@ -445,6 +445,7 @@ class Renderer {
                 this.#roll.fillStyle = colorStr;
                 this.#roll.fillRect(bl, 0, bw, drawHeight);
 
+                // Note names
                 if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
                     const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
                     this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
@@ -1901,7 +1902,7 @@ class Coordinator {
             // Loop is already running.
             return;
         }
-        debug("Animation started")
+        console.log("Animation started")
 
         const loop = (forceRequest: boolean) => {
             // #flips is for the FPS counter, representing screen updates.
@@ -1935,7 +1936,7 @@ class Coordinator {
         if (this.#animationFrameId !== null) {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
-            debug("Animation stopped")
+            console.log("Animation stopped")
         }
     }
 

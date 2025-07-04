@@ -374,6 +374,7 @@ class Renderer {
                 __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, drawHeight);
+                // Note names
                 if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
                     const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
                     __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
@@ -1582,7 +1583,7 @@ class Coordinator {
             // Loop is already running.
             return;
         }
-        debug("Animation started");
+        console.log("Animation started");
         const loop = (forceRequest) => {
             var _b;
             // #flips is for the FPS counter, representing screen updates.
@@ -1612,7 +1613,7 @@ class Coordinator {
         if (__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") !== null) {
             cancelAnimationFrame(__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f"));
             __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
-            debug("Animation stopped");
+            console.log("Animation stopped");
         }
     }
     onPlaybackTimer() {
