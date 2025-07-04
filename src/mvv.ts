@@ -840,6 +840,7 @@ enum RecorderState {
 class Recorder {
     #events: Array<MidiEvent> = [];
     #state = RecorderState.Idle;
+    #sections: number[] = [];
 
     #recordingStartTimestamp = 0;
 
@@ -979,6 +980,8 @@ class Recorder {
     #stopRecording(): void {
         info("Recording stopped (" + this.#events.length + " events recorded)");
         this.#state = RecorderState.Idle;
+
+        this.#detectSections();
 
         coordinator.onRecorderStatusChanged(this.#state);
     }
@@ -1212,15 +1215,108 @@ class Recorder {
         if (events.length === 0) {
             info("File contains no events.");
             this.#lastEventTimestamp = 0;
+            this.#sections = [];
             return;
         }
 
         const lastEvent = events[events.length - 1]!;
         this.#lastEventTimestamp = lastEvent.timeStamp;
 
+        this.#detectSections();
+
         let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
         info(message);
         this.moveToStart();
+    }
+
+    #detectSections(): void {
+        this.#sections = [];
+        if (this.#events.length === 0) {
+            return;
+        }
+
+        // A section starts with a note-on after more than 2 seconds of silence.
+        const silenceThreshold = 2000; // 2 seconds in milliseconds
+
+        const notesOn = new Set<number>();
+        let lastNoteOffTime = 0;
+
+        // Find the first note-on event to start the first section.
+        const firstNoteOn = this.#events.find(ev => ev.isNoteOn);
+        if (firstNoteOn) {
+            this.#sections.push(firstNoteOn.timeStamp);
+        } else {
+            // No note-on events, so no sections.
+            return;
+        }
+
+        for (const ev of this.#events) {
+            if (ev.isNoteOn) {
+                if (notesOn.size === 0) { // First note on after silence
+                    const silenceDuration = ev.timeStamp - lastNoteOffTime;
+                    if (silenceDuration > silenceThreshold) {
+                        this.#sections.push(ev.timeStamp);
+                    }
+                }
+                notesOn.add(ev.data1);
+            } else if (ev.isNoteOff) {
+                notesOn.delete(ev.data1);
+                if (notesOn.size === 0) {
+                    lastNoteOffTime = ev.timeStamp;
+                }
+            }
+        }
+        // Make sure sections are unique and sorted.
+        this.#sections = [...new Set(this.#sections)].sort((a, b) => a - b);
+        console.log("Detected " + this.#sections.length + " sections: " + this.#sections.map(s => (s/1000).toFixed(1)).join(', '));
+    }
+
+    jumpToNextSection(): void {
+        if (this.#sections.length === 0) {
+            return;
+        }
+        const currentTimestamp = this.currentPlaybackTimestamp;
+        for (const sectionStart of this.#sections) {
+            // Find the first section that starts after the current time.
+            // Add a small epsilon (1ms) to handle the case where we are exactly at a section start.
+            if (sectionStart > currentTimestamp + 1) {
+                this.adjustPlaybackPosition(sectionStart - currentTimestamp);
+                return;
+            }
+        }
+    }
+
+    jumpToPreviousSection(): void {
+        if (this.#sections.length === 0) {
+            return;
+        }
+        const currentTimestamp = this.currentPlaybackTimestamp;
+        const threshold = 1000; // 1 second
+
+        let currentSectionIndex = -1;
+        for (let i = 0; i < this.#sections.length; i++) {
+            if (this.#sections[i]! <= currentTimestamp) {
+                currentSectionIndex = i;
+            } else {
+                break;
+            }
+        }
+
+        if (currentSectionIndex === -1) {
+            this.moveToStart();
+            return;
+        }
+
+        const currentSectionStart = this.#sections[currentSectionIndex]!;
+        if ((currentTimestamp - currentSectionStart) < threshold && currentSectionIndex > 0) {
+            // Close to the beginning of the current section, and it's not the first section.
+            // Jump to the previous section.
+            const previousSectionStart = this.#sections[currentSectionIndex - 1]!;
+            this.adjustPlaybackPosition(previousSectionStart - currentTimestamp);
+        } else {
+            // Jump to the beginning of the current section.
+            this.adjustPlaybackPosition(currentSectionStart - currentTimestamp);
+        }
     }
 
     copyFromAlwaysRecorder(alwaysRecorder: AlwaysRecorder): void {
@@ -1429,9 +1525,19 @@ class Coordinator {
                 if (isRepeat) break;
                 this.stop();
                 break;
-            case 'KeyP':
+            case 'KeyB':
                 if (isRepeat) break;
                 this.replayFromAlwaysRecordingBuffer()
+                break;
+            case 'KeyP':
+                if (isRepeat) break;
+                recorder.jumpToPreviousSection();
+                this.updateUi();
+                break;
+            case 'KeyN':
+                if (isRepeat) break;
+                recorder.jumpToNextSection();
+                this.updateUi();
                 break;
             case 'KeyT':
                 if (isRepeat) break;
