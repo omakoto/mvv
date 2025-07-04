@@ -703,6 +703,9 @@ class AlwaysRecorder {
             console.log("Always recording: trimmed down events to " + __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").length);
         }
     }
+    clear() {
+        __classPrivateFieldSet(this, _AlwaysRecorder_events, [], "f");
+    }
     getEvents() {
         return __classPrivateFieldGet(this, _AlwaysRecorder_events, "f");
     }
@@ -1220,42 +1223,49 @@ class Coordinator {
         const isRepeat = ev.repeat;
         switch (ev.code) {
             case 'Digit1':
+            case 'F1':
                 if (isRepeat)
                     break;
                 this.toggleNoteNames();
                 this.updateUi();
                 break;
             case 'Digit2':
+            case 'F2':
                 if (isRepeat)
                     break;
                 this.setSharpMode(!this.isSharpMode);
                 this.updateUi();
                 break;
             case 'Digit3':
+            case 'F3':
                 if (isRepeat)
                     break;
                 this.setShowingOctaveLines(!this.isShowingOctaveLines);
                 this.updateUi();
                 break;
             case 'Digit4':
+            case 'F4':
                 if (isRepeat)
                     break;
                 this.rotateScrollSpeed();
                 this.updateUi();
                 break;
             case 'Digit5':
+            case 'F5':
                 if (isRepeat)
                     break;
                 this.toggleNoteOffLines();
                 this.updateUi();
                 break;
             case 'Digit6':
+            case 'F6':
                 if (isRepeat)
                     break;
                 this.toggleVideoMute();
                 break;
             case 'Digit7':
             case 'Enter':
+            case 'F7':
                 if (isRepeat)
                     break;
                 this.toggleRollFrozen();
@@ -1342,6 +1352,9 @@ class Coordinator {
                 break;
             case 'Digit0':
                 this.resetPlaySpeed();
+                break;
+            case 'KeyD':
+                toggleDebug();
                 break;
             case 'KeyD':
                 toggleDebug();
