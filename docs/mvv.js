@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_playbackStartTimestamp, _Recorder_playbackTimeAdjustment, _Recorder_pauseStartTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_getPausingDuration, _Recorder_getCurrentPlaybackTimestamp, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableTimestamp, _Coordinator_animationFrameId, _Coordinator_updateTimestamp;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_timestamp, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_getHumanReadableTimestamp, _Coordinator_animationFrameId, _Coordinator_updateTimestamp;
 import { info, debug, DEBUG } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -723,9 +723,7 @@ class Recorder {
         _Recorder_events.set(this, []);
         _Recorder_state.set(this, RecorderState.Idle);
         _Recorder_recordingStartTimestamp.set(this, 0);
-        _Recorder_playbackStartTimestamp.set(this, 0);
-        _Recorder_playbackTimeAdjustment.set(this, 0);
-        _Recorder_pauseStartTimestamp.set(this, 0);
+        _Recorder_currentPlaybackTimestamp.set(this, 0);
         _Recorder_nextPlaybackIndex.set(this, 0);
         _Recorder_lastEventTimestamp.set(this, 0);
         _Recorder_isDirty.set(this, false);
@@ -774,7 +772,6 @@ class Recorder {
         if (!this.isPlaying) {
             return false;
         }
-        __classPrivateFieldSet(this, _Recorder_pauseStartTimestamp, performance.now(), "f");
         __classPrivateFieldSet(this, _Recorder_state, RecorderState.Pausing, "f");
         coordinator.onRecorderStatusChanged();
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_stopTimer).call(this);
@@ -784,9 +781,7 @@ class Recorder {
         if (!this.isPausing) {
             return false;
         }
-        // Shift the start timestamp by paused duration.
-        const pausedDuration = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this);
-        __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f") + pausedDuration, "f");
+        //        this.#lastPlaybackCheckTimestamp = performance.now();
         __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
         coordinator.onRecorderStatusChanged();
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startTimer).call(this);
@@ -817,7 +812,7 @@ class Recorder {
         return __classPrivateFieldGet(this, _Recorder_events, "f").length <= __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f");
     }
     get currentPlaybackTimestamp() {
-        return __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
+        return __classPrivateFieldGet(this, _Recorder_currentPlaybackTimestamp, "f");
     }
     get lastEventTimestamp() {
         return __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f");
@@ -869,8 +864,6 @@ class Recorder {
         let newTimestamp = oldTimestamp + deltaMilliseconds;
         // Clamp the new time to the valid bounds of the recording.
         newTimestamp = Math.max(0, Math.min(newTimestamp, __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f")));
-        // Update the internal timekeeping to reflect the jump.
-        __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") + (newTimestamp - oldTimestamp), "f");
         // Reset MIDI devices. This clears any hanging notes or stale controller states.
         midiOutputManager.reset();
         midiRenderingStatus.reset();
@@ -911,12 +904,18 @@ class Recorder {
             this.unpause();
         }
     }
+    // #getUpdatedCurrentPlaybackTimestamp(): number {
+    //     if (this.isRecording) return 0;
+    //     if (this.isIdle) return this.#playbackTimeAdjustment;
+    //     return (performance.now() - this.#playbackStartTimestamp) +
+    //             this.#playbackTimeAdjustment - this.#getPausingDuration();
+    // }
     playbackUpToNow() {
         if (!this.isPlaying) {
             return;
         }
         // Current timestamp
-        let ts = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getCurrentPlaybackTimestamp).call(this);
+        let ts = this.();
         if (DEBUG) {
             // debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
@@ -965,6 +964,7 @@ class Recorder {
         info(message);
         this.moveToStart();
     }
+    // TODO: Merge the logic with setEvents()?
     copyFromAlwaysRecorder(alwaysRecorder) {
         const eventsToCopy = alwaysRecorder.getEvents();
         if (eventsToCopy.length === 0) {
@@ -1006,7 +1006,7 @@ class Recorder {
         coordinator.updateUi();
     }
 }
-_Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_recordingStartTimestamp = new WeakMap(), _Recorder_playbackStartTimestamp = new WeakMap(), _Recorder_playbackTimeAdjustment = new WeakMap(), _Recorder_pauseStartTimestamp = new WeakMap(), _Recorder_nextPlaybackIndex = new WeakMap(), _Recorder_lastEventTimestamp = new WeakMap(), _Recorder_isDirty = new WeakMap(), _Recorder_timer = new WeakMap(), _Recorder_instances = new WeakSet(), _Recorder_startRecording = function _Recorder_startRecording() {
+_Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_recordingStartTimestamp = new WeakMap(), _Recorder_currentPlaybackTimestamp = new WeakMap(), _Recorder_nextPlaybackIndex = new WeakMap(), _Recorder_lastEventTimestamp = new WeakMap(), _Recorder_isDirty = new WeakMap(), _Recorder_timer = new WeakMap(), _Recorder_instances = new WeakSet(), _Recorder_startRecording = function _Recorder_startRecording() {
     info("Recording started");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Recording, "f");
     __classPrivateFieldSet(this, _Recorder_events, [], "f");
@@ -1019,11 +1019,8 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
 }, _Recorder_startPlaying = function _Recorder_startPlaying(pauseRightAway = false) {
     info("Playback started");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Playing, "f");
-    __classPrivateFieldSet(this, _Recorder_playbackStartTimestamp, performance.now(), "f");
-    // Do not reset playbackTimeAdjustment. It contains the start offset.
-    // Find the next event from the current position
+    __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, 0, "f"); // Reset position to start.
     __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, 0, "f");
-    __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, this.currentPlaybackTimestamp, null);
     coordinator.onRecorderStatusChanged();
     if (!pauseRightAway) {
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_startTimer).call(this);
@@ -1032,7 +1029,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
 }, _Recorder_stopPlaying = function _Recorder_stopPlaying() {
     info("Playback stopped");
     __classPrivateFieldSet(this, _Recorder_state, RecorderState.Idle, "f");
-    __classPrivateFieldSet(this, _Recorder_playbackTimeAdjustment, 0, "f"); // Reset position to start.
+    __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, 0, "f"); // Reset position to start.
     coordinator.onRecorderStatusChanged();
     coordinator.resetMidi();
     __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_stopTimer).call(this);
@@ -1049,31 +1046,27 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_rec
         clearInterval(__classPrivateFieldGet(this, _Recorder_timer, "f"));
         __classPrivateFieldSet(this, _Recorder_timer, 0, "f");
     }
-}, _Recorder_getPausingDuration = function _Recorder_getPausingDuration() {
-    return this.isPausing ? (performance.now() - __classPrivateFieldGet(this, _Recorder_pauseStartTimestamp, "f")) : 0;
-}, _Recorder_getCurrentPlaybackTimestamp = function _Recorder_getCurrentPlaybackTimestamp() {
-    if (this.isRecording)
-        return 0;
-    if (this.isIdle)
-        return __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f");
-    return (performance.now() - __classPrivateFieldGet(this, _Recorder_playbackStartTimestamp, "f")) +
-        __classPrivateFieldGet(this, _Recorder_playbackTimeAdjustment, "f") - __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_getPausingDuration).call(this);
-}, _Recorder_moveUpToTimestamp = function _Recorder_moveUpToTimestamp(timeStamp, callback) {
+}, _Recorder_moveUpToTimestamp = function _Recorder_moveUpToTimestamp(timestamp, callback) {
     var _b;
+    const limit = __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f") + 5000;
     for (;;) {
         if (this.isAfterLast) {
-            if (timeStamp > __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f") + 5000) {
+            if (timestamp > limit) {
                 // It's been a while since the last event. Let's stop playing.
+                __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, limit, "f");
                 return false;
             }
             // Continue playing for a bit, which makes it easier to listen to the last part again.
+            __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, timestamp, "f");
             return true;
         }
         let ev = __classPrivateFieldGet(this, _Recorder_events, "f")[__classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f")];
-        if (ev.timeStamp >= timeStamp) {
+        if (ev.timeStamp >= timestamp) {
+            __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, timestamp, "f");
             return true;
         }
         __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, (_b = __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f"), _b++, _b), "f");
+        __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, ev.timeStamp, "f");
         if (callback) {
             callback(ev);
         }

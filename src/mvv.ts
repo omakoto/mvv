@@ -840,9 +840,8 @@ class Recorder {
     #state = RecorderState.Idle;
 
     #recordingStartTimestamp = 0;
-    #playbackStartTimestamp = 0;
-    #playbackTimeAdjustment = 0;
-    #pauseStartTimestamp = 0;
+
+    #currentPlaybackTimestamp = 0;
     #nextPlaybackIndex = 0;
     #lastEventTimestamp = 0;
 
@@ -901,7 +900,6 @@ class Recorder {
         if (!this.isPlaying) {
             return false;
         }
-        this.#pauseStartTimestamp = performance.now();
         this.#state = RecorderState.Pausing;
         coordinator.onRecorderStatusChanged();
 
@@ -914,9 +912,7 @@ class Recorder {
         if (!this.isPausing) {
             return false;
         }
-        // Shift the start timestamp by paused duration.
-        const pausedDuration = this.#getPausingDuration();
-        this.#playbackStartTimestamp += pausedDuration;
+//        this.#lastPlaybackCheckTimestamp = performance.now();
         this.#state = RecorderState.Playing;
         coordinator.onRecorderStatusChanged();
 
@@ -958,7 +954,7 @@ class Recorder {
     }
 
     get currentPlaybackTimestamp(): number {
-        return this.#getCurrentPlaybackTimestamp();
+        return this.#currentPlaybackTimestamp;
     }
 
     get lastEventTimestamp(): number {
@@ -986,12 +982,9 @@ class Recorder {
         info("Playback started");
 
         this.#state = RecorderState.Playing;
-        this.#playbackStartTimestamp = performance.now();
-        // Do not reset playbackTimeAdjustment. It contains the start offset.
-    
-        // Find the next event from the current position
+
+        this.#currentPlaybackTimestamp = 0; // Reset position to start.
         this.#nextPlaybackIndex = 0;
-        this.#moveUpToTimestamp(this.currentPlaybackTimestamp, null);
     
         coordinator.onRecorderStatusChanged();
 
@@ -1006,7 +999,7 @@ class Recorder {
         info("Playback stopped");
 
         this.#state = RecorderState.Idle;
-        this.#playbackTimeAdjustment = 0; // Reset position to start.
+        this.#currentPlaybackTimestamp = 0; // Reset position to start.
     
         coordinator.onRecorderStatusChanged();
         coordinator.resetMidi();
@@ -1088,9 +1081,6 @@ class Recorder {
         // Clamp the new time to the valid bounds of the recording.
         newTimestamp = Math.max(0, Math.min(newTimestamp, this.#lastEventTimestamp));
 
-        // Update the internal timekeeping to reflect the jump.
-        this.#playbackTimeAdjustment += (newTimestamp - oldTimestamp);
-
         // Reset MIDI devices. This clears any hanging notes or stale controller states.
         midiOutputManager.reset();
         midiRenderingStatus.reset();
@@ -1137,17 +1127,14 @@ class Recorder {
         }
     }
 
-    #getPausingDuration(): number {
-        return this.isPausing ? (performance.now() - this.#pauseStartTimestamp) : 0;
-    }
-
-    #getCurrentPlaybackTimestamp(): number {
-        if (this.isRecording) return 0;
-        if (this.isIdle) return this.#playbackTimeAdjustment;
+    // #getUpdatedCurrentPlaybackTimestamp(): number {
+    //     if (this.isRecording) return 0;
+    //     if (this.isIdle) return this.#playbackTimeAdjustment;
     
-        return (performance.now() - this.#playbackStartTimestamp) +
-                this.#playbackTimeAdjustment - this.#getPausingDuration();
-    }
+    //     return (performance.now() - this.#playbackStartTimestamp) +
+    //             this.#playbackTimeAdjustment - this.#getPausingDuration();
+    // }
+
 
     playbackUpToNow() {
         if (!this.isPlaying) {
@@ -1155,7 +1142,7 @@ class Recorder {
         }
 
         // Current timestamp
-        let ts = this.#getCurrentPlaybackTimestamp();
+        let ts = this.#getUpdatedCurrentPlaybackTimestamp();
         if (DEBUG) {
             // debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
@@ -1173,21 +1160,26 @@ class Recorder {
         }
     }
 
-    #moveUpToTimestamp(timeStamp: number, callback: null | ((a: MidiEvent) => void)): boolean {
+    #moveUpToTimestamp(timestamp: number, callback: null | ((a: MidiEvent) => void)): boolean {
+        const limit = this.#lastEventTimestamp + 5000;
         for (;;) {
             if (this.isAfterLast) {
-                if (timeStamp > this.#lastEventTimestamp + 5000) {
+                if (timestamp > limit) {
                     // It's been a while since the last event. Let's stop playing.
+                    this.#currentPlaybackTimestamp = limit;
                     return false;
                 }
                 // Continue playing for a bit, which makes it easier to listen to the last part again.
+                this.#currentPlaybackTimestamp = timestamp;
                 return true;
             }
             let ev = this.#events[this.#nextPlaybackIndex]!;
-            if (ev.timeStamp >= timeStamp) {
+            if (ev.timeStamp >= timestamp) {
+                this.#currentPlaybackTimestamp = timestamp;
                 return true;
             }
             this.#nextPlaybackIndex++;
+            this.#currentPlaybackTimestamp = ev.timeStamp;
 
             if (callback) {
                 callback(ev);
@@ -1235,6 +1227,7 @@ class Recorder {
         this.moveToStart();
     }
 
+    // TODO: Merge the logic with setEvents()?
     copyFromAlwaysRecorder(alwaysRecorder: AlwaysRecorder): void {
         const eventsToCopy = alwaysRecorder.getEvents();
         if (eventsToCopy.length === 0) {
