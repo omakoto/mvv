@@ -1252,13 +1252,14 @@ class Recorder {
 
         this.setEvents(newEvents);
         this.#isDirty = true; // Mark as dirty so the user can save it.
-        info("Copied " + newEvents.length + " events from the background buffer.");
 
         // Start but paused, so we can move the position.
         this.startPaused();
 
         // Move to the [last - 3 second] position. 
         this.adjustPlaybackPosition(this.lastEventTimestamp - 3000);
+
+        info("Copied " + newEvents.length + " events from the background buffer.");
 
         coordinator.updateUi();
     }
