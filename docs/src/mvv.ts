@@ -935,6 +935,10 @@ class Recorder {
         return this.#events.length > 0;
     }
 
+    get isBeginning(): boolean {
+        return this.#nextPlaybackIndex == 0;
+    }
+
     get isAfterLast(): boolean {
         return this.#events.length <= this.#nextPlaybackIndex;
     }
@@ -1053,10 +1057,10 @@ class Recorder {
      * @param deltaMilliseconds The amount of time to jump, relative to the current position.
      * @returns `true` if the new position is valid.
      */
-    adjustPlaybackPosition(deltaMilliseconds: number): boolean {
+    adjustPlaybackPosition(deltaMilliseconds: number): void {
         // This method should not be used when recording.
         if (this.isRecording) {
-            return false;
+            return;
         }
 
         const wasPlaying = this.isPlaying;
@@ -1117,8 +1121,6 @@ class Recorder {
         if (wasPlaying) {
             this.unpause();
         }
-
-        return this.currentPlaybackTimestamp > 0;
     }
 
     #getPausingDuration(): number {
@@ -1461,9 +1463,10 @@ class Coordinator {
                 this.#onRewindPressed(isRepeat);
                 break;
             case 'ArrowRight':
-                if (!recorder.isRecording) {
-                    recorder.adjustPlaybackPosition(1000);
-                }
+                this.#onFastForwardPressed(isRepeat);
+                break;
+            case 'ArrowUp':
+                this.moveToPercent(1000);
                 break;
             default:
                 return; // Don't prevent the default behavior.
@@ -1688,9 +1691,19 @@ class Coordinator {
         if (!isRepeat) {
             this.#ignoreRepeatedRewindKey = false;
         }
-        if (!recorder.adjustPlaybackPosition(-1000)) {
+        recorder.adjustPlaybackPosition(-1000);
+        if (recorder.isBeginning) {
+            // If we hit the beginning, stop accepting repeated key presses.
             this.#ignoreRepeatedRewindKey = true;
         }
+        this.updateUi();
+    }
+
+    #onFastForwardPressed(isRepeat: boolean): void {
+        if (recorder.isRecording || recorder.isAfterLast) {
+            return;
+        }
+        recorder.adjustPlaybackPosition(1000)
         this.updateUi();
     }
 
