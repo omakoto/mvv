@@ -375,24 +375,6 @@ a:active {
     color: var(--main-text-color);
 }
 
-
-element.style {
-    top: 242.195px;
-    left: 143.678px;
-}
-.ui-widget.ui-widget-content {
-    border: 1px solid #d3d3d3;
-}
-body .ui-tooltip {
-    border-width: 2px;
-}
-
-.ui-widget-shadow {
-    /* Remove the shadow from the tooptip */
-    box-shadow: none;
-    -webkit-box-shadow: none;
-}
-
 /* Help Screen Styles */
 #help_overlay {
     display: none;
@@ -545,4 +527,25 @@ kbd:active {
 .dialog-button {
     font-size: 16px;
     height: 30px;
+}
+
+
+/* what's this??
+element.style {
+    top: 242.195px;
+    left: 143.678px;
+}*/
+
+/* for tooltip styling */
+.ui-widget.ui-widget-content {
+    border: 1px solid #d3d3d3;
+}
+body .ui-tooltip {
+    border-width: 2px;
+}
+
+.ui-widget-shadow {
+    /* Remove the shadow from the tooltip */
+    box-shadow: none;
+    -webkit-box-shadow: none;
 }
