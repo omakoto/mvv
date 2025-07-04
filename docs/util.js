@@ -1,9 +1,9 @@
 'use strict';
 var _a;
-const DEBUG = parseInt((_a = (new URLSearchParams(window.location.search)).get("debug")) !== null && _a !== void 0 ? _a : "0") ? true : false;
-if (!DEBUG) {
-    console.log("Debug log is disabled. Use https://omakoto.github.io/mvv/?debug=1 to enable debug log.");
-}
+var DEBUG = parseInt((_a = (new URLSearchParams(window.location.search)).get("debug")) !== null && _a !== void 0 ? _a : "0") ? true : false;
+// if (!DEBUG) {
+//     console.log("Debug log is disabled. Use https://omakoto.github.io/mvv/?debug=1 to enable debug log.");
+// }
 // Log on console if DEBUG is true
 function debug(...args) {
     if (!DEBUG)
@@ -52,6 +52,10 @@ function getCurrentTime() {
     const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
     let ret = nowLocal.toISOString();
     return ret.replace("Z", "").replace(/[:T]/g, "-").replace(/\..*$/, "");
+}
+export function toggleDebug() {
+    DEBUG = !DEBUG;
+    info("Debug log is now " + (DEBUG ? "enabled" : "disabled"));
 }
 export { DEBUG, debug, info, infoRaw, w, LiteEvent, getCurrentTime };
 //# sourceMappingURL=util.js.map

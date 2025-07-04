@@ -1,6 +1,6 @@
 'use strict';
 
-import { info, debug, DEBUG } from './util.js';
+import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
 import { saveAsBox, confirmBox, metronomeBox } from './dialogs.js';
@@ -1570,6 +1570,9 @@ class Coordinator {
                 break;
             case 'Digit0':
                 this.resetPlaySpeed();
+                break;
+            case 'KeyD':
+                toggleDebug();
                 break;
             default:
                 return; // Don't prevent the default behavior.
