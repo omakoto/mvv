@@ -377,8 +377,29 @@ class Controls {
     }
     directJump(ev) {
         const max = __classPrivateFieldGet(this, _Controls_positionBar, "f").innerWidth();
-        console.log("jump to: " + ev.offsetX + " / " + max);
-        coordinator.moveToPercent(ev.offsetX / max);
+        const clickX = ev.offsetX;
+        const sections = recorder.sections;
+        const totalTime = recorder.lastEventTimestamp;
+        if (totalTime > 0 && sections.length > 0) {
+            const snapThreshold = 16; // 16px
+            let closestSectionTime = null;
+            let minDistance = Infinity;
+            for (const sectionTime of sections) {
+                const sectionX = (sectionTime / totalTime) * max;
+                const distance = Math.abs(clickX - sectionX);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestSectionTime = sectionTime;
+                }
+            }
+            if (closestSectionTime !== null && minDistance <= snapThreshold) {
+                console.log("Snapping to section at " + closestSectionTime);
+                coordinator.moveToTime(closestSectionTime - 10);
+                return;
+            }
+        }
+        console.log("jump to: " + clickX + " / " + max);
+        coordinator.moveToPercent(clickX / max);
     }
 }
 _Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_playSpeed = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_sectionMarkersContainer = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_timestamp = new WeakMap(), _Controls_cachedTimestamp = new WeakMap(), _Controls_currentTime = new WeakMap(), _Controls_totalTime = new WeakMap(), _Controls_cachedPercent = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap(), _Controls_instances = new WeakSet(), _Controls_setTimestamp = function _Controls_setTimestamp(text) {

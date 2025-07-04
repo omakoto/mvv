@@ -437,11 +437,37 @@ class Controls {
         }
     }
 
-    private directJump(ev: any): void { // TODO: What's the type?
+    private directJump(ev: any): void {
         const max: number = this.#positionBar.innerWidth()!;
-        console.log("jump to: " + ev.offsetX + " / " + max);
+        const clickX = ev.offsetX;
 
-        coordinator.moveToPercent(ev.offsetX / max);
+        const sections = recorder.sections;
+        const totalTime = recorder.lastEventTimestamp;
+
+        if (totalTime > 0 && sections.length > 0) {
+            const snapThreshold = 16; // 16px
+            let closestSectionTime: number | null = null;
+            let minDistance = Infinity;
+
+            for (const sectionTime of sections) {
+                const sectionX = (sectionTime / totalTime) * max;
+                const distance = Math.abs(clickX - sectionX);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestSectionTime = sectionTime;
+                }
+            }
+
+            if (closestSectionTime !== null && minDistance <= snapThreshold) {
+                console.log("Snapping to section at " + closestSectionTime);
+                coordinator.moveToTime(closestSectionTime - 10);
+                return;
+            }
+        }
+
+        console.log("jump to: " + clickX + " / " + max);
+        coordinator.moveToPercent(clickX / max);
     }
 }
 

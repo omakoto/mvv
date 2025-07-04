@@ -1295,7 +1295,7 @@ class Recorder {
             return;
         }
         const currentTimestamp = this.currentPlaybackTimestamp;
-        const threshold = 1000; // 1 second
+        const threshold = 500; // 0.5 second
 
         let currentSectionIndex = -1;
         for (let i = 0; i < this.#sections.length; i++) {
@@ -1775,8 +1775,16 @@ class Coordinator {
         if (recorder.isRecording) {
             return;
         }
-        // Allow scrubbing from idle, paused, or playing states.
         const newTime = recorder.lastEventTimestamp * percent;
+        // const delta = newTime - recorder.currentPlaybackTimestamp;
+        this.moveToTime(newTime);
+    }
+
+    moveToTime(newTime: number): void {
+        if (recorder.isRecording) {
+            return;
+        }
+        // Allow scrubbing from idle, paused, or playing states.
         const delta = newTime - recorder.currentPlaybackTimestamp;
         recorder.adjustPlaybackPosition(delta);
         this.updateUi();
