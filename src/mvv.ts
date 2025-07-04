@@ -74,6 +74,17 @@ function getNextScrollSpeedIndex(index: number): number {
     return (index + 1) % ROLL_SCROLL_PX.length;
 }
 
+const PLAY_SPEEDS = [0.125, 0.25, 0.5, 1, 2, 4];
+
+function getPlaySpeed(index: number) {
+    return PLAY_SPEEDS[index];
+}
+
+function getNextPlaySpeedIndex(index: number): number {
+    return (index + 1) % PLAY_SPEEDS.length;
+}
+
+
 function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
     let r = 0, g = 0, b = 0, i, f, p, q, t;
     i = Math.floor(h * 6);
@@ -1292,6 +1303,7 @@ class Coordinator {
     #showOctaveLines: boolean;
     #showNoteNames: boolean;
     #scrollSpeedIndex: number;
+    #playSpeedIndex: number;
     #showNoteOffLins = false;
 
     #isHelpVisible = false;
@@ -1304,6 +1316,7 @@ class Coordinator {
     static readonly #STORAGE_KEY_SHOW_VLINES = 'mvv_showVlines';
     static readonly #STORAGE_KEY_SHOW_NOTE_NAMES = 'mvv_showNoteNames';
     static readonly #STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
+    static readonly #STORAGE_KEY_PLAY_SPEED = 'mvv_playSpeed';
     static readonly #STORAGE_KEY_NOTE_OFF_LINES = 'note_off_lines';
     static readonly #STORAGE_KEY_METRONOME_BPM = 'mvv_metronomeBpm';
     static readonly #STORAGE_KEY_METRONOME_MAIN_BEATS = 'mvv_metronomeMainBeats';
@@ -1328,6 +1341,9 @@ class Coordinator {
 
         const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
         this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed) : 0;
+
+        const storedPlaySpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_PLAY_SPEED);
+        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed) : 3;
 
         const noteOffLines = localStorage.getItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES);
         this.#showNoteOffLins = noteOffLines === null ? true : noteOffLines === 'true';
@@ -1466,7 +1482,8 @@ class Coordinator {
                 this.#onFastForwardPressed(isRepeat);
                 break;
             case 'ArrowUp':
-                this.moveToPercent(1000);
+                this.rotatePlaySpeed();
+                this.updateUi();
                 break;
             default:
                 return; // Don't prevent the default behavior.
@@ -1540,6 +1557,19 @@ class Coordinator {
 
     rotateScrollSpeed(): void {
         this.setScrollSpeedIndex(getNextScrollSpeedIndex(this.scrollSpeedIndex));
+    }
+
+    get playSpeedIndex(): number {
+        return this.#playSpeedIndex;
+    }
+
+    setPlaySpeedIndex(index: number): void {
+        this.#playSpeedIndex = index;
+        localStorage.setItem(Coordinator.#STORAGE_KEY_PLAY_SPEED, String(index));
+    }
+
+    rotatePlaySpeed(): void {
+        this.setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
     }
 
     toggleHelpScreen(): void {

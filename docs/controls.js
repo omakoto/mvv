@@ -10,9 +10,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_rollSpeed, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
+var _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_playSpeed, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_rollSpeed, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { coordinator, renderer, recorder, metronome } from './mvv.js';
 const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
+const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400"];
 class Controls {
     constructor() {
         _Controls_top.set(this, void 0);
@@ -21,6 +22,7 @@ class Controls {
         _Controls_pause.set(this, void 0);
         _Controls_ff.set(this, void 0);
         _Controls_stop.set(this, void 0);
+        _Controls_playSpeed.set(this, void 0);
         _Controls_record.set(this, void 0);
         _Controls_replay.set(this, void 0);
         _Controls_up.set(this, void 0);
@@ -43,6 +45,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_play, $("#play"), "f");
         __classPrivateFieldSet(this, _Controls_pause, $("#pause"), "f");
         __classPrivateFieldSet(this, _Controls_stop, $("#stop"), "f");
+        __classPrivateFieldSet(this, _Controls_playSpeed, $("#play-speed"), "f");
         __classPrivateFieldSet(this, _Controls_record, $("#record"), "f");
         __classPrivateFieldSet(this, _Controls_replay, $("#replay"), "f");
         __classPrivateFieldSet(this, _Controls_rewind, $("#rewind"), "f");
@@ -75,6 +78,11 @@ class Controls {
         });
         __classPrivateFieldGet(this, _Controls_stop, "f").on('click', (ev) => {
             coordinator.stop();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_playSpeed, "f").on('click', (ev) => {
+            coordinator.rotatePlaySpeed();
+            this.update();
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_record, "f").on('click', (ev) => {
@@ -241,6 +249,12 @@ class Controls {
         }
         __classPrivateFieldGet(this, _Controls_rollSpeed, "f").addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
         this.activate(__classPrivateFieldGet(this, _Controls_rollSpeed, "f"), coordinator.scrollSpeedIndex > 0);
+        // Play speed button
+        for (let i = 0; i < playSpeedClasses.length; i++) {
+            __classPrivateFieldGet(this, _Controls_playSpeed, "f").removeClass(playSpeedClasses[i]);
+        }
+        __classPrivateFieldGet(this, _Controls_playSpeed, "f").addClass(playSpeedClasses[coordinator.playSpeedIndex]);
+        this.activate(__classPrivateFieldGet(this, _Controls_playSpeed, "f"), coordinator.playSpeedIndex != 3);
     }
     setCurrentPosition(positionMillis, totalMillis) {
         if (__classPrivateFieldGet(this, _Controls_isPositionDragging, "f")) {
@@ -290,6 +304,6 @@ class Controls {
         coordinator.moveToPercent(ev.offsetX / max);
     }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_playSpeed = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap();
 export const controls = new Controls();
 //# sourceMappingURL=controls.js.map

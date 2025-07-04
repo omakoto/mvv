@@ -3,6 +3,8 @@
 import { coordinator, renderer, recorder, metronome, alwaysRecorder } from './mvv.js';
 
 const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
+const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400"];
+
 
 class Controls {
     #top;
@@ -11,6 +13,7 @@ class Controls {
     #pause;
     #ff;
     #stop;
+    #playSpeed;
     #record;
     #replay;
     #up;
@@ -33,6 +36,7 @@ class Controls {
         this.#play = $("#play");
         this.#pause = $("#pause");
         this.#stop = $("#stop");
+        this.#playSpeed = $("#play-speed");
         this.#record = $("#record");
         this.#replay = $("#replay");
         this.#rewind = $("#rewind");
@@ -71,6 +75,11 @@ class Controls {
         });
         this.#stop.on('click', (ev) => {
             coordinator.stop();
+            ev.stopPropagation();
+        });
+        this.#playSpeed.on('click', (ev) => {
+            coordinator.rotatePlaySpeed();
+            this.update();
             ev.stopPropagation();
         });
         this.#record.on('click', (ev) => {
@@ -253,6 +262,13 @@ class Controls {
         }
         this.#rollSpeed.addClass(rollSpeedClassses[coordinator.scrollSpeedIndex]);
         this.activate(this.#rollSpeed, coordinator.scrollSpeedIndex > 0);
+
+        // Play speed button
+        for (let i = 0; i < playSpeedClasses.length; i++) {
+            this.#playSpeed.removeClass(playSpeedClasses[i]);
+        }
+        this.#playSpeed.addClass(playSpeedClasses[coordinator.playSpeedIndex]);
+        this.activate(this.#playSpeed, coordinator.playSpeedIndex != 3);
     }
 
     setCurrentPosition(positionMillis: number, totalMillis: number) {
