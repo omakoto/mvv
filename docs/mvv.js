@@ -47,7 +47,9 @@ const BAR_RATIO = 0.15; // Bar : Roll height
 const RGB_BLACK = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES = [100, 100, 0];
-const ALWAYS_RECORD_SECONDS = 60 * 5;
+// Always recording capacity.
+const ALWAYS_RECORD_SECONDS = 60 * 20;
+const ALWAYS_RECORD_MAX_EVENTS = 1 * 1024 * 1024;
 // Utility functions
 function int(v) {
     return Math.floor(v);
@@ -683,6 +685,11 @@ class AlwaysRecorder {
         if (i > 0) {
             __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").splice(0, i);
         }
+        // If we recorded too many events, trim down.
+        if (__classPrivateFieldGet(this, _AlwaysRecorder_events, "f").length > ALWAYS_RECORD_MAX_EVENTS) {
+            __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").splice(0, ALWAYS_RECORD_MAX_EVENTS / 4);
+            console.log("Always recording: trimmed down events to " + __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").length);
+        }
     }
     getEvents() {
         return __classPrivateFieldGet(this, _AlwaysRecorder_events, "f");
@@ -983,7 +990,7 @@ class Recorder {
         this.startPaused();
         // Move to the [last - 3 second] position. 
         this.adjustPlaybackPosition(this.lastEventTimestamp - 3000);
-        info("Copied " + newEvents.length + " events from the background buffer.");
+        info("" + newEvents.length + " events ready for replay.");
         coordinator.updateUi();
     }
 }

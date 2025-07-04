@@ -49,7 +49,9 @@ const RGB_BLACK: [number, number, number] = [0, 0, 0];
 // Dark yellow color for octave lines
 const RGB_OCTAVE_LINES: [number, number, number] = [100, 100, 0];
 
-const ALWAYS_RECORD_SECONDS = 60 * 5;
+// Always recording capacity.
+const ALWAYS_RECORD_SECONDS = 60 * 20;
+const ALWAYS_RECORD_MAX_EVENTS = 1 * 1024 * 1024;
 
 // Utility functions
 
@@ -795,6 +797,11 @@ class AlwaysRecorder {
         if (i > 0) {
             this.#events.splice(0, i);
         }
+        // If we recorded too many events, trim down.
+        if (this.#events.length > ALWAYS_RECORD_MAX_EVENTS) {
+            this.#events.splice(0, ALWAYS_RECORD_MAX_EVENTS / 4);
+            console.log("Always recording: trimmed down events to " + this.#events.length);
+        }
     }
 
     getEvents(): Array<MidiEvent> {
@@ -1259,7 +1266,7 @@ class Recorder {
         // Move to the [last - 3 second] position. 
         this.adjustPlaybackPosition(this.lastEventTimestamp - 3000);
 
-        info("Copied " + newEvents.length + " events from the background buffer.");
+        info("" + newEvents.length + " events ready for replay.");
 
         coordinator.updateUi();
     }
