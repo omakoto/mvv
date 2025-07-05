@@ -924,6 +924,7 @@ class Recorder {
         if (DEBUG) {
             // debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
+        var noteChanged = false;
         const stillPlaying = __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_moveUpToTimestamp).call(this, ts, (ev) => {
             if (DEBUG) {
                 // debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
@@ -931,7 +932,13 @@ class Recorder {
             }
             midiRenderingStatus.onMidiMessage(ev);
             midiOutputManager.sendEvent(ev.getDataAsArray(), 0);
+            if (ev.isNoteOn || ev.isNoteOn) {
+                noteChanged = true;
+            }
         });
+        if (noteChanged) {
+            coordinator.updateNoteInformation();
+        }
         if (!stillPlaying) {
             this.stopPlaying();
         }
@@ -1573,6 +1580,7 @@ class Coordinator {
     }
     updateUi() {
         controls.update();
+        this.updateNoteInformation();
     }
     onMidiMessage(ev) {
         debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
@@ -1586,7 +1594,7 @@ class Coordinator {
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
         }
-        if (this.isShowingNoteNames && (ev.isNoteOn || ev.isNoteOff)) {
+        if (ev.isNoteOn || ev.isNoteOff) {
             this.updateNoteInformation();
         }
         // Always record it. If it's the first recorded event, update the UI
@@ -1627,6 +1635,9 @@ class Coordinator {
         midiRenderingStatus.afterDraw(__classPrivateFieldGet(this, _Coordinator_now, "f"));
     }
     updateNoteInformation() {
+        if (!this.isShowingNoteNames) {
+            return;
+        }
         // Build note names.
         const now = performance.now();
         // TODO: getPressedNotesInfo() has this compensation logic for too short notes,

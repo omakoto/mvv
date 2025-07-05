@@ -1154,6 +1154,7 @@ class Recorder {
             // debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
 
+        var noteChanged = false;
         const stillPlaying = this.#moveUpToTimestamp(ts, (ev: MidiEvent) => {
             if (DEBUG) {
                 // debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
@@ -1161,7 +1162,13 @@ class Recorder {
             }
             midiRenderingStatus.onMidiMessage(ev);
             midiOutputManager.sendEvent(ev.getDataAsArray(), 0)
+            if (ev.isNoteOn || ev.isNoteOn) {
+                noteChanged = true;
+            }
         });
+        if (noteChanged) {
+            coordinator.updateNoteInformation();
+        }
         if (!stillPlaying) {
             this.stopPlaying();
         }
@@ -1840,6 +1847,7 @@ class Coordinator {
 
     updateUi(): void {
         controls.update();
+        this.updateNoteInformation();
     }
 
     #ignoreRepeatedRewindKey = false;
@@ -1898,7 +1906,7 @@ class Coordinator {
         if (recorder.isRecording) {
             recorder.recordEvent(ev);
         }
-        if (this.isShowingNoteNames && (ev.isNoteOn || ev.isNoteOff) ) {
+        if (ev.isNoteOn || ev.isNoteOff) {
             this.updateNoteInformation();
         }
 
@@ -1945,6 +1953,10 @@ class Coordinator {
     }
 
     updateNoteInformation(): void {
+        if (!this.isShowingNoteNames) {
+            return;
+        }
+
         // Build note names.
         const now = performance.now();
 
