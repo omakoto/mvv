@@ -1334,6 +1334,49 @@ class Recorder {
         }
     }
 
+    trimBefore(): void {
+        if (this.isRecording) {
+            return;
+        }
+        if (this.#events.length === 0 || this.#currentPlaybackTimestamp === 0) {
+            info("Nothing to trim.");
+            return;
+        }
+
+        const trimTimestamp = this.#currentPlaybackTimestamp;
+
+        const firstEventIndex = this.#events.findIndex(ev => ev.timeStamp >= trimTimestamp);
+
+        if (firstEventIndex <= 0) { // -1 means not found, 0 means no events before it
+            info("Nothing to trim before the current position.");
+            return;
+        }
+
+        // Remove events before the trim timestamp
+        const trimmedEvents = this.#events.splice(0, firstEventIndex);
+        info(`Trimmed ${trimmedEvents.length} events.`);
+
+        if (this.#events.length === 0) {
+            this.#lastEventTimestamp = 0;
+            this.#sections = [];
+            this.#isDirty = true;
+            this.moveToStart();
+            return;
+        }
+
+        // Adjust timestamps
+        const offset = this.#events[0]!.timeStamp;
+        for (const event of this.#events) {
+            event.shiftTime(-offset);
+        }
+
+        this.#lastEventTimestamp -= offset;
+        this.#isDirty = true;
+
+        this.#detectSections();
+        this.moveToStart(); // Reset playback position
+    }
+
     copyFromAlwaysRecorder(alwaysRecorder: AlwaysRecorder): void {
         const eventsToCopy = alwaysRecorder.getEvents();
         if (eventsToCopy.length === 0) {
@@ -1360,8 +1403,6 @@ class Recorder {
         this.adjustPlaybackPosition(this.lastEventTimestamp - 3000);
 
         info("" + newEvents.length + " events ready for replay.");
-
-        coordinator.updateUi();
     }
 }
 
@@ -1597,6 +1638,10 @@ class Coordinator {
                 this.updateUi();
                 info("Always recording buffer cleared");
                 break;
+            case 'KeyX':
+                if (isRepeat) break;
+                this.trimBefore();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
@@ -1780,6 +1825,17 @@ class Coordinator {
         this.updateUi();
     }
 
+    trimBefore(): void {
+        if (recorder.isRecording || !recorder.isAnythingRecorded || recorder.isBeginning) {
+            return;
+        }
+        // Always shows the confirm box, even if it's saved.
+        confirmBox.show("Trim recording before current position?", () => {
+            recorder.trimBefore();
+            this.updateUi();
+        });
+    }
+
     stop(): void {
         if (recorder.isRecording) {
             recorder.stopRecording();
@@ -1838,6 +1894,7 @@ class Coordinator {
     replayFromAlwaysRecordingBuffer(): void {
         this.withOverwriteConfirm("Restoring recent play as recording.", () => {
             recorder.copyFromAlwaysRecorder(alwaysRecorder);
+            this.updateUi();
         });
     }
 

@@ -1023,6 +1023,40 @@ class Recorder {
             this.adjustPlaybackPosition(currentSectionStart - currentTimestamp);
         }
     }
+    trimBefore() {
+        if (this.isRecording) {
+            return;
+        }
+        if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0 || __classPrivateFieldGet(this, _Recorder_currentPlaybackTimestamp, "f") === 0) {
+            info("Nothing to trim.");
+            return;
+        }
+        const trimTimestamp = __classPrivateFieldGet(this, _Recorder_currentPlaybackTimestamp, "f");
+        const firstEventIndex = __classPrivateFieldGet(this, _Recorder_events, "f").findIndex(ev => ev.timeStamp >= trimTimestamp);
+        if (firstEventIndex <= 0) { // -1 means not found, 0 means no events before it
+            info("Nothing to trim before the current position.");
+            return;
+        }
+        // Remove events before the trim timestamp
+        const trimmedEvents = __classPrivateFieldGet(this, _Recorder_events, "f").splice(0, firstEventIndex);
+        info(`Trimmed ${trimmedEvents.length} events.`);
+        if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
+            __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, 0, "f");
+            __classPrivateFieldSet(this, _Recorder_sections, [], "f");
+            __classPrivateFieldSet(this, _Recorder_isDirty, true, "f");
+            this.moveToStart();
+            return;
+        }
+        // Adjust timestamps
+        const offset = __classPrivateFieldGet(this, _Recorder_events, "f")[0].timeStamp;
+        for (const event of __classPrivateFieldGet(this, _Recorder_events, "f")) {
+            event.shiftTime(-offset);
+        }
+        __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, __classPrivateFieldGet(this, _Recorder_lastEventTimestamp, "f") - offset, "f");
+        __classPrivateFieldSet(this, _Recorder_isDirty, true, "f");
+        __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_detectSections).call(this);
+        this.moveToStart(); // Reset playback position
+    }
     copyFromAlwaysRecorder(alwaysRecorder) {
         const eventsToCopy = alwaysRecorder.getEvents();
         if (eventsToCopy.length === 0) {
@@ -1042,7 +1076,6 @@ class Recorder {
         // Move to the [last - 3 second] position. 
         this.adjustPlaybackPosition(this.lastEventTimestamp - 3000);
         info("" + newEvents.length + " events ready for replay.");
-        coordinator.updateUi();
     }
 }
 _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sections = new WeakMap(), _Recorder_recordingStartTimestamp = new WeakMap(), _Recorder_currentPlaybackTimestamp = new WeakMap(), _Recorder_nextPlaybackIndex = new WeakMap(), _Recorder_lastEventTimestamp = new WeakMap(), _Recorder_isDirty = new WeakMap(), _Recorder_timer = new WeakMap(), _Recorder_instances = new WeakSet(), _Recorder_startRecording = function _Recorder_startRecording() {
@@ -1368,6 +1401,11 @@ class Coordinator {
                 this.updateUi();
                 info("Always recording buffer cleared");
                 break;
+            case 'KeyX':
+                if (isRepeat)
+                    break;
+                this.trimBefore();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
@@ -1521,6 +1559,16 @@ class Coordinator {
         }
         this.updateUi();
     }
+    trimBefore() {
+        if (recorder.isRecording || !recorder.isAnythingRecorded || recorder.isBeginning) {
+            return;
+        }
+        // Always shows the confirm box, even if it's saved.
+        confirmBox.show("Trim recording before current position?", () => {
+            recorder.trimBefore();
+            this.updateUi();
+        });
+    }
     stop() {
         if (recorder.isRecording) {
             recorder.stopRecording();
@@ -1573,6 +1621,7 @@ class Coordinator {
     replayFromAlwaysRecordingBuffer() {
         this.withOverwriteConfirm("Restoring recent play as recording.", () => {
             recorder.copyFromAlwaysRecorder(alwaysRecorder);
+            this.updateUi();
         });
     }
     get isReplayAvailable() {
