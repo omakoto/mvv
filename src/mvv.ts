@@ -35,6 +35,9 @@ const ALPHA_DECAY = 10;
 
 const NOTES_COUNT = 128;
 
+const NOTE_NAME_FRAME_THRESHOLD = 120;
+const NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD = 20;
+
 // Time in milliseconds to highlight a recently pressed note.
 const RECENT_NOTE_THRESHOLD_MS = 60;
 
@@ -168,6 +171,8 @@ class Renderer {
     #lastPedalColorInt = -1;
     #lastVlinesOn = false;
 
+    #lastNoteNameDrawFrame: Array<number> = [];
+
     #needsAnimation = false;
 
     #extraLineType = -1;
@@ -216,6 +221,10 @@ class Renderer {
         this.#croll.height = this.#ROLL_H;
         this.#croll2.width = this.#W;
         this.#croll2.height = this.#ROLL_H;
+
+        for (let i = 0; i < NOTES_COUNT; i++) {
+            this.#lastNoteNameDrawFrame[i] = -99999;
+        }
     }
 
     getBarColor(velocity: number): [number, number, number] {
@@ -445,16 +454,28 @@ class Renderer {
                 this.#roll.fillStyle = colorStr;
                 this.#roll.fillRect(bl, 0, bw, drawHeight);
 
-                // Note names
+                // Draw note names for notes that are just pressed.
                 if (coordinator.isShowingNoteNames && midiRenderingStatus.isJustPressed(i)) {
-                    const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
-                    this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
-                    this.#roll.textAlign = 'center';
-                    this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-                    this.#roll.lineWidth = s(5);
-                    this.#roll.strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
-                    this.#roll.fillStyle = '#ffff20';
-                    this.#roll.fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+
+                    // But make sure the last note off was old enough (noteOffAge)
+                    // or, the last note drawn time (lastDraw) was old enough.
+                    const noteOffAge = midiRenderingStatus.getLastNoteOffAgeTick(i);
+                    const lastDraw = this.#lastNoteNameDrawFrame[i] ?? -9999;
+                    const sinceLastDraw = this.#currentFrame - lastDraw;
+
+                    if ((noteOffAge > NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD) || (sinceLastDraw > NOTE_NAME_FRAME_THRESHOLD)) {
+
+                        this.#lastNoteNameDrawFrame[i] = this.#currentFrame;
+
+                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                        this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
+                        this.#roll.textAlign = 'center';
+                        this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                        this.#roll.lineWidth = s(5);
+                        this.#roll.strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
+                        this.#roll.fillStyle = '#ffff20';
+                        this.#roll.fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+                    }
                 }
             }
         }
