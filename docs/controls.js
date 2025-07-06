@@ -10,8 +10,9 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var _TimeKeeper_second, _TimeKeeper_text, _Controls_instances, _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_playSpeed, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_sectionMarkersContainer, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_rollSpeed, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_timestamp, _Controls_cachedTimestamp, _Controls_currentTime, _Controls_totalTime, _Controls_cachedPercent, _Controls_setTimestamp, _Controls_setTimePercent, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
+var _TimeKeeper_second, _TimeKeeper_text, _Controls_instances, _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_playSpeed, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_sectionMarkersContainer, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_rollSpeed, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_midiOutput, _Controls_timestamp, _Controls_cachedTimestamp, _Controls_currentTime, _Controls_totalTime, _Controls_cachedPercent, _Controls_setTimestamp, _Controls_setTimePercent, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { DEFAULT_PLAY_SPEED_INDEX, coordinator, renderer, recorder, metronome } from './mvv.js';
+import { midiOutputBox } from './dialogs.js';
 const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
 const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400", "play-speed-800"];
 class TimeKeeper {
@@ -69,6 +70,7 @@ class Controls {
         _Controls_notenames.set(this, void 0);
         _Controls_noteOffLines.set(this, void 0);
         _Controls_metronome.set(this, void 0);
+        _Controls_midiOutput.set(this, void 0);
         _Controls_timestamp.set(this, void 0);
         _Controls_cachedTimestamp.set(this, "");
         _Controls_currentTime.set(this, new TimeKeeper());
@@ -100,6 +102,7 @@ class Controls {
         __classPrivateFieldSet(this, _Controls_notenames, $("#notenames"), "f");
         __classPrivateFieldSet(this, _Controls_noteOffLines, $("#off-lines"), "f");
         __classPrivateFieldSet(this, _Controls_metronome, $("#metronome"), "f");
+        __classPrivateFieldSet(this, _Controls_midiOutput, $("#midi-output"), "f");
         __classPrivateFieldSet(this, _Controls_timestamp, $("#timestamp"), "f");
         __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
             coordinator.moveToStart();
@@ -186,6 +189,10 @@ class Controls {
         __classPrivateFieldGet(this, _Controls_metronome, "f").on('click', (ev) => {
             coordinator.toggleMetronome();
             this.update();
+            ev.stopPropagation();
+        });
+        __classPrivateFieldGet(this, _Controls_midiOutput, "f").on('click', (ev) => {
+            midiOutputBox.open();
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_position, "f").draggable({
@@ -403,7 +410,7 @@ class Controls {
         coordinator.moveToPercent(clickX / max);
     }
 }
-_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_playSpeed = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_sectionMarkersContainer = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_timestamp = new WeakMap(), _Controls_cachedTimestamp = new WeakMap(), _Controls_currentTime = new WeakMap(), _Controls_totalTime = new WeakMap(), _Controls_cachedPercent = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap(), _Controls_instances = new WeakSet(), _Controls_setTimestamp = function _Controls_setTimestamp(text) {
+_Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_playSpeed = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_sectionMarkersContainer = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_midiOutput = new WeakMap(), _Controls_timestamp = new WeakMap(), _Controls_cachedTimestamp = new WeakMap(), _Controls_currentTime = new WeakMap(), _Controls_totalTime = new WeakMap(), _Controls_cachedPercent = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap(), _Controls_instances = new WeakSet(), _Controls_setTimestamp = function _Controls_setTimestamp(text) {
     if (__classPrivateFieldGet(this, _Controls_cachedTimestamp, "f") == text) {
         return;
     }

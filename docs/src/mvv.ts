@@ -3,7 +3,7 @@
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
-import { saveAsBox, confirmBox, metronomeBox } from './dialogs.js';
+import { saveAsBox, confirmBox, metronomeBox, midiOutputBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
 declare var Tonal: any;
 declare var Tone: any;
@@ -756,6 +756,48 @@ class MidiOutputManager {
 }
 
 export const midiOutputManager = new MidiOutputManager();
+
+class MidiOutputDeviceSelector {
+    #devices: WebMidi.MIDIOutput[] = [];
+    #selectedDeviceName: string | null = null;
+    static readonly #STORAGE_KEY_OUTPUT_DEVICE = 'mvv_outputDevice';
+
+    constructor() {
+        this.#selectedDeviceName = localStorage.getItem(MidiOutputDeviceSelector.#STORAGE_KEY_OUTPUT_DEVICE);
+    }
+
+    setDevices(outputs: WebMidi.MIDIOutput[]): void {
+        this.#devices = outputs;
+        if (this.#selectedDeviceName) {
+            const device = this.#devices.find(d => d.name === this.#selectedDeviceName);
+            if (device) {
+                midiOutputManager.setMidiOut(device);
+                return;
+            }
+        }
+
+        // Fallback to the first non-"midi through" device
+        const device = this.#devices.find(output => !/midi through/i.test(output.name ?? ""));
+        if (device) {
+            midiOutputManager.setMidiOut(device);
+        }
+    }
+
+    getDevices(): WebMidi.MIDIOutput[] {
+        return this.#devices;
+    }
+
+    selectDevice(deviceName: string): void {
+        const device = this.#devices.find(d => d.name === deviceName);
+        if (device) {
+            this.#selectedDeviceName = deviceName;
+            localStorage.setItem(MidiOutputDeviceSelector.#STORAGE_KEY_OUTPUT_DEVICE, deviceName);
+            midiOutputManager.setMidiOut(device);
+        }
+    }
+}
+
+export const midiOutputDeviceSelector = new MidiOutputDeviceSelector();
 
 class Metronome {
     #playing = false;
@@ -2270,12 +2312,11 @@ function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         }
     }
-    for (let output of midiAccess.outputs.values()) {
-        console.log("Output: ", output);
-        if (!/midi through/i.test(output.name ?? "")) {
-            midiOutputManager.setMidiOut(output);
-        }
+    const outputs = Array.from(midiAccess.outputs.values());
+    for (var output of outputs) {
+        info("Output device: " + output.name);
     }
+    midiOutputDeviceSelector.setDevices(outputs);
 }
 
 function onMIDIFailure(): void {

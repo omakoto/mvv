@@ -1,6 +1,6 @@
 'use strict';
 
-import { recorder } from './mvv.js';
+import { recorder, midiOutputDeviceSelector } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
 
@@ -284,3 +284,44 @@ class MetronomeBox extends DialogBase {
 }
 
 export var metronomeBox = new MetronomeBox();
+
+class MidiOutputBox extends DialogBase {
+    constructor() {
+        super('midi_output_box');
+        $("#midi_output_box").on('keydown', (ev) => {
+            this._handleKeyDown(ev, 'midi_output_ok', 'midi_output_cancel');
+        });
+
+        $("#midi_output_ok").on('click', (ev) => {
+            const selectedDevice = $('#midi_output_select').val() as string;
+            midiOutputDeviceSelector.selectDevice(selectedDevice);
+            this._box!.clear();
+            ev.preventDefault();
+        });
+
+        $("#midi_output_cancel").on('click', (ev) => {
+            this._box!.clear();
+            ev.preventDefault();
+        });
+    }
+
+    open(): void {
+        const devices = midiOutputDeviceSelector.getDevices();
+        const select = $('#midi_output_select');
+        select.empty();
+        for (const device of devices) {
+            const option = $('<option></option>').val(device.name).text(device.name);
+            select.append(option);
+        }
+
+        this._box = new Popbox({
+            blur: true,
+            overlay: true,
+        });
+
+        this._box.open('midi_output_box');
+        $('#midi_output_select').focus();
+    }
+}
+
+export var midiOutputBox = new MidiOutputBox();

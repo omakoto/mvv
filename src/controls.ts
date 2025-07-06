@@ -1,6 +1,7 @@
 'use strict';
 
 import { DEFAULT_PLAY_SPEED_INDEX, coordinator, renderer, recorder, metronome, alwaysRecorder } from './mvv.js';
+import { midiOutputBox } from './dialogs.js';
 
 const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
 const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400", "play-speed-800"];
@@ -65,6 +66,7 @@ class Controls {
     #notenames;
     #noteOffLines;
     #metronome;
+    #midiOutput;
 
     #timestamp;
     #cachedTimestamp = "";
@@ -104,6 +106,7 @@ class Controls {
         this.#noteOffLines = $("#off-lines");
 
         this.#metronome = $("#metronome");
+        this.#midiOutput = $("#midi-output");
 
         this.#timestamp = $("#timestamp");
 
@@ -198,6 +201,10 @@ class Controls {
         this.#metronome.on('click', (ev) => {
             coordinator.toggleMetronome();
             this.update();
+            ev.stopPropagation();
+        });
+        this.#midiOutput.on('click', (ev) => {
+            midiOutputBox.open();
             ev.stopPropagation();
         });
 

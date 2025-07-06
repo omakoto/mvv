@@ -77,6 +77,7 @@
             <div id="video-mute" class="button" title="Hide screen [6]"></div>
             <div id="freeze" class="button" title="Freeze role pane [7] / [Enter]"></div>
 
+            <div id="midi-output" class="button" title="Select MIDI output device"></div>
             <div id="fullscreen" class="button" title="Fullscreen [F]"></div>
         </div>
     </div>
@@ -162,6 +163,18 @@
                 <div class="popbox_buttons">
                     <button id="metronome_ok" class="dialog-button" >OK</button>
                     <button id="metronome_cancel" class="dialog-button">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div id="midi_output_box" data-popbox-id="midi_output_box" class="popbox">
+            <div class="popbox_container">
+                <div class="midi-output-container">
+                    <span>MIDI Output:</span>
+                    <select id="midi_output_select"></select>
+                </div>
+                <div class="popbox_buttons">
+                    <button id="midi_output_ok" class="dialog-button">OK</button>
+                    <button id="midi_output_cancel" class="dialog-button">Cancel</button>
                 </div>
             </div>
         </div>
