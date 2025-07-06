@@ -1662,7 +1662,10 @@ class Coordinator {
         this.updateNoteInformation();
     }
     onMidiMessage(ev) {
-        debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2, ev);
+        // debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2,  ev);
+        if (DEBUG) {
+            debug("onMidiMessage: " + ev.toString());
+        }
         // Ignore "Active Sensing" and "Timing clock"
         if (ev.data0 == 254 || ev.data0 == 248) {
             return;

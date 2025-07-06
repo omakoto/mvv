@@ -16,6 +16,29 @@ function logBlob(blob: Blob) {
     return blob;
 }
 
+const MIDI_COMMANDS = {
+    0x8: 'Note Off',
+    0x9: 'Note On',
+    0xA: 'Polyphonic Key Pressure', // (Aftertouch)
+    0xB: 'Control Change',
+    0xC: 'Program Change',
+    0xD: 'Channel Pressure', // (Aftertouch)
+    0xE: 'Pitch Bend Change'
+};
+
+// --- MIDI Control Change Names ---
+const MIDI_CONTROL_CHANGE = {
+    0: 'Bank Select', 1: 'Modulation', 2: 'Breath Controller', 4: 'Foot Controller',
+    5: 'Portamento Time', 6: 'Data Entry MSB', 7: 'Channel Volume', 8: 'Balance',
+    10: 'Pan', 11: 'Expression Controller', 12: 'Effect Control 1', 13: 'Effect Control 2',
+    16: 'General Purpose Controller 1', 17: 'General Purpose Controller 2', 18: 'General Purpose Controller 3', 19: 'General Purpose Controller 4',
+    64: 'Damper Pedal (Sustain)', 65: 'Portamento On/Off', 66: 'Sostenuto', 67: 'Soft Pedal',
+    68: 'Legato Footswitch', 69: 'Hold 2', 70: 'Sound Controller 1 (Sound Variation)', 71: 'Sound Controller 2 (Timbre/Harmonic Content)',
+    72: 'Sound Controller 3 (Release Time)', 73: 'Sound Controller 4 (Attack Time)', 74: 'Sound Controller 5 (Brightness)',
+    84: 'Portamento Control', 91: 'Effects 1 Depth (Reverb)', 93: 'Effects 3 Depth (Chorus)',
+    121: 'Reset All Controllers', 123: 'All Notes Off'
+};
+
 export class MidiEvent {
     #timeStamp: number;
     #data: Array<number> | Uint8Array;
@@ -102,6 +125,63 @@ export class MidiEvent {
 
     getDataAsArray(): Array<number> | Uint8Array {
         return this.#data;
+    }
+
+    toString(): string {
+        const timestamp = Math.floor(this.timeStamp * 1000) / 1000;
+        const data = this.#data;
+        const hexString = Array.from(data).map(byte => ("0" + byte.toString(16).toUpperCase()).slice(-2)).join(' ');
+        const description = this.describeMidiEvent();
+
+        return `time=${timestamp}, data=${hexString}: ${description}`;
+    }
+
+    describeMidiEvent(): string {
+        const data = this.#data;
+        const commandByte = data[0] >> 4;
+        const channel = (data[0] & 0x0f) + 1;
+        const eventName = MIDI_COMMANDS[commandByte] || 'Unknown Event';
+
+        let details = '';
+
+        switch (commandByte) {
+            case 0x9: // Note On
+            case 0x8: // Note Off
+                const note = data[1];
+                const velocity = data[2];
+                details = `Note: ${note}, Vel: ${velocity}`;
+                break;
+
+            case 0xB: // Control Change
+                const controllerNumber = data[1];
+                const controllerValue = data[2];
+                const controllerName = MIDI_CONTROL_CHANGE[controllerNumber] || `CC #${controllerNumber}`;
+                details = `${controllerName}: ${controllerValue}`;
+                break;
+
+            case 0xE: // Pitch Bend
+                // Combine two 7-bit bytes into a 14-bit value. Center is 8192.
+                const pitchValue = ((data[2] << 7) | data[1]) - 8192;
+                details = `Value: ${pitchValue}`;
+                break;
+
+            case 0xA: // Polyphonic Key Pressure (Note Aftertouch)
+                const pressureNote = data[1];
+                const pressureValue = data[2];
+                details = `Note: ${pressureNote}, Pressure: ${pressureValue}`;
+                break;
+
+            case 0xD: // Channel Pressure (Channel Aftertouch)
+                const channelPressure = data[1];
+                details = `Pressure: ${channelPressure}`;
+                break;
+
+            case 0xC: // Program Change
+                const programNum = data[1];
+                details = `Program: ${programNum}`;
+                break;
+        }
+        return eventName + " [" + details + "]";
     }
 }
 
