@@ -38,9 +38,6 @@ const NOTES_COUNT = 128;
 const NOTE_NAME_FRAME_THRESHOLD = 120;
 const NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD = 20;
 
-// Time in milliseconds to highlight a recently pressed note.
-const RECENT_NOTE_THRESHOLD_MS = 60;
-
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 
@@ -2160,8 +2157,6 @@ class Coordinator {
         }
 
         // Build note names.
-        const now = performance.now();
-
         const notes = midiRenderingStatus.getPressedNotes();
 
         let lastOctave = -1;
@@ -2174,7 +2169,7 @@ class Coordinator {
             lastOctave = octave;
 
             // Check if the note was pressed recently.
-            const isRecent = (now - n.onTime) < RECENT_NOTE_THRESHOLD_MS;
+            const isRecent = n.getOnAgeTick() <= 4;
 
             if (isRecent) {
                 return `${spacing}<span class="notes_highlight">${noteName}</span>`;
