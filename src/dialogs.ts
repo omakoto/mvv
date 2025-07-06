@@ -1,6 +1,6 @@
 'use strict';
 
-import { recorder, midiOutputDeviceSelector } from './mvv.js';
+import { recorder, midiOutputDeviceSelector, midiOutputManager } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
 
@@ -309,8 +309,12 @@ class MidiOutputBox extends DialogBase {
         const devices = midiOutputDeviceSelector.getDevices();
         const select = $('#midi_output_select');
         select.empty();
+        const currentDevice = midiOutputManager.getMidiOut();
         for (const device of devices) {
             const option = $('<option></option>').val(device.name).text(device.name);
+            if (currentDevice && device.name === currentDevice.name) {
+                option.attr('selected', 'selected');
+            }
             select.append(option);
         }
 

@@ -733,6 +733,10 @@ class MidiOutputManager {
         midiOutputManager.reset();
     }
 
+    getMidiOut(): WebMidi.MIDIOutput | null {
+        return this.#device;
+    }
+
     reset(): void {
         if (!this.#device) {
             return;

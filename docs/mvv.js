@@ -614,6 +614,9 @@ class MidiOutputManager {
         __classPrivateFieldSet(this, _MidiOutputManager_device, device, "f");
         midiOutputManager.reset();
     }
+    getMidiOut() {
+        return __classPrivateFieldGet(this, _MidiOutputManager_device, "f");
+    }
     reset() {
         if (!__classPrivateFieldGet(this, _MidiOutputManager_device, "f")) {
             return;
