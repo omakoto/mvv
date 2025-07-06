@@ -21,7 +21,7 @@ declare class Popbox {
 
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
 if (!LOW_PERF_MODE) {
-    console.log("Low-perf is disabled. Use https://omakoto.github.io/mvv/?lp=1 to enable low-perf mode for slow devices")
+    console.log(`Low-perf is disabled. Use ${location.origin}${location.pathname}?lp=1 to enable low-perf mode for slow devices`);
 }
 
 const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search)).get("scale"));
