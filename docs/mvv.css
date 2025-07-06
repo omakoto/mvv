@@ -606,6 +606,10 @@ kbd:active {
     height: var(--button-height);
 }
 
+#midi_output_select {
+    margin: 0 4px;
+    font-size: var(--dialog-font-size);
+}
 
 /* what's this??
 element.style {
