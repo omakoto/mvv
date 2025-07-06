@@ -2035,6 +2035,7 @@ class Coordinator {
         controls.update();
         this.updateNoteInformation();
         this.#updateFps();
+        this.updateNoteInformation();
     }
 
     #ignoreRepeatedRewindKey = false;
@@ -2153,6 +2154,8 @@ class Coordinator {
 
     updateNoteInformation(): void {
         if (!this.isShowingNoteNames) {
+            this.#notes.fadeOut(800);
+            this.#chords.fadeOut(800);
             return;
         }
 

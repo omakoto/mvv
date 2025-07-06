@@ -1719,6 +1719,7 @@ class Coordinator {
         controls.update();
         this.updateNoteInformation();
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateFps).call(this);
+        this.updateNoteInformation();
     }
     onMidiMessage(ev) {
         // debug("onMidiMessage", ev.timeStamp, ev.data0, ev.data1, ev.data2,  ev);
@@ -1765,6 +1766,8 @@ class Coordinator {
     }
     updateNoteInformation() {
         if (!this.isShowingNoteNames) {
+            __classPrivateFieldGet(this, _Coordinator_notes, "f").fadeOut(800);
+            __classPrivateFieldGet(this, _Coordinator_chords, "f").fadeOut(800);
             return;
         }
         // Build note names.
