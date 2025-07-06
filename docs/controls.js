@@ -12,7 +12,6 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
 };
 var _TimeKeeper_second, _TimeKeeper_text, _Controls_instances, _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_playSpeed, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_sectionMarkersContainer, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_rollSpeed, _Controls_notenames, _Controls_noteOffLines, _Controls_metronome, _Controls_midiOutput, _Controls_timestamp, _Controls_cachedTimestamp, _Controls_currentTime, _Controls_totalTime, _Controls_cachedPercent, _Controls_setTimestamp, _Controls_setTimePercent, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag;
 import { DEFAULT_PLAY_SPEED_INDEX, coordinator, renderer, recorder, metronome } from './mvv.js';
-import { midiOutputBox } from './dialogs.js';
 const rollSpeedClassses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
 const playSpeedClasses = ["play-speed-0125", "play-speed-025", "play-speed-050", "play-speed-100", "play-speed-200", "play-speed-400", "play-speed-800"];
 class TimeKeeper {
@@ -192,7 +191,7 @@ class Controls {
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_midiOutput, "f").on('click', (ev) => {
-            midiOutputBox.open();
+            coordinator.showOutputSelector();
             ev.stopPropagation();
         });
         __classPrivateFieldGet(this, _Controls_position, "f").draggable({

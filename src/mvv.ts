@@ -727,7 +727,8 @@ class MidiOutputManager {
     }
 
     setMidiOut(device: WebMidi.MIDIOutput): void {
-        console.log("MIDI output dev: WebMidi.MIDIOutput set:", device);
+        info("Output device set to " + device.name);
+        console.log("MIDI output device set to: " + device.name, device);
         this.#device = device;
         midiOutputManager.reset();
     }
@@ -1742,10 +1743,18 @@ class Coordinator {
                 if (isRepeat) break;
                 this.trimBefore();
                 break;
+            case 'KeyV':
+                if (isRepeat) break;
+                this.showOutputSelector();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
         ev.preventDefault();
+    }
+
+    showOutputSelector() {
+        midiOutputBox.open();
     }
 
     toggleMetronome() {
@@ -2307,14 +2316,14 @@ function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
     console.log("onMIDISuccess");
 
     for (let input of midiAccess.inputs.values()) {
-        console.log("Input: ", input);
+        console.log("Input device: " + input.name , input);
         input.onmidimessage = (ev) => {
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         }
     }
     const outputs = Array.from(midiAccess.outputs.values());
     for (var output of outputs) {
-        info("Output device: " + output.name);
+        console.log("Output device: " + output.name, output);
     }
     midiOutputDeviceSelector.setDevices(outputs);
 }

@@ -23,7 +23,7 @@ var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_C
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
-import { saveAsBox, confirmBox, metronomeBox } from './dialogs.js';
+import { saveAsBox, confirmBox, metronomeBox, midiOutputBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
 ;
 const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
@@ -609,7 +609,8 @@ class MidiOutputManager {
         _MidiOutputManager_device.set(this, null);
     }
     setMidiOut(device) {
-        console.log("MIDI output dev: WebMidi.MIDIOutput set:", device);
+        info("Output device set to " + device.name);
+        console.log("MIDI output device set to: " + device.name, device);
         __classPrivateFieldSet(this, _MidiOutputManager_device, device, "f");
         midiOutputManager.reset();
     }
@@ -1474,10 +1475,18 @@ class Coordinator {
                     break;
                 this.trimBefore();
                 break;
+            case 'KeyV':
+                if (isRepeat)
+                    break;
+                this.showOutputSelector();
+                break;
             default:
                 return; // Don't prevent the default behavior.
         }
         ev.preventDefault();
+    }
+    showOutputSelector() {
+        midiOutputBox.open();
     }
     toggleMetronome() {
         if (metronome.isPlaying) {
@@ -1975,14 +1984,14 @@ export const coordinator = new Coordinator();
 function onMIDISuccess(midiAccess) {
     console.log("onMIDISuccess");
     for (let input of midiAccess.inputs.values()) {
-        console.log("Input: ", input);
+        console.log("Input device: " + input.name, input);
         input.onmidimessage = (ev) => {
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         };
     }
     const outputs = Array.from(midiAccess.outputs.values());
     for (var output of outputs) {
-        info("Output device: " + output.name);
+        console.log("Output device: " + output.name, output);
     }
     midiOutputDeviceSelector.setDevices(outputs);
 }

@@ -204,7 +204,7 @@ class Controls {
             ev.stopPropagation();
         });
         this.#midiOutput.on('click', (ev) => {
-            midiOutputBox.open();
+            coordinator.showOutputSelector();
             ev.stopPropagation();
         });
 
