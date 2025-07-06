@@ -540,10 +540,10 @@ class MidiRenderingNoteStatus {
     onTick: number;
     offTick: number;
 
-    // On timestamp as in MidiEvent.timeStamp.
+    // On timestamp as in MidiEvent.timestamp.
     onTime: number;
 
-    // On timestamp as in MidiEvent.timeStamp.
+    // On timestamp as in MidiEvent.timestamp.
     offTime: number;
 
     constructor() {
@@ -610,7 +610,7 @@ class MidiRenderingStatus {
             n.velocity = data2;
             n.note = data1;
             n.onTick = this.#tick;
-            n.onTime = ev.timeStamp;
+            n.onTime = ev.timestamp;
 
         } else if (ev.isNoteOff) {
             let n = this.#notes[data1]!;
@@ -620,7 +620,7 @@ class MidiRenderingStatus {
             this.#offNoteCountInTick++;
             n.noteOn = false;
             n.offTick = this.#tick;
-            n.onTime = ev.timeStamp;
+            n.onTime = ev.timestamp;
 
         } else if (status === 176) { // Control Change
             switch (data1) {
@@ -862,7 +862,7 @@ class AlwaysRecorder {
 
         let i = 0;
         for (; i < this.#events.length; i++) {
-            if (this.#events[i]!.timeStamp >= cutoffTimestamp) {
+            if (this.#events[i]!.timestamp >= cutoffTimestamp) {
                 break;
             }
         }
@@ -1113,10 +1113,10 @@ class Recorder {
 
         if (this.#events.length === 0) {
             // First event, remember the timestamp.
-            this.#recordingStartTimestamp = ev.timeStamp;
+            this.#recordingStartTimestamp = ev.timestamp;
         }
 
-        const ts = ev.timeStamp - this.#recordingStartTimestamp;
+        const ts = ev.timestamp - this.#recordingStartTimestamp;
         this.#events.push(ev.withTimestamp(ts));
         this.#lastEventTimestamp = ts;
 
@@ -1164,7 +1164,7 @@ class Recorder {
         const events = new Map<number, MidiEvent>();
 
         for (const ev of this.#events) {
-            if (ev.timeStamp >= newTimestamp) {
+            if (ev.timestamp >= newTimestamp) {
                 break; // Stop scanning once we've passed our target time.
             }
             // Skip note on/off, and system messages.
@@ -1244,12 +1244,12 @@ class Recorder {
                 return true;
             }
             let ev = this.#events[this.#nextPlaybackIndex]!;
-            if (ev.timeStamp >= timestamp) {
+            if (ev.timestamp >= timestamp) {
                 this.#currentPlaybackTimestamp = timestamp;
                 return true;
             }
             this.#nextPlaybackIndex++;
-            this.#currentPlaybackTimestamp = ev.timeStamp;
+            this.#currentPlaybackTimestamp = ev.timestamp;
 
             if (callback) {
                 callback(ev);
@@ -1265,13 +1265,13 @@ class Recorder {
         console.log("Converting to the SMF format...");
 
         let wr = new SmfWriter();
-        let lastTimestamp = this.#events[0]!.timeStamp;
+        let lastTimestamp = this.#events[0]!.timestamp;
 
         this.#events.forEach((ev) => {
-            debug(ev.timeStamp, ev.getDataAsArray());
-            let delta = ev.timeStamp - lastTimestamp;
+            debug(ev.timestamp, ev.getDataAsArray());
+            let delta = ev.timestamp - lastTimestamp;
             wr.writeMessage(delta, ev.getDataAsArray());
-            lastTimestamp = ev.timeStamp;
+            lastTimestamp = ev.timestamp;
         });
         wr.download(filename);
         this.#isDirty = false;
@@ -1291,11 +1291,11 @@ class Recorder {
         }
 
         const lastEvent = events[events.length - 1]!;
-        this.#lastEventTimestamp = lastEvent.timeStamp;
+        this.#lastEventTimestamp = lastEvent.timestamp;
 
         this.#detectSections();
 
-        let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
+        let message = "Load completed: " + int(lastEvent.timestamp / 1000) + " seconds, " + events.length + " events";
         info(message);
         this.moveToStart();
     }
@@ -1315,7 +1315,7 @@ class Recorder {
         // Find the first note-on event to start the first section.
         const firstNoteOn = this.#events.find(ev => ev.isNoteOn);
         if (firstNoteOn) {
-            this.#sections.push(firstNoteOn.timeStamp);
+            this.#sections.push(firstNoteOn.timestamp);
         } else {
             // No note-on events, so no sections.
             return;
@@ -1324,16 +1324,16 @@ class Recorder {
         for (const ev of this.#events) {
             if (ev.isNoteOn) {
                 if (notesOn.size === 0) { // First note on after silence
-                    const silenceDuration = ev.timeStamp - lastNoteOffTime;
+                    const silenceDuration = ev.timestamp - lastNoteOffTime;
                     if (silenceDuration > silenceThresholdMs) {
-                        this.#sections.push(ev.timeStamp);
+                        this.#sections.push(ev.timestamp);
                     }
                 }
                 notesOn.add(ev.data1);
             } else if (ev.isNoteOff) {
                 notesOn.delete(ev.data1);
                 if (notesOn.size === 0) {
-                    lastNoteOffTime = ev.timeStamp;
+                    lastNoteOffTime = ev.timestamp;
                 }
             }
         }
@@ -1401,7 +1401,7 @@ class Recorder {
 
         const trimTimestamp = this.#currentPlaybackTimestamp;
 
-        const firstEventIndex = this.#events.findIndex(ev => ev.timeStamp >= trimTimestamp);
+        const firstEventIndex = this.#events.findIndex(ev => ev.timestamp >= trimTimestamp);
 
         if (firstEventIndex <= 0) { // -1 means not found, 0 means no events before it
             info("Nothing to trim before the current position.");
@@ -1421,7 +1421,7 @@ class Recorder {
         }
 
         // Adjust timestamps
-        const offset = this.#events[0]!.timeStamp;
+        const offset = this.#events[0]!.timestamp;
         for (const event of this.#events) {
             event.shiftTime(-offset);
         }
@@ -1444,8 +1444,8 @@ class Recorder {
         this.stopRecording();
 
         // Normalize timestamps to start from 0
-        const firstTimestamp = eventsToCopy[0]!.timeStamp;
-        const newEvents = eventsToCopy.map(ev => ev.withTimestamp(ev.timeStamp - firstTimestamp));
+        const firstTimestamp = eventsToCopy[0]!.timestamp;
+        const newEvents = eventsToCopy.map(ev => ev.withTimestamp(ev.timestamp - firstTimestamp));
 
         this.setEvents(newEvents);
 

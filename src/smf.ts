@@ -40,12 +40,12 @@ const MIDI_CONTROL_CHANGE = {
 };
 
 export class MidiEvent {
-    #timeStamp: number;
+    #timestamp: number;
     #data: Array<number> | Uint8Array;
     #device: string;
 
     constructor(timeStamp: number, data: Array<number> | Uint8Array, device?: string) {
-        this.#timeStamp = timeStamp;
+        this.#timestamp = timeStamp;
         this.#data = data;
         this.#device = device ? device : "unknown-device";
     }
@@ -58,12 +58,12 @@ export class MidiEvent {
         return new MidiEvent(timeStamp, this.#data, this.#device);
     }
 
-    get timeStamp(): number {
-        return this.#timeStamp;
+    get timestamp(): number {
+        return this.#timestamp;
     }
 
     shiftTime(millisecond: number) {
-        this.#timeStamp = Math.max(0, this.#timeStamp + millisecond);
+        this.#timestamp = Math.max(0, this.#timestamp + millisecond);
     }
 
     get device(): string {
@@ -128,7 +128,7 @@ export class MidiEvent {
     }
 
     toString(): string {
-        const timestamp = Math.floor(this.timeStamp * 1000) / 1000;
+        const timestamp = Math.floor(this.timestamp * 1000) / 1000;
         const data = this.#data;
         const hexString = Array.from(data).map(byte => ("0" + byte.toString(16).toUpperCase()).slice(-2)).join(' ');
         const description = this.describeMidiEvent();
@@ -464,14 +464,14 @@ class SmfReader {
 
     #cleanEvents() {
         this.#events.sort((a, b) => {
-            return a.timeStamp - b.timeStamp;
+            return a.timestamp - b.timestamp;
         });
 
         // Find the first note event;
         let firstNoteOnTime = 0;
         for (let ev of this.#events) {
             if (ev.isNoteOn) {
-                firstNoteOnTime = ev.timeStamp;
+                firstNoteOnTime = ev.timestamp;
                 break;
             }
         }

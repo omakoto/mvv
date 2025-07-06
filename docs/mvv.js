@@ -505,7 +505,7 @@ class MidiRenderingStatus {
             n.velocity = data2;
             n.note = data1;
             n.onTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.onTime = ev.timeStamp;
+            n.onTime = ev.timestamp;
         }
         else if (ev.isNoteOff) {
             let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
@@ -515,7 +515,7 @@ class MidiRenderingStatus {
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCountInTick, "f"), _c++, _c), "f");
             n.noteOn = false;
             n.offTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.onTime = ev.timeStamp;
+            n.onTime = ev.timestamp;
         }
         else if (status === 176) { // Control Change
             switch (data1) {
@@ -720,7 +720,7 @@ class AlwaysRecorder {
         const cutoffTimestamp = performance.now() - (ALWAYS_RECORD_SECONDS * 1000);
         let i = 0;
         for (; i < __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").length; i++) {
-            if (__classPrivateFieldGet(this, _AlwaysRecorder_events, "f")[i].timeStamp >= cutoffTimestamp) {
+            if (__classPrivateFieldGet(this, _AlwaysRecorder_events, "f")[i].timestamp >= cutoffTimestamp) {
                 break;
             }
         }
@@ -873,9 +873,9 @@ class Recorder {
         }
         if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
             // First event, remember the timestamp.
-            __classPrivateFieldSet(this, _Recorder_recordingStartTimestamp, ev.timeStamp, "f");
+            __classPrivateFieldSet(this, _Recorder_recordingStartTimestamp, ev.timestamp, "f");
         }
-        const ts = ev.timeStamp - __classPrivateFieldGet(this, _Recorder_recordingStartTimestamp, "f");
+        const ts = ev.timestamp - __classPrivateFieldGet(this, _Recorder_recordingStartTimestamp, "f");
         __classPrivateFieldGet(this, _Recorder_events, "f").push(ev.withTimestamp(ts));
         __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, ts, "f");
         return true;
@@ -914,7 +914,7 @@ class Recorder {
         // - key: (data0 << 8) for the other vents.
         const events = new Map();
         for (const ev of __classPrivateFieldGet(this, _Recorder_events, "f")) {
-            if (ev.timeStamp >= newTimestamp) {
+            if (ev.timestamp >= newTimestamp) {
                 break; // Stop scanning once we've passed our target time.
             }
             // Skip note on/off, and system messages.
@@ -980,12 +980,12 @@ class Recorder {
         }
         console.log("Converting to the SMF format...");
         let wr = new SmfWriter();
-        let lastTimestamp = __classPrivateFieldGet(this, _Recorder_events, "f")[0].timeStamp;
+        let lastTimestamp = __classPrivateFieldGet(this, _Recorder_events, "f")[0].timestamp;
         __classPrivateFieldGet(this, _Recorder_events, "f").forEach((ev) => {
-            debug(ev.timeStamp, ev.getDataAsArray());
-            let delta = ev.timeStamp - lastTimestamp;
+            debug(ev.timestamp, ev.getDataAsArray());
+            let delta = ev.timestamp - lastTimestamp;
             wr.writeMessage(delta, ev.getDataAsArray());
-            lastTimestamp = ev.timeStamp;
+            lastTimestamp = ev.timestamp;
         });
         wr.download(filename);
         __classPrivateFieldSet(this, _Recorder_isDirty, false, "f");
@@ -1002,9 +1002,9 @@ class Recorder {
             return;
         }
         const lastEvent = events[events.length - 1];
-        __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, lastEvent.timeStamp, "f");
+        __classPrivateFieldSet(this, _Recorder_lastEventTimestamp, lastEvent.timestamp, "f");
         __classPrivateFieldGet(this, _Recorder_instances, "m", _Recorder_detectSections).call(this);
-        let message = "Load completed: " + int(lastEvent.timeStamp / 1000) + " seconds, " + events.length + " events";
+        let message = "Load completed: " + int(lastEvent.timestamp / 1000) + " seconds, " + events.length + " events";
         info(message);
         this.moveToStart();
     }
@@ -1062,7 +1062,7 @@ class Recorder {
             return;
         }
         const trimTimestamp = __classPrivateFieldGet(this, _Recorder_currentPlaybackTimestamp, "f");
-        const firstEventIndex = __classPrivateFieldGet(this, _Recorder_events, "f").findIndex(ev => ev.timeStamp >= trimTimestamp);
+        const firstEventIndex = __classPrivateFieldGet(this, _Recorder_events, "f").findIndex(ev => ev.timestamp >= trimTimestamp);
         if (firstEventIndex <= 0) { // -1 means not found, 0 means no events before it
             info("Nothing to trim before the current position.");
             return;
@@ -1078,7 +1078,7 @@ class Recorder {
             return;
         }
         // Adjust timestamps
-        const offset = __classPrivateFieldGet(this, _Recorder_events, "f")[0].timeStamp;
+        const offset = __classPrivateFieldGet(this, _Recorder_events, "f")[0].timestamp;
         for (const event of __classPrivateFieldGet(this, _Recorder_events, "f")) {
             event.shiftTime(-offset);
         }
@@ -1096,8 +1096,8 @@ class Recorder {
         this.stopPlaying();
         this.stopRecording();
         // Normalize timestamps to start from 0
-        const firstTimestamp = eventsToCopy[0].timeStamp;
-        const newEvents = eventsToCopy.map(ev => ev.withTimestamp(ev.timeStamp - firstTimestamp));
+        const firstTimestamp = eventsToCopy[0].timestamp;
+        const newEvents = eventsToCopy.map(ev => ev.withTimestamp(ev.timestamp - firstTimestamp));
         this.setEvents(newEvents);
         // Mark as dirty so the user can save it.
         __classPrivateFieldSet(this, _Recorder_isDirty, true, "f");
@@ -1164,12 +1164,12 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
             return true;
         }
         let ev = __classPrivateFieldGet(this, _Recorder_events, "f")[__classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f")];
-        if (ev.timeStamp >= timestamp) {
+        if (ev.timestamp >= timestamp) {
             __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, timestamp, "f");
             return true;
         }
         __classPrivateFieldSet(this, _Recorder_nextPlaybackIndex, (_b = __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f"), _b++, _b), "f");
-        __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, ev.timeStamp, "f");
+        __classPrivateFieldSet(this, _Recorder_currentPlaybackTimestamp, ev.timestamp, "f");
         if (callback) {
             callback(ev);
         }
@@ -1186,7 +1186,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
     // Find the first note-on event to start the first section.
     const firstNoteOn = __classPrivateFieldGet(this, _Recorder_events, "f").find(ev => ev.isNoteOn);
     if (firstNoteOn) {
-        __classPrivateFieldGet(this, _Recorder_sections, "f").push(firstNoteOn.timeStamp);
+        __classPrivateFieldGet(this, _Recorder_sections, "f").push(firstNoteOn.timestamp);
     }
     else {
         // No note-on events, so no sections.
@@ -1195,9 +1195,9 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
     for (const ev of __classPrivateFieldGet(this, _Recorder_events, "f")) {
         if (ev.isNoteOn) {
             if (notesOn.size === 0) { // First note on after silence
-                const silenceDuration = ev.timeStamp - lastNoteOffTime;
+                const silenceDuration = ev.timestamp - lastNoteOffTime;
                 if (silenceDuration > silenceThresholdMs) {
-                    __classPrivateFieldGet(this, _Recorder_sections, "f").push(ev.timeStamp);
+                    __classPrivateFieldGet(this, _Recorder_sections, "f").push(ev.timestamp);
                 }
             }
             notesOn.add(ev.data1);
@@ -1205,7 +1205,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
         else if (ev.isNoteOff) {
             notesOn.delete(ev.data1);
             if (notesOn.size === 0) {
-                lastNoteOffTime = ev.timeStamp;
+                lastNoteOffTime = ev.timestamp;
             }
         }
     }

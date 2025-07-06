@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _MidiEvent_timeStamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
+var _MidiEvent_timestamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
 // SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
 // https://www.music.mcgill.ca/~gary/306/week9/smf.html
 // https://midimusic.github.io/tech/midispec.html
@@ -46,10 +46,10 @@ const MIDI_CONTROL_CHANGE = {
 };
 export class MidiEvent {
     constructor(timeStamp, data, device) {
-        _MidiEvent_timeStamp.set(this, void 0);
+        _MidiEvent_timestamp.set(this, void 0);
         _MidiEvent_data.set(this, void 0);
         _MidiEvent_device.set(this, void 0);
-        __classPrivateFieldSet(this, _MidiEvent_timeStamp, timeStamp, "f");
+        __classPrivateFieldSet(this, _MidiEvent_timestamp, timeStamp, "f");
         __classPrivateFieldSet(this, _MidiEvent_data, data, "f");
         __classPrivateFieldSet(this, _MidiEvent_device, device ? device : "unknown-device", "f");
     }
@@ -59,11 +59,11 @@ export class MidiEvent {
     withTimestamp(timeStamp) {
         return new MidiEvent(timeStamp, __classPrivateFieldGet(this, _MidiEvent_data, "f"), __classPrivateFieldGet(this, _MidiEvent_device, "f"));
     }
-    get timeStamp() {
-        return __classPrivateFieldGet(this, _MidiEvent_timeStamp, "f");
+    get timestamp() {
+        return __classPrivateFieldGet(this, _MidiEvent_timestamp, "f");
     }
     shiftTime(millisecond) {
-        __classPrivateFieldSet(this, _MidiEvent_timeStamp, Math.max(0, __classPrivateFieldGet(this, _MidiEvent_timeStamp, "f") + millisecond), "f");
+        __classPrivateFieldSet(this, _MidiEvent_timestamp, Math.max(0, __classPrivateFieldGet(this, _MidiEvent_timestamp, "f") + millisecond), "f");
     }
     get device() {
         return __classPrivateFieldGet(this, _MidiEvent_device, "f");
@@ -115,7 +115,7 @@ export class MidiEvent {
         return __classPrivateFieldGet(this, _MidiEvent_data, "f");
     }
     toString() {
-        const timestamp = Math.floor(this.timeStamp * 1000) / 1000;
+        const timestamp = Math.floor(this.timestamp * 1000) / 1000;
         const data = __classPrivateFieldGet(this, _MidiEvent_data, "f");
         const hexString = Array.from(data).map(byte => ("0" + byte.toString(16).toUpperCase()).slice(-2)).join(' ');
         const description = this.describeMidiEvent();
@@ -162,7 +162,7 @@ export class MidiEvent {
         return eventName + " [" + details + "]";
     }
 }
-_MidiEvent_timeStamp = new WeakMap(), _MidiEvent_data = new WeakMap(), _MidiEvent_device = new WeakMap();
+_MidiEvent_timestamp = new WeakMap(), _MidiEvent_data = new WeakMap(), _MidiEvent_device = new WeakMap();
 const TICKS_PER_SECOND = 1000;
 class BytesWriter {
     constructor() {
@@ -394,13 +394,13 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
     callback(__classPrivateFieldGet(this, _SmfReader_reader, "f"));
 }, _SmfReader_cleanEvents = function _SmfReader_cleanEvents() {
     __classPrivateFieldGet(this, _SmfReader_events, "f").sort((a, b) => {
-        return a.timeStamp - b.timeStamp;
+        return a.timestamp - b.timestamp;
     });
     // Find the first note event;
     let firstNoteOnTime = 0;
     for (let ev of __classPrivateFieldGet(this, _SmfReader_events, "f")) {
         if (ev.isNoteOn) {
-            firstNoteOnTime = ev.timeStamp;
+            firstNoteOnTime = ev.timestamp;
             break;
         }
     }
