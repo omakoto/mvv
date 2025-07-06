@@ -56,6 +56,11 @@ export class MidiEvent {
     static fromNativeEvent(e) {
         return new MidiEvent(e.timeStamp, e.data, e.currentTarget.name);
     }
+    clone() {
+        const dataCopy = Array.isArray(__classPrivateFieldGet(this, _MidiEvent_data, "f"))
+            ? [...__classPrivateFieldGet(this, _MidiEvent_data, "f")] : new Uint8Array(__classPrivateFieldGet(this, _MidiEvent_data, "f"));
+        return new MidiEvent(__classPrivateFieldGet(this, _MidiEvent_timestamp, "f"), dataCopy, __classPrivateFieldGet(this, _MidiEvent_device, "f"));
+    }
     withTimestamp(timeStamp) {
         return new MidiEvent(timeStamp, __classPrivateFieldGet(this, _MidiEvent_data, "f"), __classPrivateFieldGet(this, _MidiEvent_device, "f"));
     }
@@ -91,6 +96,9 @@ export class MidiEvent {
     }
     get status() {
         return this.data0 & 0xf0;
+    }
+    get channel() {
+        return this.data0 & 0x0f;
     }
     get data0() {
         return this.getData(0);

@@ -57,6 +57,7 @@ function int(v) {
 function s(v) {
     return int(v * SCALE);
 }
+var SIMULATE_ZERO_LENGTH_NOTES = false; // Simulate drum-style midi input devices.
 // Scroll speed.
 const ROLL_SCROLL_PX = [s(2), s(4), 0.25, 1];
 function getScrollSpeedPx(index) {
@@ -456,7 +457,9 @@ class MidiRenderingNoteStatus {
         this.offTick = -99999;
     }
     copy() {
-        return Object.assign({}, this);
+        var copy = new MidiRenderingNoteStatus();
+        Object.assign(copy, this);
+        return copy;
     }
     getOnAgeTick() {
         if (this.noteOn) {
@@ -513,7 +516,7 @@ class MidiRenderingStatus {
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, (_d = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCountInTick, "f"), _d++, _d), "f");
             n.noteOn = false;
             n.offTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.onTime = ev.timestamp;
+            n.offTime = ev.timestamp;
         }
         else if (status === 176) { // Control Change
             switch (data1) {
@@ -566,9 +569,13 @@ class MidiRenderingStatus {
         else if ((__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick) < 2) {
             // If the note was recently pressed by already released, then
             // make it look like it's still pressed.
-            let ret = n.copy();
-            ret.noteOn = true;
-            return n;
+            //
+            // NOTE: In this case, we don't adjust other properties --
+            // namely, the offXxx properties are still newer than
+            // the corresponding onXxx propreties.
+            let copy = n.copy();
+            copy.noteOn = true;
+            return copy;
         }
         else {
             // Note off
@@ -1745,6 +1752,13 @@ class Coordinator {
         alwaysRecorder.recordEvent(ev);
         if (alwaysRecorder.isAvailable != ar) {
             this.updateUi();
+        }
+        // Simulate zero-length note on.
+        if (SIMULATE_ZERO_LENGTH_NOTES && ev.isNoteOn) {
+            let clone = ev.clone();
+            clone.replaceData(0, 0x80 + ev.channel); // note-off
+            clone.replaceData(2, 0); // velocity
+            this.onMidiMessage(clone);
         }
     }
     reset() {

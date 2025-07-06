@@ -54,6 +54,12 @@ export class MidiEvent {
         return new MidiEvent(e.timeStamp, e.data, (<WebMidi.MIDIPort>e.currentTarget).name);
     }
 
+    clone(): MidiEvent {
+        const dataCopy = Array.isArray(this.#data)
+            ? [...this.#data] : new Uint8Array(this.#data);
+        return new MidiEvent(this.#timestamp, dataCopy, this.#device);
+    }
+
     withTimestamp(timeStamp: number): MidiEvent {
         return new MidiEvent(timeStamp, this.#data, this.#device);
     }
@@ -96,6 +102,10 @@ export class MidiEvent {
 
     get status(): number {
         return this.data0 & 0xf0;
+    }
+
+    get channel(): number {
+        return this.data0 & 0x0f;
     }
 
     get data0(): number {
@@ -763,4 +773,3 @@ export function loadMidi(file: Blob): Promise<Array<MidiEvent>> {
 function t() {
     (new SmfWriter()).download();
 }
-

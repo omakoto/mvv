@@ -63,6 +63,8 @@ function s(v: number): number {
     return int(v * SCALE);
 }
 
+var SIMULATE_ZERO_LENGTH_NOTES = false // Simulate drum-style midi input devices.
+
 // Scroll speed.
 const ROLL_SCROLL_PX = [s(2), s(4), 0.25, 1];
 
@@ -555,7 +557,9 @@ class MidiRenderingNoteStatus {
     }
 
     copy(): MidiRenderingNoteStatus {
-        return { ... this };
+        var copy = new MidiRenderingNoteStatus();
+        Object.assign(copy, this);
+        return copy;
     }
 
     getOnAgeTick(): number {
@@ -606,6 +610,7 @@ class MidiRenderingStatus {
             n.noteOn = true;
             n.velocity = data2;
             n.note = data1;
+
             n.onTick = this.#tick;
             n.onTime = ev.timestamp;
 
@@ -616,8 +621,9 @@ class MidiRenderingStatus {
             }
             this.#offNoteCountInTick++;
             n.noteOn = false;
+
             n.offTick = this.#tick;
-            n.onTime = ev.timestamp;
+            n.offTime = ev.timestamp;
 
         } else if (status === 176) { // Control Change
             switch (data1) {
@@ -677,9 +683,13 @@ class MidiRenderingStatus {
         } else if ((this.#tick - n.onTick) < 2) {
             // If the note was recently pressed by already released, then
             // make it look like it's still pressed.
-            let ret = n.copy();
-            ret.noteOn = true;
-            return n;
+            //
+            // NOTE: In this case, we don't adjust other properties --
+            // namely, the offXxx properties are still newer than
+            // the corresponding onXxx propreties.
+            let copy = n.copy();
+            copy.noteOn = true;
+            return copy;
 
         } else {
             // Note off
@@ -2107,6 +2117,14 @@ class Coordinator {
         alwaysRecorder.recordEvent(ev);
         if (alwaysRecorder.isAvailable != ar) {
             this.updateUi();
+        }
+
+        // Simulate zero-length note on.
+        if (SIMULATE_ZERO_LENGTH_NOTES && ev.isNoteOn) {
+            let clone = ev.clone();
+            clone.replaceData(0, 0x80 + ev.channel); // note-off
+            clone.replaceData(2, 0); // velocity
+            this.onMidiMessage(clone)
         }
     }
 
