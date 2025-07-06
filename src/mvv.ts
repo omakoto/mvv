@@ -737,6 +737,10 @@ class MidiOutputManager {
         return this.#device;
     }
 
+    get anyDeviceSelected(): boolean {
+        return this.#device !== null;
+    }
+
     reset(): void {
         if (!this.#device) {
             return;
@@ -785,7 +789,9 @@ class MidiOutputDeviceSelector {
         const device = this.#devices.find(output => !/midi through/i.test(output.name ?? ""));
         if (device) {
             midiOutputManager.setMidiOut(device);
+            return;
         }
+        info("No MIDI output devices detected.");
     }
 
     getDevices(): WebMidi.MIDIOutput[] {
@@ -1908,7 +1914,18 @@ class Coordinator {
         this.updateUi();
     }
 
+    #ensureOutputDevice(): boolean {
+        if (!midiOutputManager.anyDeviceSelected) {
+            info("No MIDI output device selected");
+            return false;
+        }
+        return true;
+    }
+
     togglePlayback(): void {
+        if (!this.#ensureOutputDevice()) {
+            return;
+        }
         if (recorder.isPausing) {
             recorder.unpause();
         } else if (recorder.isPlaying) {
@@ -1920,7 +1937,9 @@ class Coordinator {
     }
 
     startPlayback(): void {
-        renderer.show();
+        if (!this.#ensureOutputDevice()) {
+            return;
+        }
         if (recorder.isIdle) {
             recorder.startPlaying();
         } else if (recorder.isPausing) {
