@@ -350,7 +350,7 @@ class Renderer {
             this.#lastDrawY += scrollAmount;
 
             // Draw the pedals.
-            const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+            const sustainColor = this.getPedalColor(midiRenderingStatus.damperPedal);
             const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
             const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
             const pedalColorInt = rgbToInt(pedalColor);
@@ -363,7 +363,7 @@ class Renderer {
             }
 
             // "Off" line
-            if (midiRenderingStatus.offNoteCount > 0 && coordinator.isShowingNoteOffLines) {
+            if (midiRenderingStatus.offNoteCountInTick > 0 && coordinator.isShowingNoteOffLines) {
                 this.#barAreaChanged();
 
                 // We don't highlight off lines. Always same color.
@@ -380,10 +380,10 @@ class Renderer {
             }
             
             // "On" line
-            if (midiRenderingStatus.onNoteCount > 0) {
+            if (midiRenderingStatus.onNoteCountInTick > 0) {
                 this.#barAreaChanged();
 
-                this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
+                this.#roll.fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCountInTick));
                 this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
             }
 
@@ -409,13 +409,13 @@ class Renderer {
         const fontSize = bw * 0.9;
 
         for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
-            let note = midiRenderingStatus.getNote(i);
-            const on = note[0];
-            const velocity = note[1];
-            const offDuration = note[2];
+            let n = midiRenderingStatus.getNote(i);
+            const on = n.noteOn;
+            const velocity = n.velocity;
+            const offDuration = n.offAgeTick;
 
             let color = this.getBarColor(velocity)
-            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * note[2]));
+            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * offDuration));
             if (alpha <= 0) {
                 continue;
             }
@@ -430,7 +430,7 @@ class Renderer {
             let bl = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1)
 
             // bar height
-            let bh = this.#BAR_H * note[1] / 127;
+            let bh = this.#BAR_H * n.velocity / 127;
 
             this.#bar.fillStyle = colorStr;
             this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
@@ -511,13 +511,44 @@ class Renderer {
 
 export const renderer = new Renderer();
 
+class MidiRenderingNoteStatus {
+    noteOn: boolean;
+    note: number;
+    velocity: number;
+
+    onTick: number;
+    offTick: number;
+
+    onTime: number;
+    offTime: number;
+
+    onAgeTick: number;
+    offAgeTick: number;
+
+    constructor() {
+        this.reset();
+    }
+
+    reset(): void {
+        this.noteOn = false;
+        this.velocity = 0;
+        this.onTick = -99999;
+        this.offTick = -99999;
+    }
+
+    copy(): MidiRenderingNoteStatus {
+        return { ... this };
+    }
+}
+
+
 class MidiRenderingStatus {
     #tick = 0;
-    #notes: Array<[boolean, number, number, number, number]> = []; // on/off, velocity, last on-tick, press timestamp, last off-tick
-    #pedal = 0;
+    #notes: Array<MidiRenderingNoteStatus> = []; // on/off, velocity, last on-tick, press timestamp, last off-tick
+    #damperPedal = 0;
     #sostenuto = 0;
-    #onNoteCount = 0;
-    #offNoteCount = 0;
+    #onNoteCountInTick = 0;
+    #offNoteCountInTick = 0;
 
     constructor() {
         this.reset();
@@ -529,31 +560,32 @@ class MidiRenderingStatus {
         let data2 = ev.data2;
 
         if (ev.isNoteOn) {
-            let ar = this.#notes[data1]!;
-            if (ar[0]) {
+            let n = this.#notes[data1]!;
+            if (n.noteOn) {
                 return; // Already on
             }
-            this.#onNoteCount++;
-            ar[0] = true;
-            ar[1] = data2;
-            ar[2] = this.#tick;
-            ar[3] = performance.now(); // Store press timestamp
-            ar[4] = 0;
+            this.#onNoteCountInTick++;
+            n.noteOn = true;
+            n.velocity = data2;
+            n.note = data1;
+            n.onTick = this.#tick;
+            n.onTime = performance.now();
 
         } else if (ev.isNoteOff) {
-            let ar = this.#notes[data1]!;
-            if (!ar[0]) {
+            let n = this.#notes[data1]!;
+            if (!n.noteOn) {
                 return; // Already on
             }
-            this.#offNoteCount++;
-            ar[0] = false;
-            ar[4] = this.#tick;
+            this.#offNoteCountInTick++;
+            n.noteOn = false;
+            n.offTick = this.#tick;
+            n.offTime = performance.now();
 
         } else if (status === 176) { // Control Change
             switch (data1) {
                 case 64: // Damper pedal (sustain)
-                case 11: // Expression
-                    this.#pedal = data2;
+                case 11: // Expression // For the digital sax -- show expression as a dumper
+                    this.#damperPedal = data2;
                     break;
                 case 66: // Sostenuto pedal
                     this.#sostenuto = data2;
@@ -565,98 +597,82 @@ class MidiRenderingStatus {
 
     reset(): void {
         this.#tick = 0;
-        this.#notes = [];
+        this.#notes = new Array(NOTES_COUNT);
         for (let i = 0; i < NOTES_COUNT; i++) {
-            this.#notes[i] = [false, 0, -9999, 0, 0];
+            this.#notes[i] = new MidiRenderingNoteStatus();
         }
-        this.#pedal = 0;
+        this.#damperPedal = 0;
         this.#sostenuto = 0;
-        this.#onNoteCount = 0;
-        this.#offNoteCount = 0;
+        this.#onNoteCountInTick = 0;
+        this.#offNoteCountInTick = 0;
     }
 
     afterDraw(_now: number): void {
         this.#tick++;
-        this.#onNoteCount = 0;
-        this.#offNoteCount = 0;
+        this.#onNoteCountInTick = 0;
+        this.#offNoteCountInTick = 0;
     }
 
-    get onNoteCount(): number {
-        return this.#onNoteCount;
+    get onNoteCountInTick(): number {
+        return this.#onNoteCountInTick;
     }
 
-    get offNoteCount(): number {
-        return this.#offNoteCount;
+    get offNoteCountInTick(): number {
+        return this.#offNoteCountInTick;
     }
 
-    get pedal(): number {
-        return this.#pedal;
+    get damperPedal(): number {
+        return this.#damperPedal;
     }
     
     get sostenuto(): number {
         return this.#sostenuto;
     }
 
-    getNote(noteIndex: number): [boolean, number, number] { // on/off, velocity, off-duration
-        let ar = this.#notes[noteIndex]!
-        if (ar[0]) {
-            // Note on
-            return [true, ar[1], 0];
+    getNote(noteIndex: number): MidiRenderingNoteStatus {
+        let n = this.#notes[noteIndex]!
 
-        } else if ((this.#tick - ar[2]) < 2) {
-            // Recently turned off, still treat it as on
-            return [true, ar[1], 0];
+        if (n.noteOn) {
+            // Note on
+            n.onAgeTick = this.#tick - n.onTick;
+            n.offAgeTick = 0;
+            return n;
+
+        } else if ((this.#tick - n.onTick) < 2) {
+            // If the note was recently pressed by already released, then
+            // make it look like it's still pressed.
+            let ret = n.copy();
+
+            ret.noteOn = true;
+            n.onAgeTick = this.#tick - n.onTick;
+            n.offAgeTick = 0;
+            return n;
 
         } else {
-            // Off note, still return velocity, but return the off duration.
-            return [false, ar[1], this.#tick - ar[4] + 1];
+            n.onAgeTick = 0;
+            n.offAgeTick = this.#tick - n.offTick;
+            return n;
         }
     }
 
     isJustPressed(noteIndex: number): boolean {
-        const note = this.#notes[noteIndex]!;
+        const n = this.#notes[noteIndex]!;
         // A note is "just pressed" if it's on and its on-tick is the current tick.
+        // Even if it's already released in the same tick, we still consider it to be
+        // "just pressed".
 
-        // Check if the note is pressed in the same tick and is till on,
-        // or, pressed in the same tick and is already released.
-        if (note[2] !== this.#tick) {
-            return false;
-        }
-        if (note[0]) {
-            // Note on, and is pressed in the same tick, so yes.
-            return true;
-        } else {
-            // Note off, but was pressed and released in this tick, so still yes.
-            return note[4] === this.#tick
-        }
-    }
-
-    /**
-     * Returns an array of MIDI note numbers for all notes currently considered "on".
-     */
-    getPressedNotes(): number[] {
-        const pressed: number[] = [];
-        for (let i = 0; i < NOTES_COUNT; i++) {
-            const note = this.getNote(i);
-            if (note[0]) { // is on
-                pressed.push(i);
-            }
-        }
-        return pressed;
+        return n.onTick === this.#tick;
     }
 
     /**
      * Returns info for all notes currently considered "on", including their press timestamp.
      */
-    getPressedNotesInfo(): { note: number, timestamp: number }[] {
-        const pressed: { note: number, timestamp: number }[] = [];
+    getPressedNotes(): MidiRenderingNoteStatus[] {
+        const pressed: MidiRenderingNoteStatus[] = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
-            const noteInfo = this.#notes[i]!;
-            // A note is considered "on" if its on-flag is true, or if it was turned off
-            // very recently (within 2 ticks), to make visuals linger a bit.
-            const isVisuallyOn = noteInfo[0] || (this.#tick - noteInfo[2]) < 2;
-            if (isVisuallyOn) {
-                pressed.push({ note: i, timestamp: noteInfo[3] });
+            const n = this.getNote(i);
+            if (n.noteOn) {
+                pressed.push(n);
             }
         }
         return pressed;
@@ -2017,25 +2033,19 @@ class Coordinator {
         // Build note names.
         const now = performance.now();
 
-        // TODO: getPressedNotesInfo() has this compensation logic for too short notes,
-        // and if that happens, we'd fail to remove the note because nothing
-        // calls updateNoteInformation() when that logic expires. We need to fix it somehow.
-        // But using the "raw" information has a downside that if two short notes
-        // happen back to back, the first note would be deleted right away,
-        // as opposed to both getting shown at the same time.
-        const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
+        const notes = midiRenderingStatus.getPressedNotes();
 
         let lastOctave = -1;
-        const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
-            const noteName = getNoteFullName(note, this.#useSharp);
+        const noteSpans = notes.map(( n ) => {
+            const noteName = getNoteFullName(n.note, this.#useSharp);
 
             // Add extra space between octaves.
-            const octave = int(note / 12);
+            const octave = int(n.note / 12);
             const spacing = (lastOctave < 0|| octave === lastOctave) ? "" : "&nbsp;&nbsp;";
             lastOctave = octave;
 
             // Check if the note was pressed recently.
-            const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
+            const isRecent = (now - n.onTime) < RECENT_NOTE_THRESHOLD_MS;
 
             if (isRecent) {
                 return `${spacing}<span class="notes_highlight">${noteName}</span>`;
@@ -2048,7 +2058,7 @@ class Coordinator {
         // Build chord names.
 
         // We need just the note numbers for chord analysis.
-        const pressedNoteNumbers = pressedNotesInfo.map(info => info.note);
+        const pressedNoteNumbers = notes.map(n => n.note);
         let index = -1;
         const chordNamesHtml = analyzeChord(pressedNoteNumbers, this.#useSharp).map((chord) => {
             index++;

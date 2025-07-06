@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_pedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCount, _MidiRenderingStatus_offNoteCount, _MidiOutputManager_device, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_animationFrameId;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiOutputManager_device, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _a, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_animationFrameId;
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -301,7 +301,7 @@ class Renderer {
             }
             __classPrivateFieldSet(this, _Renderer_lastDrawY, __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") + scrollAmount, "f");
             // Draw the pedals.
-            const sustainColor = this.getPedalColor(midiRenderingStatus.pedal);
+            const sustainColor = this.getPedalColor(midiRenderingStatus.damperPedal);
             const sostenutoColor = this.getSostenutoPedalColor(midiRenderingStatus.sostenuto);
             const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
             const pedalColorInt = rgbToInt(pedalColor);
@@ -312,7 +312,7 @@ class Renderer {
                 __classPrivateFieldSet(this, _Renderer_lastPedalColorInt, pedalColorInt, "f");
             }
             // "Off" line
-            if (midiRenderingStatus.offNoteCount > 0 && coordinator.isShowingNoteOffLines) {
+            if (midiRenderingStatus.offNoteCountInTick > 0 && coordinator.isShowingNoteOffLines) {
                 __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
                 // We don't highlight off lines. Always same color.
                 // However, if we draw two off lines in a raw, it'll look brighter,
@@ -327,9 +327,9 @@ class Renderer {
                 __classPrivateFieldSet(this, _Renderer_drewOffLine, false, "f");
             }
             // "On" line
-            if (midiRenderingStatus.onNoteCount > 0) {
+            if (midiRenderingStatus.onNoteCountInTick > 0) {
                 __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCount));
+                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(midiRenderingStatus.onNoteCountInTick));
                 __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
             }
             // Extra (metronome) line
@@ -347,12 +347,12 @@ class Renderer {
         }
         const fontSize = bw * 0.9;
         for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
-            let note = midiRenderingStatus.getNote(i);
-            const on = note[0];
-            const velocity = note[1];
-            const offDuration = note[2];
+            let n = midiRenderingStatus.getNote(i);
+            const on = n.noteOn;
+            const velocity = n.velocity;
+            const offDuration = n.offAgeTick;
             let color = this.getBarColor(velocity);
-            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * note[2]));
+            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * offDuration));
             if (alpha <= 0) {
                 continue;
             }
@@ -364,7 +364,7 @@ class Renderer {
             // bar left
             let bl = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
             // bar height
-            let bh = __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * note[1] / 127;
+            let bh = __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * n.velocity / 127;
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = colorStr;
             __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(bl, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), bw, -bh);
             if (!on) {
@@ -432,14 +432,28 @@ _Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = ne
     __classPrivateFieldSet(this, _Renderer_lastDrawY, 0, "f");
 };
 export const renderer = new Renderer();
+class MidiRenderingNoteStatus {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.noteOn = false;
+        this.velocity = 0;
+        this.onTick = -99999;
+        this.offTick = -99999;
+    }
+    copy() {
+        return Object.assign({}, this);
+    }
+}
 class MidiRenderingStatus {
     constructor() {
         _MidiRenderingStatus_tick.set(this, 0);
         _MidiRenderingStatus_notes.set(this, []); // on/off, velocity, last on-tick, press timestamp, last off-tick
-        _MidiRenderingStatus_pedal.set(this, 0);
+        _MidiRenderingStatus_damperPedal.set(this, 0);
         _MidiRenderingStatus_sostenuto.set(this, 0);
-        _MidiRenderingStatus_onNoteCount.set(this, 0);
-        _MidiRenderingStatus_offNoteCount.set(this, 0);
+        _MidiRenderingStatus_onNoteCountInTick.set(this, 0);
+        _MidiRenderingStatus_offNoteCountInTick.set(this, 0);
         this.reset();
     }
     onMidiMessage(ev) {
@@ -448,31 +462,32 @@ class MidiRenderingStatus {
         let data1 = ev.data1;
         let data2 = ev.data2;
         if (ev.isNoteOn) {
-            let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
-            if (ar[0]) {
+            let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
+            if (n.noteOn) {
                 return; // Already on
             }
-            __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f"), _b++, _b), "f");
-            ar[0] = true;
-            ar[1] = data2;
-            ar[2] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            ar[3] = performance.now(); // Store press timestamp
-            ar[4] = 0;
+            __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCountInTick, (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCountInTick, "f"), _b++, _b), "f");
+            n.noteOn = true;
+            n.velocity = data2;
+            n.note = data1;
+            n.onTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
+            n.onTime = performance.now();
         }
         else if (ev.isNoteOff) {
-            let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
-            if (!ar[0]) {
+            let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
+            if (!n.noteOn) {
                 return; // Already on
             }
-            __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f"), _c++, _c), "f");
-            ar[0] = false;
-            ar[4] = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
+            __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCountInTick, "f"), _c++, _c), "f");
+            n.noteOn = false;
+            n.offTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
+            n.offTime = performance.now();
         }
         else if (status === 176) { // Control Change
             switch (data1) {
                 case 64: // Damper pedal (sustain)
-                case 11: // Expression
-                    __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, data2, "f");
+                case 11: // Expression // For the digital sax -- show expression as a dumper
+                    __classPrivateFieldSet(this, _MidiRenderingStatus_damperPedal, data2, "f");
                     break;
                 case 66: // Sostenuto pedal
                     __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, data2, "f");
@@ -483,96 +498,78 @@ class MidiRenderingStatus {
     }
     reset() {
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, 0, "f");
-        __classPrivateFieldSet(this, _MidiRenderingStatus_notes, [], "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_notes, new Array(NOTES_COUNT), "f");
         for (let i = 0; i < NOTES_COUNT; i++) {
-            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = [false, 0, -9999, 0, 0];
+            __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i] = new MidiRenderingNoteStatus();
         }
-        __classPrivateFieldSet(this, _MidiRenderingStatus_pedal, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_damperPedal, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
-        __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
-        __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCountInTick, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, 0, "f");
     }
     afterDraw(_now) {
         var _b;
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, (_b = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), _b++, _b), "f");
-        __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCount, 0, "f");
-        __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCount, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCountInTick, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, 0, "f");
     }
-    get onNoteCount() {
-        return __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCount, "f");
+    get onNoteCountInTick() {
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_onNoteCountInTick, "f");
     }
-    get offNoteCount() {
-        return __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCount, "f");
+    get offNoteCountInTick() {
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCountInTick, "f");
     }
-    get pedal() {
-        return __classPrivateFieldGet(this, _MidiRenderingStatus_pedal, "f");
+    get damperPedal() {
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_damperPedal, "f");
     }
     get sostenuto() {
         return __classPrivateFieldGet(this, _MidiRenderingStatus_sostenuto, "f");
     }
     getNote(noteIndex) {
-        let ar = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
-        if (ar[0]) {
+        let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
+        if (n.noteOn) {
             // Note on
-            return [true, ar[1], 0];
+            n.onAgeTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick;
+            n.offAgeTick = 0;
+            return n;
         }
-        else if ((__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - ar[2]) < 2) {
-            // Recently turned off, still treat it as on
-            return [true, ar[1], 0];
+        else if ((__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick) < 2) {
+            // If the note was recently pressed by already released, then
+            // make it look like it's still pressed.
+            let ret = n.copy();
+            ret.noteOn = true;
+            n.onAgeTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick;
+            n.offAgeTick = 0;
+            return n;
         }
         else {
-            // Off note, still return velocity, but return the off duration.
-            return [false, ar[1], __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - ar[4] + 1];
+            n.onAgeTick = 0;
+            n.offAgeTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.offTick;
+            return n;
         }
     }
     isJustPressed(noteIndex) {
-        const note = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
+        const n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
         // A note is "just pressed" if it's on and its on-tick is the current tick.
-        // Check if the note is pressed in the same tick and is till on,
-        // or, pressed in the same tick and is already released.
-        if (note[2] !== __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f")) {
-            return false;
-        }
-        if (note[0]) {
-            // Note on, and is pressed in the same tick, so yes.
-            return true;
-        }
-        else {
-            // Note off, but was pressed and released in this tick, so still yes.
-            return note[4] === __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-        }
-    }
-    /**
-     * Returns an array of MIDI note numbers for all notes currently considered "on".
-     */
-    getPressedNotes() {
-        const pressed = [];
-        for (let i = 0; i < NOTES_COUNT; i++) {
-            const note = this.getNote(i);
-            if (note[0]) { // is on
-                pressed.push(i);
-            }
-        }
-        return pressed;
+        // Even if it's already released in the same tick, we still consider it to be
+        // "just pressed".
+        return n.onTick === __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
     }
     /**
      * Returns info for all notes currently considered "on", including their press timestamp.
      */
-    getPressedNotesInfo() {
+    getPressedNotes() {
         const pressed = [];
         for (let i = 0; i < NOTES_COUNT; i++) {
-            const noteInfo = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[i];
-            // A note is considered "on" if its on-flag is true, or if it was turned off
-            // very recently (within 2 ticks), to make visuals linger a bit.
-            const isVisuallyOn = noteInfo[0] || (__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - noteInfo[2]) < 2;
-            if (isVisuallyOn) {
-                pressed.push({ note: i, timestamp: noteInfo[3] });
+            const n = this.getNote(i);
+            if (n.noteOn) {
+                pressed.push(n);
             }
         }
         return pressed;
     }
 }
-_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_pedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCount = new WeakMap(), _MidiRenderingStatus_offNoteCount = new WeakMap();
+_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_damperPedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCountInTick = new WeakMap(), _MidiRenderingStatus_offNoteCountInTick = new WeakMap();
 export const midiRenderingStatus = new MidiRenderingStatus();
 class MidiOutputManager {
     constructor() {
@@ -1689,22 +1686,16 @@ class Coordinator {
         }
         // Build note names.
         const now = performance.now();
-        // TODO: getPressedNotesInfo() has this compensation logic for too short notes,
-        // and if that happens, we'd fail to remove the note because nothing
-        // calls updateNoteInformation() when that logic expires. We need to fix it somehow.
-        // But using the "raw" information has a downside that if two short notes
-        // happen back to back, the first note would be deleted right away,
-        // as opposed to both getting shown at the same time.
-        const pressedNotesInfo = midiRenderingStatus.getPressedNotesInfo();
+        const notes = midiRenderingStatus.getPressedNotes();
         let lastOctave = -1;
-        const noteSpans = pressedNotesInfo.map(({ note, timestamp }) => {
-            const noteName = getNoteFullName(note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
+        const noteSpans = notes.map((n) => {
+            const noteName = getNoteFullName(n.note, __classPrivateFieldGet(this, _Coordinator_useSharp, "f"));
             // Add extra space between octaves.
-            const octave = int(note / 12);
+            const octave = int(n.note / 12);
             const spacing = (lastOctave < 0 || octave === lastOctave) ? "" : "&nbsp;&nbsp;";
             lastOctave = octave;
             // Check if the note was pressed recently.
-            const isRecent = (now - timestamp) < RECENT_NOTE_THRESHOLD_MS;
+            const isRecent = (now - n.onTime) < RECENT_NOTE_THRESHOLD_MS;
             if (isRecent) {
                 return `${spacing}<span class="notes_highlight">${noteName}</span>`;
             }
@@ -1715,7 +1706,7 @@ class Coordinator {
         const noteNamesHtml = noteSpans.join(' ');
         // Build chord names.
         // We need just the note numbers for chord analysis.
-        const pressedNoteNumbers = pressedNotesInfo.map(info => info.note);
+        const pressedNoteNumbers = notes.map(n => n.note);
         let index = -1;
         const chordNamesHtml = analyzeChord(pressedNoteNumbers, __classPrivateFieldGet(this, _Coordinator_useSharp, "f")).map((chord) => {
             index++;
