@@ -1614,8 +1614,10 @@ class Coordinator {
                 break;
 
             case 'Digit9':
+            case 'F9':
                 if (isRepeat) break;
                 this.#efps.toggle();
+                this.updateUi();
                 break;
 
             case 'KeyF':
@@ -1961,6 +1963,7 @@ class Coordinator {
     updateUi(): void {
         controls.update();
         this.updateNoteInformation();
+        this.#updateFps();
     }
 
     #ignoreRepeatedRewindKey = false;
@@ -2047,12 +2050,16 @@ class Coordinator {
         midiOutputManager.reset();
     }
 
-    onDraw(): void {
-        // Update FPS counter
-        this.#frames++;
+    #updateFps() {
+        if (!this.isAnimating) {
+            this.#efps.text("Animation stopped");
+            this.#now = 0;
+            this.#nextSecond = 0;
+            return;
+        }
         let now = performance.now();
         if (now >= this.#nextSecond) {
-            this.#efps.text(this.#flips + "/" + this.#frames + "/" + this.#playbackTicks);
+            this.#efps.text(`${this.#flips}/${this.#frames}/${this.#playbackTicks}`);
             this.#flips = 0;
             this.#frames = 0;
             this.#playbackTicks = 0;
@@ -2061,8 +2068,13 @@ class Coordinator {
                 this.#nextSecond = now + 1000;
             }
         }
-
         this.#now = now;
+    }
+
+    onDraw(): void {
+        this.#frames++;
+
+        this.#updateFps();
 
         renderer.onDraw();
         midiRenderingStatus.afterDraw(this.#now);
@@ -2129,16 +2141,21 @@ class Coordinator {
     
     #animationFrameId: number | null = null;
 
+    get isAnimating(): boolean {
+        return this.#animationFrameId !== null;
+    }
+
     /**
      * Starts the main animation loop, which is synchronized with the browser's
      * rendering cycle for smooth visuals.
      */
     startAnimationLoop(): void {
-        if (this.#animationFrameId !== null) {
+        if (this.isAnimating) {
             // Loop is already running.
             return;
         }
         console.log("Animation started")
+        this.#updateFps();
 
         const loop = (forceRequest: boolean) => {
             // #flips is for the FPS counter, representing screen updates.
@@ -2169,10 +2186,11 @@ class Coordinator {
      * Stops the main animation loop.
      */
     stopAnimationLoop(): void {
-        if (this.#animationFrameId !== null) {
+        if (this.isAnimating) {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
             console.log("Animation stopped")
+            this.#updateFps();
         }
     }
 
