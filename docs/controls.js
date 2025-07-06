@@ -289,6 +289,7 @@ class Controls {
             this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
+            this.activate(__classPrivateFieldGet(this, _Controls_pause, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
             this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));

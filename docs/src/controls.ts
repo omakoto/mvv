@@ -319,6 +319,7 @@ class Controls {
             this.enable(this.#top);
             this.enable(this.#play);
             this.enable(this.#pause);
+            this.activate(this.#pause);
             this.enable(this.#stop);
             this.enable(this.#record);
             this.enable(this.#rewind);
