@@ -350,7 +350,7 @@ class Renderer {
             let n = midiRenderingStatus.getNote(i);
             const on = n.noteOn;
             const velocity = n.velocity;
-            const offDuration = n.offAgeTick;
+            const offDuration = n.getOffAgeTick();
             let color = this.getBarColor(velocity);
             const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * offDuration));
             if (alpha <= 0) {
@@ -433,6 +433,8 @@ _Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = ne
 };
 export const renderer = new Renderer();
 class MidiRenderingNoteStatus {
+    // onAgeTick: number;
+    // offAgeTick: number;
     constructor() {
         this.reset();
     }
@@ -445,6 +447,22 @@ class MidiRenderingNoteStatus {
     copy() {
         return Object.assign({}, this);
     }
+    getOnAgeTick() {
+        if (this.noteOn) {
+            return midiRenderingStatus.currentTick - this.onTick;
+        }
+        else {
+            return -1;
+        }
+    }
+    getOffAgeTick() {
+        if (!this.noteOn) {
+            return midiRenderingStatus.currentTick - this.offTick;
+        }
+        else {
+            return -1;
+        }
+    }
 }
 class MidiRenderingStatus {
     constructor() {
@@ -455,6 +473,9 @@ class MidiRenderingStatus {
         _MidiRenderingStatus_onNoteCountInTick.set(this, 0);
         _MidiRenderingStatus_offNoteCountInTick.set(this, 0);
         this.reset();
+    }
+    get currentTick() {
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
     }
     onMidiMessage(ev) {
         var _b, _c;
@@ -471,7 +492,7 @@ class MidiRenderingStatus {
             n.velocity = data2;
             n.note = data1;
             n.onTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.onTime = performance.now();
+            n.onTime = ev.timeStamp;
         }
         else if (ev.isNoteOff) {
             let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
@@ -481,7 +502,7 @@ class MidiRenderingStatus {
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCountInTick, "f"), _c++, _c), "f");
             n.noteOn = false;
             n.offTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.offTime = performance.now();
+            n.onTime = ev.timeStamp;
         }
         else if (status === 176) { // Control Change
             switch (data1) {
@@ -529,8 +550,6 @@ class MidiRenderingStatus {
         let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
         if (n.noteOn) {
             // Note on
-            n.onAgeTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick;
-            n.offAgeTick = 0;
             return n;
         }
         else if ((__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick) < 2) {
@@ -538,13 +557,10 @@ class MidiRenderingStatus {
             // make it look like it's still pressed.
             let ret = n.copy();
             ret.noteOn = true;
-            n.onAgeTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.onTick;
-            n.offAgeTick = 0;
             return n;
         }
         else {
-            n.onAgeTick = 0;
-            n.offAgeTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.offTick;
+            // Note off
             return n;
         }
     }
@@ -567,6 +583,10 @@ class MidiRenderingStatus {
             }
         }
         return pressed;
+    }
+    getLastNoteOffAgeTick(noteIndex) {
+        const n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
+        return __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.offTick;
     }
 }
 _MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_damperPedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCountInTick = new WeakMap(), _MidiRenderingStatus_offNoteCountInTick = new WeakMap();

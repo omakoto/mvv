@@ -412,7 +412,7 @@ class Renderer {
             let n = midiRenderingStatus.getNote(i);
             const on = n.noteOn;
             const velocity = n.velocity;
-            const offDuration = n.offAgeTick;
+            const offDuration = n.getOffAgeTick();
 
             let color = this.getBarColor(velocity)
             const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * offDuration));
@@ -519,11 +519,14 @@ class MidiRenderingNoteStatus {
     onTick: number;
     offTick: number;
 
+    // On timestamp as in MidiEvent.timeStamp.
     onTime: number;
+
+    // On timestamp as in MidiEvent.timeStamp.
     offTime: number;
 
-    onAgeTick: number;
-    offAgeTick: number;
+    // onAgeTick: number;
+    // offAgeTick: number;
 
     constructor() {
         this.reset();
@@ -539,6 +542,22 @@ class MidiRenderingNoteStatus {
     copy(): MidiRenderingNoteStatus {
         return { ... this };
     }
+
+    getOnAgeTick(): number {
+        if (this.noteOn) {
+            return midiRenderingStatus.currentTick - this.onTick;
+        } else {
+            return -1;
+        }
+    }
+
+    getOffAgeTick(): number {
+        if (!this.noteOn) {
+            return midiRenderingStatus.currentTick - this.offTick;
+        } else {
+            return -1;
+        }
+    }
 }
 
 
@@ -552,6 +571,10 @@ class MidiRenderingStatus {
 
     constructor() {
         this.reset();
+    }
+
+    get currentTick(): number {
+        return this.#tick;
     }
 
     onMidiMessage(ev: MidiEvent): void {
@@ -569,7 +592,7 @@ class MidiRenderingStatus {
             n.velocity = data2;
             n.note = data1;
             n.onTick = this.#tick;
-            n.onTime = performance.now();
+            n.onTime = ev.timeStamp;
 
         } else if (ev.isNoteOff) {
             let n = this.#notes[data1]!;
@@ -579,7 +602,7 @@ class MidiRenderingStatus {
             this.#offNoteCountInTick++;
             n.noteOn = false;
             n.offTick = this.#tick;
-            n.offTime = performance.now();
+            n.onTime = ev.timeStamp;
 
         } else if (status === 176) { // Control Change
             switch (data1) {
@@ -634,23 +657,17 @@ class MidiRenderingStatus {
 
         if (n.noteOn) {
             // Note on
-            n.onAgeTick = this.#tick - n.onTick;
-            n.offAgeTick = 0;
             return n;
 
         } else if ((this.#tick - n.onTick) < 2) {
             // If the note was recently pressed by already released, then
             // make it look like it's still pressed.
             let ret = n.copy();
-
             ret.noteOn = true;
-            n.onAgeTick = this.#tick - n.onTick;
-            n.offAgeTick = 0;
             return n;
 
         } else {
-            n.onAgeTick = 0;
-            n.offAgeTick = this.#tick - n.offTick;
+            // Note off
             return n;
         }
     }
@@ -676,6 +693,11 @@ class MidiRenderingStatus {
             }
         }
         return pressed;
+    }
+
+    getLastNoteOffAgeTick(noteIndex: number): number {
+        const n = this.#notes[noteIndex]!;
+        return this.#tick - n.offTick;
     }
 }
 
