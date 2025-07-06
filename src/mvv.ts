@@ -1731,7 +1731,7 @@ class Coordinator {
             case 'Digit0':
                 this.resetPlaySpeed();
                 break;
-            case 'KeyD':
+            case 'KeyV':
                 toggleDebug();
                 break;
             case 'KeyC':
@@ -1743,7 +1743,7 @@ class Coordinator {
                 if (isRepeat) break;
                 this.trimBefore();
                 break;
-            case 'KeyV':
+            case 'KeyD':
                 if (isRepeat) break;
                 this.showOutputSelector();
                 break;

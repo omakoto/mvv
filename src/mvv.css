@@ -240,7 +240,7 @@ canvas#roll2 {
 #vlines {
     background-image: url("res/triple-line.png");
 }
-#midi-putput {
+#midi-output {
     background-image: url("res/devices.png");
 }
 #roll-speed.roll-speed-normal {
