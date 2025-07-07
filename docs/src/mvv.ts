@@ -53,6 +53,11 @@ const RGB_OCTAVE_LINES: [number, number, number] = [100, 100, 0];
 const ALWAYS_RECORD_SECONDS = 60 * 20;
 const ALWAYS_RECORD_MAX_EVENTS = ALWAYS_RECORD_SECONDS * 100;
 
+
+// If a note is released within this many ticks, we force its visibility on the UI
+// to ensure it's drawn.
+const SHORTEST_NOTE_LENGTH = 1;
+
 // Utility functions
 
 function int(v: number): number {
@@ -680,13 +685,16 @@ class MidiRenderingStatus {
             // Note on
             return n;
 
-        } else if ((this.#tick - n.onTick) < 2) {
-            // If the note was recently pressed by already released, then
+        } else if ((this.#tick - n.onTick) <= SHORTEST_NOTE_LENGTH) {
+            // If the note was recently pressed but already released, then
             // make it look like it's still pressed.
             //
             // NOTE: In this case, we don't adjust other properties --
             // namely, the offXxx properties are still newer than
-            // the corresponding onXxx propreties.
+            // the corresponding onXxx properties.
+            //
+            // TODO: Unfortunately, when this happens, we don't always update the UI
+            // after this expires. We need to somehow ensure it won't be the case.
             let copy = n.copy();
             copy.noteOn = true;
             return copy;
