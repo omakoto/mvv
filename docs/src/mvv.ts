@@ -2360,17 +2360,17 @@ class Coordinator {
 export const coordinator = new Coordinator();
 
 function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
-    console.log("onMIDISuccess");
+    console.log("onMIDISuccess: looking for MIDI devices...");
 
     for (let input of midiAccess.inputs.values()) {
-        console.log("Input device: " + input.name , input);
+        console.log("Discovered input device: " + input.name , input);
         input.onmidimessage = (ev) => {
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         }
     }
     const outputs = Array.from(midiAccess.outputs.values());
     for (var output of outputs) {
-        console.log("Output device: " + output.name, output);
+        console.log("Discovered output device: " + output.name, output);
     }
     midiOutputDeviceSelector.setDevices(outputs);
 }

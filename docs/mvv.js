@@ -2021,16 +2021,16 @@ _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS = { value: 'mvv_metronomeMainBeats
 _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS = { value: 'mvv_metronomeSubBeats' };
 export const coordinator = new Coordinator();
 function onMIDISuccess(midiAccess) {
-    console.log("onMIDISuccess");
+    console.log("onMIDISuccess: looking for MIDI devices...");
     for (let input of midiAccess.inputs.values()) {
-        console.log("Input device: " + input.name, input);
+        console.log("Discovered input device: " + input.name, input);
         input.onmidimessage = (ev) => {
             coordinator.onMidiMessage(MidiEvent.fromNativeEvent(ev));
         };
     }
     const outputs = Array.from(midiAccess.outputs.values());
     for (var output of outputs) {
-        console.log("Output device: " + output.name, output);
+        console.log("Discovered output device: " + output.name, output);
     }
     midiOutputDeviceSelector.setDevices(outputs);
 }
