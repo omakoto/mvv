@@ -28,7 +28,7 @@ class TimeKeeper {
     }
 
     getHumanReadable(): string {
-        if (this.#text == null) {
+        if (this.#text === null) {
             const s = this.#second;
 
             const minutes = Math.floor(s / 60);
@@ -280,7 +280,7 @@ class Controls {
             this.#playSpeed.removeClass(playSpeedClasses[i]);
         }
         this.#playSpeed.addClass(playSpeedClasses[coordinator.playSpeedIndex]);
-        this.activate(this.#playSpeed, coordinator.playSpeedIndex != DEFAULT_PLAY_SPEED_INDEX);
+        this.activate(this.#playSpeed, coordinator.playSpeedIndex !== DEFAULT_PLAY_SPEED_INDEX);
 
         // Roll freeze and video mute.
         this.activate(this.#freeze, renderer.isRollFrozen);
@@ -359,7 +359,7 @@ class Controls {
     }
 
     #setTimestamp(text: string) {
-        if (this.#cachedTimestamp == text) {
+        if (this.#cachedTimestamp === text) {
             return;
         }
         this.#cachedTimestamp = text;
@@ -367,7 +367,7 @@ class Controls {
     }
 
     #setTimePercent(percent: number) {
-        if (this.#cachedPercent != percent) {
+        if (this.#cachedPercent !== percent) {
             this.#position.css('left', percent + '%');
             this.#cachedPercent = percent;
         }

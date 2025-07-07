@@ -125,7 +125,7 @@ export class MidiEvent {
     }
 
     get isNoteOff(): boolean {
-        return this.status === 0x80 || (this.status === 0x90 && this.data2 == 0);
+        return this.status === 0x80 || (this.status === 0x90 && this.data2 === 0);
     }
 
     // Control change?
@@ -480,7 +480,7 @@ class SmfReader {
                 break;
             }
         }
-        if (firstNoteOnTime == 0) {
+        if (firstNoteOnTime === 0) {
             return;
         }
         for (let ev of this.#events) {

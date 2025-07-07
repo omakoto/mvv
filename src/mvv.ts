@@ -19,7 +19,7 @@ declare class Popbox {
 };
 
 
-const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
+const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) !== 0;
 if (!LOW_PERF_MODE) {
     console.log(`Low-perf is disabled. Use ${location.origin}${location.pathname}?lp=1 to enable low-perf mode for slow devices`);
 }
@@ -840,7 +840,7 @@ class Metronome {
         this.#bpm = Math.max(10, bpm);
         this.#beats = Math.max(1, beats);
         this.#subBeats = Math.max(1, subBeats);
-        if (this.#beats == this.#subBeats) {
+        if (this.#beats === this.#subBeats) {
             this.#subBeats = 1;
         }
 
@@ -865,18 +865,18 @@ class Metronome {
         }
         this.#pos = pos;
 
-        const accent = (pos == 0 && this.#beats > 1);
+        const accent = (pos === 0 && this.#beats > 1);
 
         var lineType = -1;
 
-        if (this.#subBeats > 1 && ((pos % this.#beats) == 0)) {
+        if (this.#subBeats > 1 && ((pos % this.#beats) === 0)) {
             lineType = 2;
 
             // Use accent on first beat.
-            const note = (pos == 0) ? "E6" : "E5";
+            const note = (pos === 0) ? "E6" : "E5";
             this.#synth.triggerAttackRelease(note, 0.05, time, 0.8);
         }
-        if ((pos % this.#subBeats) == 0) {
+        if ((pos % this.#subBeats) === 0) {
             lineType = 1;
 
             // Use accent on first beat, but only if beats > 1.
@@ -1072,7 +1072,7 @@ class Recorder {
     }
 
     get isBeginning(): boolean {
-        return this.#nextPlaybackIndex == 0;
+        return this.#nextPlaybackIndex === 0;
     }
 
     get isAfterLast(): boolean {
@@ -1149,7 +1149,7 @@ class Recorder {
     }
 
     #stopTimer(): void {
-        if (this.#timer != 0) {
+        if (this.#timer !== 0) {
             console.log("Timer stopped");
             clearInterval(this.#timer);
             this.#timer = 0;

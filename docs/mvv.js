@@ -26,7 +26,7 @@ import { controls } from './controls.js';
 import { saveAsBox, confirmBox, metronomeBox, midiOutputBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
 ;
-const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) != 0;
+const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) !== 0;
 if (!LOW_PERF_MODE) {
     console.log(`Low-perf is disabled. Use ${location.origin}${location.pathname}?lp=1 to enable low-perf mode for slow devices`);
 }
@@ -708,7 +708,7 @@ class Metronome {
         __classPrivateFieldSet(this, _Metronome_bpm, Math.max(10, bpm), "f");
         __classPrivateFieldSet(this, _Metronome_beats, Math.max(1, beats), "f");
         __classPrivateFieldSet(this, _Metronome_subBeats, Math.max(1, subBeats), "f");
-        if (__classPrivateFieldGet(this, _Metronome_beats, "f") == __classPrivateFieldGet(this, _Metronome_subBeats, "f")) {
+        if (__classPrivateFieldGet(this, _Metronome_beats, "f") === __classPrivateFieldGet(this, _Metronome_subBeats, "f")) {
             __classPrivateFieldSet(this, _Metronome_subBeats, 1, "f");
         }
         __classPrivateFieldSet(this, _Metronome_cycle, __classPrivateFieldGet(this, _Metronome_beats, "f") * __classPrivateFieldGet(this, _Metronome_subBeats, "f"), "f");
@@ -735,15 +735,15 @@ _Metronome_playing = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
         pos = 0;
     }
     __classPrivateFieldSet(this, _Metronome_pos, pos, "f");
-    const accent = (pos == 0 && __classPrivateFieldGet(this, _Metronome_beats, "f") > 1);
+    const accent = (pos === 0 && __classPrivateFieldGet(this, _Metronome_beats, "f") > 1);
     var lineType = -1;
-    if (__classPrivateFieldGet(this, _Metronome_subBeats, "f") > 1 && ((pos % __classPrivateFieldGet(this, _Metronome_beats, "f")) == 0)) {
+    if (__classPrivateFieldGet(this, _Metronome_subBeats, "f") > 1 && ((pos % __classPrivateFieldGet(this, _Metronome_beats, "f")) === 0)) {
         lineType = 2;
         // Use accent on first beat.
-        const note = (pos == 0) ? "E6" : "E5";
+        const note = (pos === 0) ? "E6" : "E5";
         __classPrivateFieldGet(this, _Metronome_synth, "f").triggerAttackRelease(note, 0.05, time, 0.8);
     }
-    if ((pos % __classPrivateFieldGet(this, _Metronome_subBeats, "f")) == 0) {
+    if ((pos % __classPrivateFieldGet(this, _Metronome_subBeats, "f")) === 0) {
         lineType = 1;
         // Use accent on first beat, but only if beats > 1.
         const note = accent ? "A5" : "A4";
@@ -894,7 +894,7 @@ class Recorder {
         return __classPrivateFieldGet(this, _Recorder_events, "f").length > 0;
     }
     get isBeginning() {
-        return __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f") == 0;
+        return __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f") === 0;
     }
     get isAfterLast() {
         return __classPrivateFieldGet(this, _Recorder_events, "f").length <= __classPrivateFieldGet(this, _Recorder_nextPlaybackIndex, "f");
@@ -1194,7 +1194,7 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
         console.log("Timer started");
     }
 }, _Recorder_stopTimer = function _Recorder_stopTimer() {
-    if (__classPrivateFieldGet(this, _Recorder_timer, "f") != 0) {
+    if (__classPrivateFieldGet(this, _Recorder_timer, "f") !== 0) {
         console.log("Timer stopped");
         clearInterval(__classPrivateFieldGet(this, _Recorder_timer, "f"));
         __classPrivateFieldSet(this, _Recorder_timer, 0, "f");

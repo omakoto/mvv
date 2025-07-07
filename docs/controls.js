@@ -32,7 +32,7 @@ class TimeKeeper {
         return true;
     }
     getHumanReadable() {
-        if (__classPrivateFieldGet(this, _TimeKeeper_text, "f") == null) {
+        if (__classPrivateFieldGet(this, _TimeKeeper_text, "f") === null) {
             const s = __classPrivateFieldGet(this, _TimeKeeper_second, "f");
             const minutes = Math.floor(s / 60);
             const seconds = s % 60;
@@ -256,7 +256,7 @@ class Controls {
             __classPrivateFieldGet(this, _Controls_playSpeed, "f").removeClass(playSpeedClasses[i]);
         }
         __classPrivateFieldGet(this, _Controls_playSpeed, "f").addClass(playSpeedClasses[coordinator.playSpeedIndex]);
-        this.activate(__classPrivateFieldGet(this, _Controls_playSpeed, "f"), coordinator.playSpeedIndex != DEFAULT_PLAY_SPEED_INDEX);
+        this.activate(__classPrivateFieldGet(this, _Controls_playSpeed, "f"), coordinator.playSpeedIndex !== DEFAULT_PLAY_SPEED_INDEX);
         // Roll freeze and video mute.
         this.activate(__classPrivateFieldGet(this, _Controls_freeze, "f"), renderer.isRollFrozen);
         this.activate(__classPrivateFieldGet(this, _Controls_videoMute, "f"), renderer.isVideoMuted);
@@ -410,13 +410,13 @@ class Controls {
     }
 }
 _Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_playSpeed = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_sectionMarkersContainer = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_midiOutput = new WeakMap(), _Controls_timestamp = new WeakMap(), _Controls_cachedTimestamp = new WeakMap(), _Controls_currentTime = new WeakMap(), _Controls_totalTime = new WeakMap(), _Controls_cachedPercent = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap(), _Controls_instances = new WeakSet(), _Controls_setTimestamp = function _Controls_setTimestamp(text) {
-    if (__classPrivateFieldGet(this, _Controls_cachedTimestamp, "f") == text) {
+    if (__classPrivateFieldGet(this, _Controls_cachedTimestamp, "f") === text) {
         return;
     }
     __classPrivateFieldSet(this, _Controls_cachedTimestamp, text, "f");
     __classPrivateFieldGet(this, _Controls_timestamp, "f").text(text);
 }, _Controls_setTimePercent = function _Controls_setTimePercent(percent) {
-    if (__classPrivateFieldGet(this, _Controls_cachedPercent, "f") != percent) {
+    if (__classPrivateFieldGet(this, _Controls_cachedPercent, "f") !== percent) {
         __classPrivateFieldGet(this, _Controls_position, "f").css('left', percent + '%');
         __classPrivateFieldSet(this, _Controls_cachedPercent, percent, "f");
     }

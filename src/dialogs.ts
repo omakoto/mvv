@@ -200,9 +200,9 @@ class MetronomeBox extends DialogBase {
             let val = parseInt(inputEl.value, 10);
             if (isNaN(val)) val = 0;
 
-            if (adj != 0) {
+            if (adj !== 0) {
                 val += adj;
-            } else if (factor != 0) {
+            } else if (factor !== 0) {
                 val = Math.round(val * factor);
             }
             const min = parseInt(this.focusedInput.attr('min') || "0");
