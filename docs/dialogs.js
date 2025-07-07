@@ -290,7 +290,7 @@ class MidiOutputBox extends DialogBase {
             overlay: true,
         });
         this._box.open('midi_output_box');
-        $('#midi_output_select').focus();
+        select.focus();
     }
 }
 export var midiOutputBox = new MidiOutputBox();
