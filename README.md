@@ -24,7 +24,7 @@ Other features:
 - Metronome w/ Polyrhythm support (using https://tonejs.github.io/ for audio feedback)
 
 <a href="https://omakoto.github.io/mvv/">
-  <img src="mvv-screenshot.png" alt="MVV screenshot" style="width: 60%">
+  <img src="mvv-screenshot.png" alt="MVV screenshot" style="width: 100%">
 </a>
 
 
