@@ -44,6 +44,9 @@ const MIDI_CONTROL_CHANGE = {
     84: 'Portamento Control', 91: 'Effects 1 Depth (Reverb)', 93: 'Effects 3 Depth (Chorus)',
     121: 'Reset All Controllers', 123: 'All Notes Off'
 };
+function byteToHex(byte) {
+    return ("0" + byte.toString(16).toUpperCase()).slice(-2);
+}
 export class MidiEvent {
     constructor(timeStamp, data, device) {
         _MidiEvent_timestamp.set(this, void 0);
@@ -125,7 +128,7 @@ export class MidiEvent {
     toString() {
         const timestamp = Math.floor(this.timestamp * 1000) / 1000;
         const data = __classPrivateFieldGet(this, _MidiEvent_data, "f");
-        const hexString = Array.from(data).map(byte => ("0" + byte.toString(16).toUpperCase()).slice(-2)).join(' ');
+        const hexString = Array.from(data).map(byte => byteToHex(byte)).join(' ');
         const description = this.describeMidiEvent();
         return `time=${timestamp}, data=${hexString}: ${description}`;
     }
@@ -133,7 +136,7 @@ export class MidiEvent {
         const data = __classPrivateFieldGet(this, _MidiEvent_data, "f");
         const commandByte = data[0] >> 4;
         const channel = (data[0] & 0x0f) + 1;
-        const eventName = MIDI_COMMANDS[commandByte] || 'Unknown Event';
+        const eventName = MIDI_COMMANDS[commandByte] || `[Unknown Event:${byteToHex(data[0])}]`;
         let details = '';
         switch (commandByte) {
             case 0x9: // Note On
@@ -167,7 +170,7 @@ export class MidiEvent {
                 details = `Program: ${programNum}`;
                 break;
         }
-        return eventName + " [" + details + "]";
+        return `${eventName} (ch:${channel}) [${details}]`;
     }
 }
 _MidiEvent_timestamp = new WeakMap(), _MidiEvent_data = new WeakMap(), _MidiEvent_device = new WeakMap();
