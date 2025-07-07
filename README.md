@@ -4,32 +4,30 @@
 
 [MVV](https://omakoto.github.io/mvv/) is an online MIDI input visualizer, recorder and player, created for piano learners.
 
-It visualizes:
-- Note events (which keys are pressed), with intencity (aka velocity)
-- Pedal depth (sosutenuto pedelanot supported yet)
+It shows:
+
+- Played notes with intensity
+  - With note names
+  - With chords analysis (using https://github.com/tonaljs/tonal)
+- Damper pedal
+- Sostenuto pedal
+- Expression control (for the digital sax, etc)
+
+Recording features:
+
+- Record and Playback, with saving & loading as a `*.mid` file
+- Playback speed control
+- "Always recording": Always record all input events up to 20 minutes. Press 'B' (or the red "replay" button) to move it the recording buffer, so you can play it back.
+
+Other features:
+
+- Metronome w/ Polyrhythm support (using https://tonejs.github.io/ for audio feedback)
 
 <a href="https://omakoto.github.io/mvv/">
-  <img src="mvv-screenshot.png" alt="MVV screenshot" style="width: 80%">
+  <img src="mvv-screenshot.png" alt="MVV screenshot" style="width: 60%">
 </a>
 
-- TODO: update the screenshot
-
-## Features
-
-- Show notes with velocity
-- Show note names (C, D, E, ...)
-- Chords (w/ https://github.com/tonaljs/tonal)
-- Record / Play / Save & Load as a `*.mid` file
-- Metronome (w/ https://tonejs.github.io/ for audio feedback)
-  - Polyrhythm support
 
 ## Shortcut Keys
 
 Press '?' for help
-
-## TODO
-
-- [X] Playback speed (1/4, 1/2, x2, x4)
-- [X] Playback
-  - [X] Gap detection and shortcut keys to prev/next gaps
-  - [X] Show gaps on the playback bar and snap touch.
