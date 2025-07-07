@@ -206,23 +206,20 @@ class BytesWriter {
         this.#buf = new Uint8Array(this.#cap);
     }
 
-    writeVar(val: number) {
-        if (val >= 0x200000) {
-            let v = val / 0x200000;
-            val &= (0x200000 - 1)
-            this.writeU8(0x80 | v);
+    writeVar(value: number) {
+        if (value < 0) {
+            throw new Error("Value must be non-negative.");
         }
-        if (val >= 0x4000) {
-            let v = val / 0x4000;
-            val &= (0x4000 - 1)
-            this.writeU8(0x80 | v);
+        const buffer = [];
+        do {
+            buffer.push(value & 0x7F);
+            value >>= 7;
+        } while (value > 0);
+
+        while (buffer.length > 1) {
+            this.writeU8(buffer.pop()! | 0x80);
         }
-        if (val >= 0x80) {
-            let v = val / 0x80;
-            val &= (0x80 - 1)
-            this.writeU8(0x80 | v);
-        }
-        this.writeU8(val);
+        this.writeU8(buffer.pop()!);
         return this;
     }
 
@@ -339,15 +336,13 @@ class BytesReader {
     }
 
     readVar(): number {
-        let ret = 0;
-        for (;;) {
-            let v = this.readU8();
-            ret += (v & 0x7f);
-            if (v < 128) {
-                return ret;
-            }
-            ret <<= 7;
-        }
+        let value = 0;
+        let byte;
+        do {
+            byte = this.readU8();
+            value = (value << 7) | (byte & 0x7F);
+        } while ((byte & 0x80) !== 0);
+        return value;
     }
 
     skip(nbytes: number): void {

@@ -154,7 +154,7 @@ function analyzeChordTonalInner(notes, sharp, assumePerfectFifth) {
     notes.sort();
     const noteNames = notes.map(pc => Tonal.Midi.midiToNoteName(pc, { sharps: sharp }));
     //console.log(noteNames);
-    const chords = Tonal.Chord.detect(noteNames, { assumePerfectFifth: true });
+    const chords = Tonal.Chord.detect(noteNames, { assumePerfectFifth: assumePerfectFifth });
     if (chords === null) {
         return EMPTY_STRS;
     }
@@ -163,7 +163,7 @@ function analyzeChordTonalInner(notes, sharp, assumePerfectFifth) {
     }
 }
 function analyzeChordTonal(notes, sharp) {
-    return analyzeChordTonalInner(notes, sharp, false);
+    return analyzeChordTonalInner(notes, sharp, true);
 }
 function analyzeChord(notes, sharp) {
     return analyzeChordTonal(notes, sharp);
