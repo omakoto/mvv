@@ -2051,7 +2051,6 @@ class Coordinator {
 
     updateUi(): void {
         controls.update();
-        this.updateNoteInformation();
         this.#updateFps();
         this.updateNoteInformation();
     }
@@ -2178,15 +2177,41 @@ class Coordinator {
         midiRenderingStatus.afterDraw(this.#now);
     }
 
+    #updateNoteInformationNoteNamesShown = false;
+    #updateNoteInformationLastNotes: number[] = [];
+
+    #arraySame(a1: number[], a2: number[]) {
+        if (a1.length !== a2.length) {
+            return false;
+        }
+        for (let i = 0; i < a1.length; i++) {
+            if (a1[i] !== a2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     updateNoteInformation(): void {
         if (!this.isShowingNoteNames) {
-            this.#notes.fadeOut(800);
-            this.#chords.fadeOut(800);
+            if (this.#updateNoteInformationNoteNamesShown) {
+                this.#notes.fadeOut(800);
+                this.#chords.fadeOut(800);
+                this.#updateNoteInformationNoteNamesShown = false;
+            }
             return;
         }
+        this.#updateNoteInformationNoteNamesShown = true;
 
         // Build note names.
         const notes = midiRenderingStatus.getPressedNotes();
+
+        // If notes haven't changed, just return.
+        const nowNotes = notes.map(( n ) => n.note);
+        if (this.#arraySame(nowNotes, this.#updateNoteInformationLastNotes)) {
+            return;
+        }
+        this.#updateNoteInformationLastNotes = nowNotes;
 
         let lastOctave = -1;
         const noteSpans = notes.map(( n ) => {
