@@ -53,10 +53,14 @@ const RGB_OCTAVE_LINES: [number, number, number] = [100, 100, 0];
 const ALWAYS_RECORD_SECONDS = 60 * 20;
 const ALWAYS_RECORD_MAX_EVENTS = ALWAYS_RECORD_SECONDS * 100;
 
-
 // If a note is released within this many ticks, we force its visibility on the UI
 // to ensure it's drawn.
-const SHORTEST_NOTE_LENGTH = 1;
+const SHORTEST_NOTE_LENGTH = 2;
+
+// If true, simulate drum-style midi input devices, which can be used to
+// debug the above SHORTEST_NOTE_LENGTH handling.
+// It's not const, so we can flip it at runtime using the debugger.
+var SIMULATE_ZERO_LENGTH_NOTES = false;
 
 // Utility functions
 
@@ -67,8 +71,6 @@ function int(v: number): number {
 function s(v: number): number {
     return int(v * SCALE);
 }
-
-var SIMULATE_ZERO_LENGTH_NOTES = false // Simulate drum-style midi input devices.
 
 // Scroll speed.
 const ROLL_SCROLL_PX = [s(2), s(4), 0.25, 1];
@@ -593,6 +595,9 @@ class MidiRenderingStatus {
     #onNoteCountInTick = 0;
     #offNoteCountInTick = 0;
 
+    #lastNoteOnTick: number;
+    #lastNoteOffTick: number;
+
     constructor() {
         this.reset();
     }
@@ -619,6 +624,8 @@ class MidiRenderingStatus {
             n.onTick = this.#tick;
             n.onTime = ev.timestamp;
 
+            this.#lastNoteOnTick = this.#tick;
+
         } else if (ev.isNoteOff) {
             let n = this.#notes[data1]!;
             if (!n.noteOn) {
@@ -629,6 +636,8 @@ class MidiRenderingStatus {
 
             n.offTick = this.#tick;
             n.offTime = ev.timestamp;
+
+            this.#lastNoteOffTick = this.#tick;
 
         } else if (status === 176) { // Control Change
             switch (data1) {
@@ -654,6 +663,8 @@ class MidiRenderingStatus {
         this.#sostenuto = 0;
         this.#onNoteCountInTick = 0;
         this.#offNoteCountInTick = 0;
+        this.#lastNoteOnTick = 0;
+        this.#lastNoteOffTick = 0;
     }
 
     afterDraw(_now: number): void {
@@ -692,9 +703,6 @@ class MidiRenderingStatus {
             // NOTE: In this case, we don't adjust other properties --
             // namely, the offXxx properties are still newer than
             // the corresponding onXxx properties.
-            //
-            // TODO: Unfortunately, when this happens, we don't always update the UI
-            // after this expires. We need to somehow ensure it won't be the case.
             let copy = n.copy();
             copy.noteOn = true;
             return copy;
@@ -703,6 +711,12 @@ class MidiRenderingStatus {
             // Note off
             return n;
         }
+    }
+
+    // If the last note-on or off was too close, then requrest redraw.
+    needsAnimation(): boolean {
+        return (this.#tick - this.#lastNoteOnTick) <= SHORTEST_NOTE_LENGTH ||
+            (this.#tick - this.#lastNoteOffTick) <= SHORTEST_NOTE_LENGTH;
     }
 
     isJustPressed(noteIndex: number): boolean {
@@ -2290,10 +2304,17 @@ class Coordinator {
             
             // Copy the off-screen canvas to the visible one.
             renderer.flip();
-            
+
+            // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
+            // know the exact note-off timing as per MidiRenderingStatus.
+            // So we call it every frame. Bit this method internally does caching,
+            // so it shouldn't normally be expensive.
+            this.updateNoteInformation();
+
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
+            const needsAnimation = renderer.needsAnimation() ||
+                recorder.isPlaying || midiRenderingStatus.needsAnimation();
             if (forceRequest || needsAnimation) {
                 this.#animationFrameId = requestAnimationFrame(() => loop(false));
             } else {

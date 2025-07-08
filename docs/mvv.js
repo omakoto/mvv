@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_now, _Coordinator_nextSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -52,7 +52,11 @@ const ALWAYS_RECORD_SECONDS = 60 * 20;
 const ALWAYS_RECORD_MAX_EVENTS = ALWAYS_RECORD_SECONDS * 100;
 // If a note is released within this many ticks, we force its visibility on the UI
 // to ensure it's drawn.
-const SHORTEST_NOTE_LENGTH = 1;
+const SHORTEST_NOTE_LENGTH = 2;
+// If true, simulate drum-style midi input devices, which can be used to
+// debug the above SHORTEST_NOTE_LENGTH handling.
+// It's not const, so we can flip it at runtime using the debugger.
+var SIMULATE_ZERO_LENGTH_NOTES = false;
 // Utility functions
 function int(v) {
     return Math.floor(v);
@@ -60,7 +64,6 @@ function int(v) {
 function s(v) {
     return int(v * SCALE);
 }
-var SIMULATE_ZERO_LENGTH_NOTES = false; // Simulate drum-style midi input devices.
 // Scroll speed.
 const ROLL_SCROLL_PX = [s(2), s(4), 0.25, 1];
 function getScrollSpeedPx(index) {
@@ -489,6 +492,8 @@ class MidiRenderingStatus {
         _MidiRenderingStatus_sostenuto.set(this, 0);
         _MidiRenderingStatus_onNoteCountInTick.set(this, 0);
         _MidiRenderingStatus_offNoteCountInTick.set(this, 0);
+        _MidiRenderingStatus_lastNoteOnTick.set(this, void 0);
+        _MidiRenderingStatus_lastNoteOffTick.set(this, void 0);
         this.reset();
     }
     get currentTick() {
@@ -510,6 +515,7 @@ class MidiRenderingStatus {
             n.note = data1;
             n.onTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
             n.onTime = ev.timestamp;
+            __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOnTick, __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), "f");
         }
         else if (ev.isNoteOff) {
             let n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[data1];
@@ -520,6 +526,7 @@ class MidiRenderingStatus {
             n.noteOn = false;
             n.offTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
             n.offTime = ev.timestamp;
+            __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOffTick, __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), "f");
         }
         else if (status === 176) { // Control Change
             switch (data1) {
@@ -544,6 +551,8 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_sostenuto, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCountInTick, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOnTick, 0, "f");
+        __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOffTick, 0, "f");
     }
     afterDraw(_now) {
         var _c;
@@ -576,9 +585,6 @@ class MidiRenderingStatus {
             // NOTE: In this case, we don't adjust other properties --
             // namely, the offXxx properties are still newer than
             // the corresponding onXxx properties.
-            //
-            // TODO: Unfortunately, when this happens, we don't always update the UI
-            // after this expires. We need to somehow ensure it won't be the case.
             let copy = n.copy();
             copy.noteOn = true;
             return copy;
@@ -587,6 +593,11 @@ class MidiRenderingStatus {
             // Note off
             return n;
         }
+    }
+    // If the last note-on or off was too close, then requrest redraw.
+    needsAnimation() {
+        return (__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - __classPrivateFieldGet(this, _MidiRenderingStatus_lastNoteOnTick, "f")) <= SHORTEST_NOTE_LENGTH ||
+            (__classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - __classPrivateFieldGet(this, _MidiRenderingStatus_lastNoteOffTick, "f")) <= SHORTEST_NOTE_LENGTH;
     }
     isJustPressed(noteIndex) {
         const n = __classPrivateFieldGet(this, _MidiRenderingStatus_notes, "f")[noteIndex];
@@ -613,7 +624,7 @@ class MidiRenderingStatus {
         return __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f") - n.offTick;
     }
 }
-_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_damperPedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCountInTick = new WeakMap(), _MidiRenderingStatus_offNoteCountInTick = new WeakMap();
+_MidiRenderingStatus_tick = new WeakMap(), _MidiRenderingStatus_notes = new WeakMap(), _MidiRenderingStatus_damperPedal = new WeakMap(), _MidiRenderingStatus_sostenuto = new WeakMap(), _MidiRenderingStatus_onNoteCountInTick = new WeakMap(), _MidiRenderingStatus_offNoteCountInTick = new WeakMap(), _MidiRenderingStatus_lastNoteOnTick = new WeakMap(), _MidiRenderingStatus_lastNoteOffTick = new WeakMap();
 export const midiRenderingStatus = new MidiRenderingStatus();
 class MidiOutputManager {
     constructor() {
@@ -1871,9 +1882,15 @@ class Coordinator {
             this.onDraw();
             // Copy the off-screen canvas to the visible one.
             renderer.flip();
+            // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
+            // know the exact note-off timing as per MidiRenderingStatus.
+            // So we call it every frame. Bit this method internally does caching,
+            // so it shouldn't normally be expensive.
+            this.updateNoteInformation();
             // Request the next frame.
             // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = renderer.needsAnimation() || recorder.isPlaying;
+            const needsAnimation = renderer.needsAnimation() ||
+                recorder.isPlaying || midiRenderingStatus.needsAnimation();
             if (forceRequest || needsAnimation) {
                 __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame(() => loop(false)), "f");
             }
