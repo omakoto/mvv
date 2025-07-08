@@ -55,7 +55,7 @@ const ALWAYS_RECORD_MAX_EVENTS = ALWAYS_RECORD_SECONDS * 100;
 
 // If a note is released within this many ticks, we force its visibility on the UI
 // to ensure it's drawn.
-const SHORTEST_NOTE_LENGTH = 2;
+const SHORTEST_NOTE_LENGTH = 1;
 
 // If true, simulate drum-style midi input devices, which can be used to
 // debug the above SHORTEST_NOTE_LENGTH handling.
