@@ -667,7 +667,7 @@ class MidiRenderingStatus {
         this.#lastNoteOffTick = 0;
     }
 
-    afterDraw(_now: number): void {
+    afterDraw(): void {
         this.#tick++;
         this.#onNoteCountInTick = 0;
         this.#offNoteCountInTick = 0;
@@ -1547,8 +1547,7 @@ class Recorder {
 export const recorder = new Recorder();
 
 class Coordinator {
-    #now = 0;
-    #nextSecond = 0;
+    #nextFpsMeasureSecond = 0;
     #frames = 0;
     #flips = 0;
     #playbackTicks = 0;
@@ -1585,7 +1584,7 @@ class Coordinator {
     static readonly #STORAGE_KEY_METRONOME_SUB_BEATS = 'mvv_metronomeSubBeats';
 
     constructor() {
-        this.#nextSecond = performance.now() + 1000;
+        this.#nextFpsMeasureSecond = performance.now() + 1000;
         this.#efps = $("#fps");
         this.#notes = $('#notes');
         this.#chords = $('#chords');
@@ -2164,31 +2163,27 @@ class Coordinator {
     #updateFps() {
         if (!this.isAnimating) {
             this.#efps.text("Animation stopped");
-            this.#now = 0;
-            this.#nextSecond = 0;
+            this.#nextFpsMeasureSecond = 0;
             return;
         }
         let now = performance.now();
-        if (now >= this.#nextSecond) {
-            this.#efps.text(`${this.#flips}/${this.#frames}/${this.#playbackTicks}`);
+        if (now >= this.#nextFpsMeasureSecond) {
+            this.#efps.text(`${this.#flips}/${this.#frames} - ${this.#playbackTicks}`);
             this.#flips = 0;
             this.#frames = 0;
             this.#playbackTicks = 0;
-            this.#nextSecond += 1000;
-            if (this.#nextSecond < now) {
-                this.#nextSecond = now + 1000;
+            this.#nextFpsMeasureSecond += 1000;
+            if (this.#nextFpsMeasureSecond < now) {
+                this.#nextFpsMeasureSecond = now + 1000;
             }
         }
-        this.#now = now;
     }
 
     onDraw(): void {
-        this.#frames++;
-
         this.#updateFps();
 
         renderer.onDraw();
-        midiRenderingStatus.afterDraw(this.#now);
+        midiRenderingStatus.afterDraw();
     }
 
     #updateNoteInformationNoteNamesShown = false;
@@ -2294,36 +2289,51 @@ class Coordinator {
         console.log("Animation started")
         this.#updateFps();
 
-        const loop = (forceRequest: boolean) => {
-            // #flips is for the FPS counter, representing screen updates.
-            this.#flips++; 
-            
-            // Draw the current state to the off-screen canvas.
-            // This also updates the #frames count for the FPS counter.
-            this.onDraw();
-            
-            // Copy the off-screen canvas to the visible one.
-            renderer.flip();
+        var nextFlip = -1;
 
-            // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
-            // know the exact note-off timing as per MidiRenderingStatus.
-            // So we call it every frame. Bit this method internally does caching,
-            // so it shouldn't normally be expensive.
-            this.updateNoteInformation();
+        const loop = (time: number, forceRequest: boolean) => {
+            this.#frames++;
 
-            // Request the next frame.
-            // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-            const needsAnimation = renderer.needsAnimation() ||
-                recorder.isPlaying || midiRenderingStatus.needsAnimation();
-            if (forceRequest || needsAnimation) {
-                this.#animationFrameId = requestAnimationFrame(() => loop(false));
+            var requestNext = false;
+            const now = performance.now();
+            if (now < nextFlip) {
+                requestNext = true;
+            } else {
+                nextFlip = now + 9;
+
+                // #flips is for the FPS counter, representing screen updates.
+                this.#flips++;
+
+                // Draw the current state to the off-screen canvas.
+                // This also updates the #frames count for the FPS counter.
+                this.onDraw();
+
+                // Copy the off-screen canvas to the visible one.
+                renderer.flip();
+
+                // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
+                // know the exact note-off timing as per MidiRenderingStatus.
+                // So we call it every frame. Bit this method internally does caching,
+                // so it shouldn't normally be expensive.
+                this.updateNoteInformation();
+
+                // Request the next frame.
+                // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
+                const needsAnimation = renderer.needsAnimation() ||
+                    recorder.isPlaying || midiRenderingStatus.needsAnimation();
+                if (forceRequest || needsAnimation) {
+                    requestNext = true;
+                }
+            }
+            if (requestNext) {
+                this.#animationFrameId = requestAnimationFrame((time) => loop(time, false));
             } else {
                 this.stopAnimationLoop();
             }
         };
         
         // Start the loop.
-        loop(true);
+        loop(performance.now(), true);
     }
 
     /**
