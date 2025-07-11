@@ -1875,12 +1875,11 @@ class Coordinator {
             var _c, _d;
             __classPrivateFieldSet(this, _Coordinator_frames, (_c = __classPrivateFieldGet(this, _Coordinator_frames, "f"), _c++, _c), "f");
             var requestNext = false;
-            const now = performance.now();
-            if (now < nextFlip) {
+            if (time < nextFlip) {
                 requestNext = true;
             }
             else {
-                nextFlip = now + 9;
+                nextFlip = time + 9;
                 // #flips is for the FPS counter, representing screen updates.
                 __classPrivateFieldSet(this, _Coordinator_flips, (_d = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _d++, _d), "f");
                 // Draw the current state to the off-screen canvas.

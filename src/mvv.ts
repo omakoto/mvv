@@ -2295,11 +2295,10 @@ class Coordinator {
             this.#frames++;
 
             var requestNext = false;
-            const now = performance.now();
-            if (now < nextFlip) {
+            if (time < nextFlip) {
                 requestNext = true;
             } else {
-                nextFlip = now + 9;
+                nextFlip = time + 9;
 
                 // #flips is for the FPS counter, representing screen updates.
                 this.#flips++;
