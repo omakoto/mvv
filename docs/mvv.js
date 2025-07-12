@@ -35,10 +35,12 @@ const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
 const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
-const ALPHA_DECAY = 10;
+const MAX_FPS = 100;
+const FPS_TO_MILLIS = int(1000 / MAX_FPS);
 const NOTES_COUNT = 128;
 const NOTE_NAME_FRAME_THRESHOLD = 120;
 const NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD = 20;
+const ALPHA_DECAY_SEC = 0.3; // Notes fade out in 0.5 sec
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
 // We set some styles in JS.
@@ -286,7 +288,7 @@ class Renderer {
         return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") ||
             (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f") && __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64)); // +64 for safety(?) margin
     }
-    onDraw() {
+    onDraw(time) {
         var _c;
         var _d;
         __classPrivateFieldSet(this, _Renderer_currentFrame, (_d = __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), _d++, _d), "f");
@@ -301,8 +303,10 @@ class Renderer {
         // Individual bar width
         let bw = __classPrivateFieldGet(this, _Renderer_W, "f") / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1) - 1;
         var drawHeight = 0;
+        var scrollPx = coordinator.scrollSpeedPx;
+        var scrollFactor = coordinator.scrollSpeedFactor;
         if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
-            __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") + coordinator.scrollSpeedPx, "f");
+            __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") + scrollPx, "f");
             const scrollAmount = int(__classPrivateFieldGet(this, _Renderer_subpixelScroll, "f"));
             __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") - scrollAmount, "f");
             const hlineHeight = s(2);
@@ -362,9 +366,10 @@ class Renderer {
             let n = midiRenderingStatus.getNote(i);
             const on = n.noteOn;
             const velocity = n.velocity;
-            const offDuration = n.getOffAgeTick();
+            // const offDuration = now - ;
             let color = this.getBarColor(velocity);
-            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * offDuration));
+            const alpha = on ? 255 :
+                (255 - (255 * (((time - n.offTime) / 1000.0) / ALPHA_DECAY_SEC)));
             if (alpha <= 0) {
                 continue;
             }
@@ -393,7 +398,8 @@ class Renderer {
                     const noteOffAge = midiRenderingStatus.getLastNoteOffAgeTick(i);
                     const lastDraw = (_c = __classPrivateFieldGet(this, _Renderer_lastNoteNameDrawFrame, "f")[i]) !== null && _c !== void 0 ? _c : -9999;
                     const sinceLastDraw = __classPrivateFieldGet(this, _Renderer_currentFrame, "f") - lastDraw;
-                    if ((noteOffAge > NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD) || (sinceLastDraw > NOTE_NAME_FRAME_THRESHOLD)) {
+                    if ((noteOffAge > (NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD / scrollFactor))
+                        || (sinceLastDraw > (NOTE_NAME_FRAME_THRESHOLD / scrollFactor))) {
                         __classPrivateFieldGet(this, _Renderer_lastNoteNameDrawFrame, "f")[i] = __classPrivateFieldGet(this, _Renderer_currentFrame, "f");
                         const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
                         __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
@@ -467,22 +473,6 @@ class MidiRenderingNoteStatus {
         Object.assign(copy, this);
         return copy;
     }
-    getOnAgeTick() {
-        if (this.noteOn) {
-            return midiRenderingStatus.currentTick - this.onTick;
-        }
-        else {
-            return -1;
-        }
-    }
-    getOffAgeTick() {
-        if (!this.noteOn) {
-            return midiRenderingStatus.currentTick - this.offTick;
-        }
-        else {
-            return -1;
-        }
-    }
 }
 class MidiRenderingStatus {
     constructor() {
@@ -554,7 +544,7 @@ class MidiRenderingStatus {
         __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOnTick, 0, "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOffTick, 0, "f");
     }
-    afterDraw() {
+    afterDraw(time) {
         var _c;
         __classPrivateFieldSet(this, _MidiRenderingStatus_tick, (_c = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), _c++, _c), "f");
         __classPrivateFieldSet(this, _MidiRenderingStatus_onNoteCountInTick, 0, "f");
@@ -1564,6 +1554,9 @@ class Coordinator {
     get scrollSpeedPx() {
         return getScrollSpeedPx(this.scrollSpeedIndex);
     }
+    get scrollSpeedFactor() {
+        return this.scrollSpeedPx / getScrollSpeedPx(0);
+    }
     get scrollSpeedIndex() {
         return __classPrivateFieldGet(this, _Coordinator_scrollSpeedIndex, "f");
     }
@@ -1788,12 +1781,13 @@ class Coordinator {
         midiRenderingStatus.reset();
         midiOutputManager.reset();
     }
-    onDraw() {
+    onDraw(time) {
+        renderer.onDraw(time);
+        midiRenderingStatus.afterDraw(time);
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateFps).call(this);
-        renderer.onDraw();
-        midiRenderingStatus.afterDraw();
     }
     updateNoteInformation() {
+        const time = performance.now();
         if (!this.isShowingNoteNames) {
             if (__classPrivateFieldGet(this, _Coordinator_updateNoteInformationNoteNamesShown, "f")) {
                 __classPrivateFieldGet(this, _Coordinator_notes, "f").fadeOut(800);
@@ -1819,7 +1813,7 @@ class Coordinator {
             const spacing = (lastOctave < 0 || octave === lastOctave) ? "" : "&nbsp;&nbsp;";
             lastOctave = octave;
             // Check if the note was pressed recently.
-            const isRecent = n.getOnAgeTick() <= 4;
+            const isRecent = (time - n.onTime) <= 50; // 50 ms
             if (isRecent) {
                 return `${spacing}<span class="notes_highlight">${noteName}</span>`;
             }
@@ -1879,12 +1873,12 @@ class Coordinator {
                 requestNext = true;
             }
             else {
-                nextFlip = time + 9;
+                nextFlip = time + FPS_TO_MILLIS;
                 // #flips is for the FPS counter, representing screen updates.
                 __classPrivateFieldSet(this, _Coordinator_flips, (_d = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _d++, _d), "f");
                 // Draw the current state to the off-screen canvas.
                 // This also updates the #frames count for the FPS counter.
-                this.onDraw();
+                this.onDraw(time);
                 // Copy the off-screen canvas to the visible one.
                 renderer.flip();
                 // Because of the SHORTEST_NOTE_LENGTH compensation, we may not

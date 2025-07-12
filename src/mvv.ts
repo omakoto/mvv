@@ -31,12 +31,15 @@ console.log("Scale: " + SCALE);
 const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
 const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
 
-const ALPHA_DECAY = 10;
+const MAX_FPS = 100;
+const FPS_TO_MILLIS = int(1000 / MAX_FPS);
 
 const NOTES_COUNT = 128;
 
 const NOTE_NAME_FRAME_THRESHOLD = 120;
 const NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD = 20;
+
+const ALPHA_DECAY_SEC = 0.3; // Notes fade out in 0.5 sec
 
 const WAKE_LOCK_MILLIS = 5 * 60 * 1000; // 5 minutes
 // const WAKE_LOCK_MILLIS = 3000; // for testing
@@ -330,7 +333,7 @@ class Renderer {
                 (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64)); // +64 for safety(?) margin
     }
 
-    onDraw(): void {
+    onDraw(time: number): void {
         this.#currentFrame++;
 
         this.#needsAnimation =false;
@@ -348,9 +351,11 @@ class Renderer {
         let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
 
         var drawHeight: number = 0;
+        var scrollPx = coordinator.scrollSpeedPx;
+        var scrollFactor = coordinator.scrollSpeedFactor;
 
         if (!this.#rollFrozen) {
-            this.#subpixelScroll += coordinator.scrollSpeedPx;
+            this.#subpixelScroll += scrollPx;
             const scrollAmount = int(this.#subpixelScroll);
             this.#subpixelScroll -= scrollAmount;
 
@@ -417,8 +422,6 @@ class Renderer {
 
                 this.#extraLineType = -1;
             }
-
-
         }
 
         const fontSize = bw * 0.9;
@@ -427,10 +430,12 @@ class Renderer {
             let n = midiRenderingStatus.getNote(i);
             const on = n.noteOn;
             const velocity = n.velocity;
-            const offDuration = n.getOffAgeTick();
+            // const offDuration = now - ;
 
             let color = this.getBarColor(velocity)
-            const alpha = on ? 255 : Math.max(0, 255 - (ALPHA_DECAY * offDuration));
+            const alpha = on ? 255 :
+                (255 - (255 * (((time - n.offTime) / 1000.0) / ALPHA_DECAY_SEC)));
+
             if (alpha <= 0) {
                 continue;
             }
@@ -469,7 +474,8 @@ class Renderer {
                     const lastDraw = this.#lastNoteNameDrawFrame[i] ?? -9999;
                     const sinceLastDraw = this.#currentFrame - lastDraw;
 
-                    if ((noteOffAge > NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD) || (sinceLastDraw > NOTE_NAME_FRAME_THRESHOLD)) {
+                    if ((noteOffAge > (NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD / scrollFactor))
+                        || (sinceLastDraw > (NOTE_NAME_FRAME_THRESHOLD / scrollFactor))) {
 
                         this.#lastNoteNameDrawFrame[i] = this.#currentFrame;
 
@@ -568,22 +574,6 @@ class MidiRenderingNoteStatus {
         Object.assign(copy, this);
         return copy;
     }
-
-    getOnAgeTick(): number {
-        if (this.noteOn) {
-            return midiRenderingStatus.currentTick - this.onTick;
-        } else {
-            return -1;
-        }
-    }
-
-    getOffAgeTick(): number {
-        if (!this.noteOn) {
-            return midiRenderingStatus.currentTick - this.offTick;
-        } else {
-            return -1;
-        }
-    }
 }
 
 
@@ -667,7 +657,7 @@ class MidiRenderingStatus {
         this.#lastNoteOffTick = 0;
     }
 
-    afterDraw(): void {
+    afterDraw(time: number): void {
         this.#tick++;
         this.#onNoteCountInTick = 0;
         this.#offNoteCountInTick = 0;
@@ -1850,6 +1840,10 @@ class Coordinator {
         return getScrollSpeedPx(this.scrollSpeedIndex);
     }
 
+    get scrollSpeedFactor(): number {
+        return this.scrollSpeedPx / getScrollSpeedPx(0);
+    }
+
     get scrollSpeedIndex(): number {
         return this.#scrollSpeedIndex;
     }
@@ -2179,11 +2173,11 @@ class Coordinator {
         }
     }
 
-    onDraw(): void {
-        this.#updateFps();
+    onDraw(time: number): void {
+        renderer.onDraw(time);
+        midiRenderingStatus.afterDraw(time);
 
-        renderer.onDraw();
-        midiRenderingStatus.afterDraw();
+        this.#updateFps();
     }
 
     #updateNoteInformationNoteNamesShown = false;
@@ -2202,6 +2196,7 @@ class Coordinator {
     }
 
     updateNoteInformation(): void {
+        const time = performance.now();
         if (!this.isShowingNoteNames) {
             if (this.#updateNoteInformationNoteNamesShown) {
                 this.#notes.fadeOut(800);
@@ -2232,7 +2227,7 @@ class Coordinator {
             lastOctave = octave;
 
             // Check if the note was pressed recently.
-            const isRecent = n.getOnAgeTick() <= 4;
+            const isRecent = (time - n.onTime) <= 50; // 50 ms
 
             if (isRecent) {
                 return `${spacing}<span class="notes_highlight">${noteName}</span>`;
@@ -2298,14 +2293,14 @@ class Coordinator {
             if (time < nextFlip) {
                 requestNext = true;
             } else {
-                nextFlip = time + 9;
+                nextFlip = time + FPS_TO_MILLIS;
 
                 // #flips is for the FPS counter, representing screen updates.
                 this.#flips++;
 
                 // Draw the current state to the off-screen canvas.
                 // This also updates the #frames count for the FPS counter.
-                this.onDraw();
+                this.onDraw(time);
 
                 // Copy the off-screen canvas to the visible one.
                 renderer.flip();
