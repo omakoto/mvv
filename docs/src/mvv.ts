@@ -919,6 +919,20 @@ class Metronome {
 
 export const metronome = new Metronome();
 
+function recordFilter(ev: MidiEvent): boolean {
+    switch (ev.status) {
+        case 0x80: // Note off
+        case 0x90: // Note on
+        case 0xA0: // Poly-aftertouch
+        case 0xB0: // Control
+        // case 0xC0: // Program change
+        case 0xD0: // Channel-aftertouch
+        case 0xE0: // Pitch bend
+            return true;
+    }
+    return false;
+}
+
 class AlwaysRecorder {
     #events: Array<MidiEvent> = [];
 
@@ -926,6 +940,9 @@ class AlwaysRecorder {
     }
 
     recordEvent(ev: MidiEvent) {
+        if (!recordFilter(ev)) {
+            return;
+        }
         // Add event with its original timestamp.
         this.#events.push(ev);
 
@@ -1174,13 +1191,8 @@ class Recorder {
         }
 
         // Only record certain events.
-        switch (ev.status) {
-            case 144: // Note on
-            case 128: // Note off
-            case 176: // Control
-                break;
-            default:
-                return false;
+        if (!recordFilter(ev)) {
+            return false;
         }
 
         if (this.#events.length === 0) {

@@ -766,11 +766,27 @@ _Metronome_playing = new WeakMap(), _Metronome_bpm = new WeakMap(), _Metronome_b
     }
 };
 export const metronome = new Metronome();
+function recordFilter(ev) {
+    switch (ev.status) {
+        case 0x80: // Note off
+        case 0x90: // Note on
+        case 0xA0: // Poly-aftertouch
+        case 0xB0: // Control
+        // case 0xC0: // Program change
+        case 0xD0: // Channel-aftertouch
+        case 0xE0: // Pitch bend
+            return true;
+    }
+    return false;
+}
 class AlwaysRecorder {
     constructor() {
         _AlwaysRecorder_events.set(this, []);
     }
     recordEvent(ev) {
+        if (!recordFilter(ev)) {
+            return;
+        }
         // Add event with its original timestamp.
         __classPrivateFieldGet(this, _AlwaysRecorder_events, "f").push(ev);
         // Prune old events.
@@ -920,13 +936,8 @@ class Recorder {
             return false;
         }
         // Only record certain events.
-        switch (ev.status) {
-            case 144: // Note on
-            case 128: // Note off
-            case 176: // Control
-                break;
-            default:
-                return false;
+        if (!recordFilter(ev)) {
+            return false;
         }
         if (__classPrivateFieldGet(this, _Recorder_events, "f").length === 0) {
             // First event, remember the timestamp.
