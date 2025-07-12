@@ -612,7 +612,7 @@ class MidiRenderingStatus {
             n.note = data1;
 
             n.onTick = this.#tick;
-            n.onTime = ev.timestamp;
+            n.onTime = performance.now();
 
             this.#lastNoteOnTick = this.#tick;
 
@@ -625,7 +625,7 @@ class MidiRenderingStatus {
             n.noteOn = false;
 
             n.offTick = this.#tick;
-            n.offTime = ev.timestamp;
+            n.offTime = performance.now();
 
             this.#lastNoteOffTick = this.#tick;
 

@@ -504,7 +504,7 @@ class MidiRenderingStatus {
             n.velocity = data2;
             n.note = data1;
             n.onTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.onTime = ev.timestamp;
+            n.onTime = performance.now();
             __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOnTick, __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), "f");
         }
         else if (ev.isNoteOff) {
@@ -515,7 +515,7 @@ class MidiRenderingStatus {
             __classPrivateFieldSet(this, _MidiRenderingStatus_offNoteCountInTick, (_d = __classPrivateFieldGet(this, _MidiRenderingStatus_offNoteCountInTick, "f"), _d++, _d), "f");
             n.noteOn = false;
             n.offTick = __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f");
-            n.offTime = ev.timestamp;
+            n.offTime = performance.now();
             __classPrivateFieldSet(this, _MidiRenderingStatus_lastNoteOffTick, __classPrivateFieldGet(this, _MidiRenderingStatus_tick, "f"), "f");
         }
         else if (status === 176) { // Control Change
