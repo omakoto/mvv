@@ -549,14 +549,14 @@ class MidiRenderingNoteStatus {
     note: number;
     velocity: number;
 
-    onTick: number;
-    offTick: number;
+    onTick: number = 0;
+    offTick: number = 0;
 
     // On timestamp as in MidiEvent.timestamp.
-    onTime: number;
+    onTime: number = 0;
 
     // On timestamp as in MidiEvent.timestamp.
-    offTime: number;
+    offTime: number = 0;
 
     constructor() {
         this.reset();

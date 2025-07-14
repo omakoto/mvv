@@ -460,6 +460,12 @@ _Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = ne
 export const renderer = new Renderer();
 class MidiRenderingNoteStatus {
     constructor() {
+        this.onTick = 0;
+        this.offTick = 0;
+        // On timestamp as in MidiEvent.timestamp.
+        this.onTime = 0;
+        // On timestamp as in MidiEvent.timestamp.
+        this.offTime = 0;
         this.reset();
     }
     reset() {
