@@ -1887,14 +1887,17 @@ class Coordinator {
         console.log("Animation started");
         __classPrivateFieldSet(this, _Coordinator_flipRequired, false, "f");
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateFps).call(this);
-        const drawingLoop = () => {
+        const FPS = 60;
+        const INTERVAL_MS = int(1000 / FPS);
+        var lastFrameTime = 0;
+        const doOneFrame = (time) => {
             var _c;
-            const now = performance.now();
+            lastFrameTime = time;
             // #drawCount is for the FPS counter, representing screen updates.
             __classPrivateFieldSet(this, _Coordinator_drawCount, (_c = __classPrivateFieldGet(this, _Coordinator_drawCount, "f"), _c++, _c), "f");
             // Draw the current state to the off-screen canvas.
             // This also updates the #frames count for the FPS counter.
-            this.onDraw(now);
+            this.onDraw(time);
             __classPrivateFieldSet(this, _Coordinator_flipRequired, true, "f");
             // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
             // know the exact note-off timing as per MidiRenderingStatus.
@@ -1904,26 +1907,34 @@ class Coordinator {
             // Check if something is still moving.
             const needsAnimation = renderer.needsAnimation() ||
                 recorder.isPlaying || midiRenderingStatus.needsAnimation();
-            if (needsAnimation) {
-                // still need the next frame.
-            }
-            else {
+            if (!needsAnimation) {
                 this.stopAnimationLoop();
             }
         };
-        const animationLoop = () => {
+        const backupDrawingLoop = () => {
+            // If the animation didn't happen within the last 16ms, force do a frame.
+            const time = performance.now();
+            if ((time - lastFrameTime) >= INTERVAL_MS) {
+                doOneFrame(time);
+            }
+        };
+        const animationLoop = (time) => {
             var _c;
             __classPrivateFieldSet(this, _Coordinator_frameCount, (_c = __classPrivateFieldGet(this, _Coordinator_frameCount, "f"), _c++, _c), "f");
+            // Always request the next frame.
+            __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame((time) => animationLoop(time)), "f");
+            if ((time - lastFrameTime) >= INTERVAL_MS) {
+                doOneFrame(time);
+            }
             // Copy the off-screen canvas to the visible one.
             if (__classPrivateFieldGet(this, _Coordinator_flipRequired, "f")) {
                 renderer.flip();
                 __classPrivateFieldSet(this, _Coordinator_flipRequired, false, "f");
             }
-            __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame((time) => animationLoop()), "f");
         };
-        __classPrivateFieldSet(this, _Coordinator_animationTimerId, setInterval(drawingLoop, 1000 / 60), "f");
+        __classPrivateFieldSet(this, _Coordinator_animationTimerId, setInterval(backupDrawingLoop, INTERVAL_MS), "f");
         // Start the animation loop.
-        animationLoop();
+        animationLoop(performance.now());
     }
     /**
      * Stops the main animation loop.

@@ -2302,15 +2302,19 @@ class Coordinator {
         this.#flipRequired = false;
         this.#updateFps();
 
-        const drawingLoop = () => {
-            const now = performance.now();
+        const FPS = 60;
+        const INTERVAL_MS = int(1000 / FPS);
+
+        var lastFrameTime = 0;
+        const doOneFrame = (time: number) => {
+            lastFrameTime = time;
 
             // #drawCount is for the FPS counter, representing screen updates.
             this.#drawCount++;
 
             // Draw the current state to the off-screen canvas.
             // This also updates the #frames count for the FPS counter.
-            this.onDraw(now);
+            this.onDraw(time);
             this.#flipRequired = true;
 
             // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
@@ -2322,29 +2326,39 @@ class Coordinator {
             // Check if something is still moving.
             const needsAnimation = renderer.needsAnimation() ||
                 recorder.isPlaying || midiRenderingStatus.needsAnimation();
-            if (needsAnimation) {
-                // still need the next frame.
-            } else {
+            if (!needsAnimation) {
                 this.stopAnimationLoop();
             }
         }
 
-        const animationLoop = () => {
+        const backupDrawingLoop = () => {
+            // If the animation didn't happen within the last 16ms, force do a frame.
+            const time = performance.now();
+            if ((time - lastFrameTime) >= INTERVAL_MS) {
+                doOneFrame(time)
+            }
+        }
+
+        const animationLoop = (time) => {
             this.#frameCount++;
+            // Always request the next frame.
+            this.#animationFrameId = requestAnimationFrame((time) => animationLoop(time));
+
+            if ((time - lastFrameTime) >= INTERVAL_MS) {
+                doOneFrame(time);
+            }
 
             // Copy the off-screen canvas to the visible one.
             if (this.#flipRequired) {
                 renderer.flip();
                 this.#flipRequired = false;
             }
-
-            this.#animationFrameId = requestAnimationFrame((time) => animationLoop());
         };
 
-        this.#animationTimerId = setInterval(drawingLoop, 1000 / 60);
+        this.#animationTimerId = setInterval(backupDrawingLoop, INTERVAL_MS);
 
         // Start the animation loop.
-        animationLoop();
+        animationLoop(performance.now());
     }
 
     /**
