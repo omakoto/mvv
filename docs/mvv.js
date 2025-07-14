@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frameCount, _Coordinator_drawCount, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_flipRequired, _Coordinator_animationTimerId, _Coordinator_animationFrameId;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -285,9 +285,6 @@ class Renderer {
         }
     }
     needsAnimation() {
-        if (DEBUG) {
-            console.log("na", __classPrivateFieldGet(this, _Renderer_needsAnimation, "f"), "rf", __classPrivateFieldGet(this, _Renderer_rollFrozen, "f"), "ldy", __classPrivateFieldGet(this, _Renderer_lastDrawY, "f"));
-        }
         return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") ||
             (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f") && __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64)); // +64 for safety(?) margin
     }
@@ -463,12 +460,6 @@ _Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = ne
 export const renderer = new Renderer();
 class MidiRenderingNoteStatus {
     constructor() {
-        this.onTick = 0;
-        this.offTick = 0;
-        // On timestamp as in MidiEvent.timestamp.
-        this.onTime = 0;
-        // On timestamp as in MidiEvent.timestamp.
-        this.offTime = 0;
         this.reset();
     }
     reset() {
@@ -1295,8 +1286,8 @@ class Coordinator {
     constructor() {
         _Coordinator_instances.add(this);
         _Coordinator_nextFpsMeasureSecond.set(this, 0);
-        _Coordinator_frameCount.set(this, 0);
-        _Coordinator_drawCount.set(this, 0);
+        _Coordinator_frames.set(this, 0);
+        _Coordinator_flips.set(this, 0);
         _Coordinator_playbackTicks.set(this, 0);
         _Coordinator_efps.set(this, void 0);
         _Coordinator_wakelock.set(this, null);
@@ -1318,8 +1309,6 @@ class Coordinator {
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
         _Coordinator_updateNoteInformationNoteNamesShown.set(this, false);
         _Coordinator_updateNoteInformationLastNotes.set(this, []);
-        _Coordinator_flipRequired.set(this, false);
-        _Coordinator_animationTimerId.set(this, null);
         _Coordinator_animationFrameId.set(this, null);
         __classPrivateFieldSet(this, _Coordinator_nextFpsMeasureSecond, performance.now() + 1000, "f");
         __classPrivateFieldSet(this, _Coordinator_efps, $("#fps"), "f");
@@ -1873,7 +1862,7 @@ class Coordinator {
         }
     }
     get isAnimating() {
-        return __classPrivateFieldGet(this, _Coordinator_animationTimerId, "f") !== null;
+        return __classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") !== null;
     }
     /**
      * Starts the main animation loop, which is synchronized with the browser's
@@ -1885,58 +1874,54 @@ class Coordinator {
             return;
         }
         console.log("Animation started");
-        __classPrivateFieldSet(this, _Coordinator_flipRequired, false, "f");
         __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateFps).call(this);
-        const drawingLoop = () => {
-            var _c;
-            const now = performance.now();
-            // #drawCount is for the FPS counter, representing screen updates.
-            __classPrivateFieldSet(this, _Coordinator_drawCount, (_c = __classPrivateFieldGet(this, _Coordinator_drawCount, "f"), _c++, _c), "f");
-            // Draw the current state to the off-screen canvas.
-            // This also updates the #frames count for the FPS counter.
-            this.onDraw(now);
-            // this.#flipRequired = true;
-            renderer.flip();
-            // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
-            // know the exact note-off timing as per MidiRenderingStatus.
-            // So we call it every frame. Bit this method internally does caching,
-            // so it shouldn't normally be expensive.
-            this.updateNoteInformation();
-            // Check if something is still moving.
-            const needsAnimation = renderer.needsAnimation() ||
-                recorder.isPlaying || midiRenderingStatus.needsAnimation();
-            if (needsAnimation) {
-                // still need the next frame.
+        var nextFlip = -1;
+        const loop = (time, forceRequest) => {
+            var _c, _d;
+            __classPrivateFieldSet(this, _Coordinator_frames, (_c = __classPrivateFieldGet(this, _Coordinator_frames, "f"), _c++, _c), "f");
+            var requestNext = false;
+            if (time < nextFlip) {
+                requestNext = true;
+            }
+            else {
+                nextFlip = time + FPS_TO_MILLIS;
+                // #flips is for the FPS counter, representing screen updates.
+                __classPrivateFieldSet(this, _Coordinator_flips, (_d = __classPrivateFieldGet(this, _Coordinator_flips, "f"), _d++, _d), "f");
+                // Draw the current state to the off-screen canvas.
+                // This also updates the #frames count for the FPS counter.
+                this.onDraw(time);
+                // Copy the off-screen canvas to the visible one.
+                renderer.flip();
+                // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
+                // know the exact note-off timing as per MidiRenderingStatus.
+                // So we call it every frame. Bit this method internally does caching,
+                // so it shouldn't normally be expensive.
+                this.updateNoteInformation();
+                // Request the next frame.
+                // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
+                const needsAnimation = renderer.needsAnimation() ||
+                    recorder.isPlaying || midiRenderingStatus.needsAnimation();
+                if (forceRequest || needsAnimation) {
+                    requestNext = true;
+                }
+            }
+            if (requestNext) {
+                __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame((time) => loop(time, false)), "f");
             }
             else {
                 this.stopAnimationLoop();
             }
         };
-        const animationLoop = () => {
-            var _c;
-            __classPrivateFieldSet(this, _Coordinator_frameCount, (_c = __classPrivateFieldGet(this, _Coordinator_frameCount, "f"), _c++, _c), "f");
-            // Copy the off-screen canvas to the visible one.
-            if (__classPrivateFieldGet(this, _Coordinator_flipRequired, "f")) {
-                renderer.flip();
-                __classPrivateFieldSet(this, _Coordinator_flipRequired, false, "f");
-            }
-            __classPrivateFieldSet(this, _Coordinator_animationFrameId, requestAnimationFrame((time) => animationLoop()), "f");
-        };
-        __classPrivateFieldSet(this, _Coordinator_animationTimerId, setInterval(drawingLoop, 1000 / 60), "f");
-        // Start the animation loop.
-        animationLoop();
+        // Start the loop.
+        loop(performance.now(), true);
     }
     /**
      * Stops the main animation loop.
      */
     stopAnimationLoop() {
         if (this.isAnimating) {
-            clearInterval(__classPrivateFieldGet(this, _Coordinator_animationTimerId, "f"));
-            __classPrivateFieldSet(this, _Coordinator_animationTimerId, null, "f");
-            if (__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f") != null) {
-                cancelAnimationFrame(__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f"));
-                __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
-            }
+            cancelAnimationFrame(__classPrivateFieldGet(this, _Coordinator_animationFrameId, "f"));
+            __classPrivateFieldSet(this, _Coordinator_animationFrameId, null, "f");
             console.log("Animation stopped");
             __classPrivateFieldGet(this, _Coordinator_instances, "m", _Coordinator_updateFps).call(this);
         }
@@ -2003,7 +1988,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_b = Coordinator, _Coordinator_nextFpsMeasureSecond = new WeakMap(), _Coordinator_frameCount = new WeakMap(), _Coordinator_drawCount = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showOctaveLines = new WeakMap(), _Coordinator_showNoteNames = new WeakMap(), _Coordinator_scrollSpeedIndex = new WeakMap(), _Coordinator_playSpeedIndex = new WeakMap(), _Coordinator_showNoteOffLins = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_metronomeBpm = new WeakMap(), _Coordinator_metronomeMainBeats = new WeakMap(), _Coordinator_metronomeSubBeats = new WeakMap(), _Coordinator_knownRecorderState = new WeakMap(), _Coordinator_playbackTimerLastNow = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_updateNoteInformationNoteNamesShown = new WeakMap(), _Coordinator_updateNoteInformationLastNotes = new WeakMap(), _Coordinator_flipRequired = new WeakMap(), _Coordinator_animationTimerId = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_setPlaySpeedIndex = function _Coordinator_setPlaySpeedIndex(index) {
+_b = Coordinator, _Coordinator_nextFpsMeasureSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showOctaveLines = new WeakMap(), _Coordinator_showNoteNames = new WeakMap(), _Coordinator_scrollSpeedIndex = new WeakMap(), _Coordinator_playSpeedIndex = new WeakMap(), _Coordinator_showNoteOffLins = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_metronomeBpm = new WeakMap(), _Coordinator_metronomeMainBeats = new WeakMap(), _Coordinator_metronomeSubBeats = new WeakMap(), _Coordinator_knownRecorderState = new WeakMap(), _Coordinator_playbackTimerLastNow = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_updateNoteInformationNoteNamesShown = new WeakMap(), _Coordinator_updateNoteInformationLastNotes = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_setPlaySpeedIndex = function _Coordinator_setPlaySpeedIndex(index) {
     __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, index, "f");
     localStorage.setItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_PLAY_SPEED), String(index));
     this.updateUi();
@@ -2054,9 +2039,9 @@ _b = Coordinator, _Coordinator_nextFpsMeasureSecond = new WeakMap(), _Coordinato
     }
     let now = performance.now();
     if (now >= __classPrivateFieldGet(this, _Coordinator_nextFpsMeasureSecond, "f")) {
-        __classPrivateFieldGet(this, _Coordinator_efps, "f").text(`${__classPrivateFieldGet(this, _Coordinator_drawCount, "f")}/${__classPrivateFieldGet(this, _Coordinator_frameCount, "f")} - ${__classPrivateFieldGet(this, _Coordinator_playbackTicks, "f")}`);
-        __classPrivateFieldSet(this, _Coordinator_drawCount, 0, "f");
-        __classPrivateFieldSet(this, _Coordinator_frameCount, 0, "f");
+        __classPrivateFieldGet(this, _Coordinator_efps, "f").text(`${__classPrivateFieldGet(this, _Coordinator_flips, "f")}/${__classPrivateFieldGet(this, _Coordinator_frames, "f")} - ${__classPrivateFieldGet(this, _Coordinator_playbackTicks, "f")}`);
+        __classPrivateFieldSet(this, _Coordinator_flips, 0, "f");
+        __classPrivateFieldSet(this, _Coordinator_frames, 0, "f");
         __classPrivateFieldSet(this, _Coordinator_playbackTicks, 0, "f");
         __classPrivateFieldSet(this, _Coordinator_nextFpsMeasureSecond, __classPrivateFieldGet(this, _Coordinator_nextFpsMeasureSecond, "f") + 1000, "f");
         if (__classPrivateFieldGet(this, _Coordinator_nextFpsMeasureSecond, "f") < now) {
