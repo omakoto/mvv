@@ -329,6 +329,9 @@ class Renderer {
     }
 
     needsAnimation(): boolean {
+        if (DEBUG) {
+            console.log("na", this.#needsAnimation, "rf", this.#rollFrozen, "ldy", this.#lastDrawY)
+        }
         return this.#needsAnimation ||
                 (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64)); // +64 for safety(?) margin
     }
@@ -336,7 +339,7 @@ class Renderer {
     onDraw(time: number): void {
         this.#currentFrame++;
 
-        this.#needsAnimation =false;
+        this.#needsAnimation = false;
 
         // Clear the bar area.
         this.#bar.fillStyle = 'black';
@@ -549,14 +552,14 @@ class MidiRenderingNoteStatus {
     note: number;
     velocity: number;
 
-    onTick: number;
-    offTick: number;
+    onTick: number = 0;
+    offTick: number = 0;
 
     // On timestamp as in MidiEvent.timestamp.
-    onTime: number;
+    onTime: number = 0;
 
     // On timestamp as in MidiEvent.timestamp.
-    offTime: number;
+    offTime: number = 0;
 
     constructor() {
         this.reset();
@@ -1550,8 +1553,8 @@ export const recorder = new Recorder();
 
 class Coordinator {
     #nextFpsMeasureSecond = 0;
-    #frames = 0;
-    #flips = 0;
+    #frameCount = 0;
+    #drawCount = 0;
     #playbackTicks = 0;
     #efps;
     #wakelock : WakeLockSentinel | null = null;
@@ -2174,9 +2177,9 @@ class Coordinator {
         }
         let now = performance.now();
         if (now >= this.#nextFpsMeasureSecond) {
-            this.#efps.text(`${this.#flips}/${this.#frames} - ${this.#playbackTicks}`);
-            this.#flips = 0;
-            this.#frames = 0;
+            this.#efps.text(`${this.#drawCount}/${this.#frameCount} - ${this.#playbackTicks}`);
+            this.#drawCount = 0;
+            this.#frameCount = 0;
             this.#playbackTicks = 0;
             this.#nextFpsMeasureSecond += 1000;
             if (this.#nextFpsMeasureSecond < now) {
@@ -2277,11 +2280,13 @@ class Coordinator {
             this.#chords.fadeOut(800);
         }
     }
-    
-    #animationFrameId: number | null = null;
+
+    #flipRequired = false;
+    #animationTimerId: number|null = null;
+    #animationFrameId: number|null = null;
 
     get isAnimating(): boolean {
-        return this.#animationFrameId !== null;
+        return this.#animationTimerId !== null;
     }
 
     /**
@@ -2294,52 +2299,53 @@ class Coordinator {
             return;
         }
         console.log("Animation started")
+        this.#flipRequired = false;
         this.#updateFps();
 
-        var nextFlip = -1;
+        const drawingLoop = () => {
+            const now = performance.now();
 
-        const loop = (time: number, forceRequest: boolean) => {
-            this.#frames++;
+            // #drawCount is for the FPS counter, representing screen updates.
+            this.#drawCount++;
 
-            var requestNext = false;
-            if (time < nextFlip) {
-                requestNext = true;
-            } else {
-                nextFlip = time + FPS_TO_MILLIS;
+            // Draw the current state to the off-screen canvas.
+            // This also updates the #frames count for the FPS counter.
+            this.onDraw(now);
+            // this.#flipRequired = true;
+            renderer.flip();
 
-                // #flips is for the FPS counter, representing screen updates.
-                this.#flips++;
+            // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
+            // know the exact note-off timing as per MidiRenderingStatus.
+            // So we call it every frame. Bit this method internally does caching,
+            // so it shouldn't normally be expensive.
+            this.updateNoteInformation();
 
-                // Draw the current state to the off-screen canvas.
-                // This also updates the #frames count for the FPS counter.
-                this.onDraw(time);
-
-                // Copy the off-screen canvas to the visible one.
-                renderer.flip();
-
-                // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
-                // know the exact note-off timing as per MidiRenderingStatus.
-                // So we call it every frame. Bit this method internally does caching,
-                // so it shouldn't normally be expensive.
-                this.updateNoteInformation();
-
-                // Request the next frame.
-                // const needsAnimation = (Date.now() - this.#lastAnimationRequestTimestamp) < ANIMATION_TIMEOUT_MS;
-                const needsAnimation = renderer.needsAnimation() ||
-                    recorder.isPlaying || midiRenderingStatus.needsAnimation();
-                if (forceRequest || needsAnimation) {
-                    requestNext = true;
-                }
-            }
-            if (requestNext) {
-                this.#animationFrameId = requestAnimationFrame((time) => loop(time, false));
+            // Check if something is still moving.
+            const needsAnimation = renderer.needsAnimation() ||
+                recorder.isPlaying || midiRenderingStatus.needsAnimation();
+            if (needsAnimation) {
+                // still need the next frame.
             } else {
                 this.stopAnimationLoop();
             }
+        }
+
+        const animationLoop = () => {
+            this.#frameCount++;
+
+            // Copy the off-screen canvas to the visible one.
+            if (this.#flipRequired) {
+                renderer.flip();
+                this.#flipRequired = false;
+            }
+
+            this.#animationFrameId = requestAnimationFrame((time) => animationLoop());
         };
-        
-        // Start the loop.
-        loop(performance.now(), true);
+
+        this.#animationTimerId = setInterval(drawingLoop, 1000 / 60);
+
+        // Start the animation loop.
+        animationLoop();
     }
 
     /**
@@ -2347,9 +2353,15 @@ class Coordinator {
      */
     stopAnimationLoop(): void {
         if (this.isAnimating) {
-            cancelAnimationFrame(this.#animationFrameId);
-            this.#animationFrameId = null;
+            clearInterval(this.#animationTimerId);
+            this.#animationTimerId = null;
+
+            if (this.#animationFrameId != null) {
+                cancelAnimationFrame(this.#animationFrameId);
+                this.#animationFrameId = null;
+            }
             console.log("Animation stopped")
+
             this.#updateFps();
         }
     }
