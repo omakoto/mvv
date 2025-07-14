@@ -2311,7 +2311,8 @@ class Coordinator {
             // Draw the current state to the off-screen canvas.
             // This also updates the #frames count for the FPS counter.
             this.onDraw(now);
-            this.#flipRequired = true;
+            // this.#flipRequired = true;
+            renderer.flip();
 
             // Because of the SHORTEST_NOTE_LENGTH compensation, we may not
             // know the exact note-off timing as per MidiRenderingStatus.
