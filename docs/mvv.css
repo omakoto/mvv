@@ -634,3 +634,33 @@ body .ui-tooltip {
     box-shadow: none;
     -webkit-box-shadow: none;
 }
+
+#metronome_auto_tempo {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#metronome_auto_tempo fieldset {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 0 5px;
+}
+
+#metronome_auto_tempo legend {
+    padding: 0 5px;
+    font-weight: bold;
+}
+
+.auto_tempo_grid {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 5px;
+    align-items: center;
+}
+
+.auto_tempo_grid span {
+    text-align: right;
+}
