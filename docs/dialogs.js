@@ -101,6 +101,7 @@ class MetronomeBox extends DialogBase {
     constructor() {
         super('metronome_box');
         this.focusedInput = null;
+        this.metronomeTapLastTime = 0;
         const handleKeyDown = (ev) => {
             if (!this.focusedInput)
                 return;
@@ -197,8 +198,28 @@ class MetronomeBox extends DialogBase {
         $("#metronome_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'metronome_ok', 'metronome_cancel');
         });
+        $("#metronome_tap").on('click', (ev) => {
+            ev.preventDefault();
+            const now = performance.now();
+            if (this.metronomeTapLastTime > 0) {
+                const delta = now - this.metronomeTapLastTime;
+                if (delta > 50) { // debounce
+                    const bpm = Math.floor(60 * 1000 / delta);
+                    const bpmInput = $('#metronome_bpm');
+                    const min = parseInt(bpmInput.attr('min') || "10");
+                    const max = parseInt(bpmInput.attr('max') || "500");
+                    const clampedBpm = Math.max(min, Math.min(max, bpm));
+                    bpmInput.val(clampedBpm);
+                }
+            }
+            this.metronomeTapLastTime = now;
+        });
+        $(`#${this._id}`).on('popbox_closing', (_ev) => {
+            this.metronomeTapLastTime = 0;
+        });
     }
     show(bpm, mainBeats, subBeats, okayCallback) {
+        this.metronomeTapLastTime = 0;
         $('#metronome_bpm').val(bpm);
         $('#metronome_main_beats').val(mainBeats);
         $('#metronome_sub_beats').val(subBeats);
