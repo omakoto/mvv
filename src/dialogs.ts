@@ -347,6 +347,8 @@ class MetronomeBox extends DialogBase {
                 opts.increaseBpm = itBpm;
                 opts.increaseMaxBpm = itMax;
 
+                opts.increaseAfterBeats = 0;
+                opts.increaseAfterSeconds = 0;
                 if (typeIsBeats) {
                     opts.increaseAfterBeats = itAfter;
                 } else {
@@ -370,6 +372,8 @@ class MetronomeBox extends DialogBase {
                 opts.decreaseBpm = dtBpm;
                 opts.decreaseMinBpm = dtMax;
 
+                opts.decreaseAfterBeats = 0;
+                opts.decreaseAfterSeconds = 0;
                 if (typeIsBeats) {
                     opts.decreaseAfterBeats = dtAfter;
                 } else {

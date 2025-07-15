@@ -307,6 +307,8 @@ class MetronomeBox extends DialogBase {
                 const typeIsBeats = $('#increase_tempo_unit').val() === "beats";
                 opts.increaseBpm = itBpm;
                 opts.increaseMaxBpm = itMax;
+                opts.increaseAfterBeats = 0;
+                opts.increaseAfterSeconds = 0;
                 if (typeIsBeats) {
                     opts.increaseAfterBeats = itAfter;
                 }
@@ -328,6 +330,8 @@ class MetronomeBox extends DialogBase {
                 const typeIsBeats = $('#decrease_tempo_unit').val() === "beats";
                 opts.decreaseBpm = dtBpm;
                 opts.decreaseMinBpm = dtMax;
+                opts.decreaseAfterBeats = 0;
+                opts.decreaseAfterSeconds = 0;
                 if (typeIsBeats) {
                     opts.decreaseAfterBeats = dtAfter;
                 }
