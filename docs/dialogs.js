@@ -234,11 +234,22 @@ class MetronomeBox extends DialogBase {
         setupTempoChangeSection('increase');
         setupTempoChangeSection('decrease');
     }
-    show(bpm, mainBeats, subBeats, okayCallback) {
+    show(options, okayCallback) {
         this.metronomeTapLastTime = 0;
-        $('#metronome_bpm').val(bpm);
-        $('#metronome_main_beats').val(mainBeats);
-        $('#metronome_sub_beats').val(subBeats);
+        $('#metronome_bpm').val(options.bpm);
+        $('#metronome_main_beats').val(options.beats);
+        $('#metronome_sub_beats').val(options.subBeats);
+        $('#increase_tempo_enabled').prop('checked', options.automaticIncrease);
+        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBeats);
+        $('#increase_tempo_unit').val(options.increaseAfterBeats > 0 ? "beats" : "seconds");
+        $('#increase_tempo_bpm').val(options.increaseBpm);
+        $('#increase_tempo_max').val(options.increaseMaxBpm);
+        $('#decrease_tempo_enabled').prop('checked', options.automaticDecrease);
+        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBeats);
+        $('#decrease_tempo_unit').val(options.decreaseAfterBeats > 0 ? "beats" : "seconds");
+        $('#decrease_tempo_bpm').val(options.decreaseBpm);
+        $('#decrease_tempo_max').val(options.decreaseMinBpm);
+        const initialOptions = options.copy();
         $("#metronome_ok").off('click').on('click', (ev) => {
             ev.preventDefault();
             const check = (el, defValue) => {
@@ -267,6 +278,9 @@ class MetronomeBox extends DialogBase {
                 }
                 return val;
             };
+            // Initialize with the initial values, so that all the initial
+            // automaticXxx fields will be preserved when the checkbox is off.
+            var opts = initialOptions.copy();
             const bpm = check($('#metronome_bpm'), -1);
             if (bpm === null)
                 return;
@@ -276,9 +290,54 @@ class MetronomeBox extends DialogBase {
             const subBeats = check($('#metronome_sub_beats'), 0);
             if (subBeats === null)
                 return;
+            opts.bpm = bpm;
+            opts.beats = mainBeats;
+            opts.subBeats = subBeats;
+            opts.automaticIncrease = $('#increase_tempo_enabled').is(':checked');
+            if (opts.automaticIncrease) {
+                const itAfter = check($('#increase_tempo_after'), -1);
+                if (itAfter === null)
+                    return;
+                const itBpm = check($('#increase_tempo_bpm'), -1);
+                if (itBpm === null)
+                    return;
+                const itMax = check($('#increase_tempo_max'), -1);
+                if (itMax === null)
+                    return;
+                const typeIsBeats = $('#increase_tempo_unit').val() === "beats";
+                opts.increaseBpm = itBpm;
+                opts.increaseMaxBpm = itMax;
+                if (typeIsBeats) {
+                    opts.increaseAfterBeats = itAfter;
+                }
+                else {
+                    opts.increaseAfterSeconds = itAfter;
+                }
+            }
+            opts.automaticDecrease = $('#decrease_tempo_enabled').is(':checked');
+            if (opts.automaticDecrease) {
+                const dtAfter = check($('#decrease_tempo_after'), -1);
+                if (dtAfter === null)
+                    return;
+                const dtBpm = check($('#decrease_tempo_bpm'), -1);
+                if (dtBpm === null)
+                    return;
+                const dtMax = check($('#decrease_tempo_min'), -1);
+                if (dtMax === null)
+                    return;
+                const typeIsBeats = $('#decrease_tempo_unit').val() === "beats";
+                opts.decreaseBpm = dtBpm;
+                opts.decreaseMinBpm = dtMax;
+                if (typeIsBeats) {
+                    opts.decreaseAfterBeats = dtAfter;
+                }
+                else {
+                    opts.decreaseAfterSeconds = dtAfter;
+                }
+            }
             this._box.clear();
             if (okayCallback)
-                okayCallback(bpm, mainBeats, subBeats);
+                okayCallback(opts);
         });
         $("#metronome_cancel").off('click').on('click', (ev) => {
             this._box.clear();

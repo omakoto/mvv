@@ -829,6 +829,38 @@ class MidiOutputDeviceSelector {
 
 export const midiOutputDeviceSelector = new MidiOutputDeviceSelector();
 
+export class MetronomeOptions {
+    bpm: number;
+    beats: number;
+    subBeats: number;
+
+    automaticIncrease: boolean;
+    increaseAfterBeats: number;
+    increaseAfterSeconds: number;
+    increaseBpm: number;
+    increaseMaxBpm: number;
+
+    automaticDecrease: boolean;
+    decreaseAfterBeats: number;
+    decreaseAfterSeconds: number;
+    decreaseBpm: number;
+    decreaseMinBpm: number;
+
+    copy(): MetronomeOptions {
+        var copy = new MetronomeOptions();
+        Object.assign(copy, this);
+        return copy;
+    }
+
+    static fromJson(json: string): MetronomeOptions {
+        const obj = JSON.parse(json)
+
+        var copy = new MetronomeOptions();
+        Object.assign(copy, obj);
+        return copy;
+    }
+}
+
 class Metronome {
     #playing = false;
     #bpm = 0;
@@ -845,13 +877,13 @@ class Metronome {
         return this.#playing;
     }
 
-    start(bpm: number, beats: number, subBeats: number): void {
+    start(opts: MetronomeOptions): void {
         if (this.isPlaying) {
             return;
         }
-        this.#bpm = Math.max(10, bpm);
-        this.#beats = Math.max(1, beats);
-        this.#subBeats = Math.max(1, subBeats);
+        this.#bpm = Math.max(10, opts.bpm);
+        this.#beats = Math.max(1, opts.beats);
+        this.#subBeats = Math.max(1, opts.subBeats);
         if (this.#beats === this.#subBeats) {
             this.#subBeats = 1;
         }
@@ -1566,9 +1598,7 @@ class Coordinator {
     #showNoteOffLins = false;
 
     #isHelpVisible = false;
-    #metronomeBpm: number;
-    #metronomeMainBeats: number;
-    #metronomeSubBeats: number;
+    #metronomeOptions: MetronomeOptions;
 
     #knownRecorderState: RecorderState = recorder.currentState
 
@@ -1581,9 +1611,10 @@ class Coordinator {
     static readonly #STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
     static readonly #STORAGE_KEY_PLAY_SPEED = 'mvv_playSpeed';
     static readonly #STORAGE_KEY_NOTE_OFF_LINES = 'note_off_lines';
-    static readonly #STORAGE_KEY_METRONOME_BPM = 'mvv_metronomeBpm';
-    static readonly #STORAGE_KEY_METRONOME_MAIN_BEATS = 'mvv_metronomeMainBeats';
-    static readonly #STORAGE_KEY_METRONOME_SUB_BEATS = 'mvv_metronomeSubBeats';
+    // static readonly #STORAGE_KEY_METRONOME_BPM = 'mvv_metronomeBpm';
+    // static readonly #STORAGE_KEY_METRONOME_MAIN_BEATS = 'mvv_metronomeMainBeats';
+    // static readonly #STORAGE_KEY_METRONOME_SUB_BEATS = 'mvv_metronomeSubBeats';
+    static readonly #STORAGE_KEY_METRONOME_OPTIONS = 'mvv_metronomeOptions';
 
     constructor() {
         this.#nextFpsMeasureSecond = performance.now() + 1000;
@@ -1610,14 +1641,17 @@ class Coordinator {
         const noteOffLines = localStorage.getItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES);
         this.#showNoteOffLins = noteOffLines === null ? true : noteOffLines === 'true';
 
-        const storedBpm = localStorage.getItem(Coordinator.#STORAGE_KEY_METRONOME_BPM);
-        this.#metronomeBpm = storedBpm ? parseInt(storedBpm) : 60;
-
-        const storedMainBeats = localStorage.getItem(Coordinator.#STORAGE_KEY_METRONOME_MAIN_BEATS);
-        this.#metronomeMainBeats = storedMainBeats ? parseInt(storedMainBeats) : 4;
-
-        const storedSubBeats = localStorage.getItem(Coordinator.#STORAGE_KEY_METRONOME_SUB_BEATS);
-        this.#metronomeSubBeats = storedSubBeats ? parseInt(storedSubBeats) : 1;
+        const storedMetronomeOptions = localStorage.getItem(Coordinator.#STORAGE_KEY_METRONOME_OPTIONS);
+        if (storedMetronomeOptions) {
+            let opts : MetronomeOptions = MetronomeOptions.fromJson(storedMetronomeOptions);
+            this.#metronomeOptions = opts;
+        } else {
+            let opts = new MetronomeOptions();
+            opts.bpm = 120;
+            opts.beats = 4;
+            opts.subBeats = 1;
+            this.#metronomeOptions = opts;
+        }
     }
 
     onKeyDown(ev: KeyboardEvent) {
@@ -1801,16 +1835,10 @@ class Coordinator {
         if (metronome.isPlaying) {
             metronome.stop();
         } else {
-            metronomeBox.show(this.#metronomeBpm, this.#metronomeMainBeats, this.#metronomeSubBeats,
-                (bpm, mainBeats, subBeats) => {
-                    this.#metronomeBpm = bpm;
-                    this.#metronomeMainBeats = mainBeats;
-                    this.#metronomeSubBeats = subBeats;
-                    localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_BPM, String(bpm));
-                    localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_MAIN_BEATS, String(mainBeats));
-                    localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_SUB_BEATS, String(subBeats));
-
-                    metronome.start(bpm, mainBeats, subBeats);
+            metronomeBox.show(this.#metronomeOptions, (opts) => {
+                    this.#metronomeOptions = opts;
+                    localStorage.setItem(Coordinator.#STORAGE_KEY_METRONOME_OPTIONS, JSON.stringify(opts));
+                    metronome.start(opts);
 
                     this.updateUi();
                 });

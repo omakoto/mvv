@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeBpm, _Coordinator_metronomeMainBeats, _Coordinator_metronomeSubBeats, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_BPM, _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS, _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _Metronome_instances, _Metronome_playing, _Metronome_bpm, _Metronome_beats, _Metronome_subBeats, _Metronome_cycle, _Metronome_pos, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeOptions, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_OPTIONS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -699,6 +699,19 @@ class MidiOutputDeviceSelector {
 _a = MidiOutputDeviceSelector, _MidiOutputDeviceSelector_devices = new WeakMap(), _MidiOutputDeviceSelector_selectedDeviceName = new WeakMap();
 _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE = { value: 'mvv_outputDevice' };
 export const midiOutputDeviceSelector = new MidiOutputDeviceSelector();
+export class MetronomeOptions {
+    copy() {
+        var copy = new MetronomeOptions();
+        Object.assign(copy, this);
+        return copy;
+    }
+    static fromJson(json) {
+        const obj = JSON.parse(json);
+        var copy = new MetronomeOptions();
+        Object.assign(copy, obj);
+        return copy;
+    }
+}
 class Metronome {
     constructor() {
         _Metronome_instances.add(this);
@@ -714,13 +727,13 @@ class Metronome {
     get isPlaying() {
         return __classPrivateFieldGet(this, _Metronome_playing, "f");
     }
-    start(bpm, beats, subBeats) {
+    start(opts) {
         if (this.isPlaying) {
             return;
         }
-        __classPrivateFieldSet(this, _Metronome_bpm, Math.max(10, bpm), "f");
-        __classPrivateFieldSet(this, _Metronome_beats, Math.max(1, beats), "f");
-        __classPrivateFieldSet(this, _Metronome_subBeats, Math.max(1, subBeats), "f");
+        __classPrivateFieldSet(this, _Metronome_bpm, Math.max(10, opts.bpm), "f");
+        __classPrivateFieldSet(this, _Metronome_beats, Math.max(1, opts.beats), "f");
+        __classPrivateFieldSet(this, _Metronome_subBeats, Math.max(1, opts.subBeats), "f");
         if (__classPrivateFieldGet(this, _Metronome_beats, "f") === __classPrivateFieldGet(this, _Metronome_subBeats, "f")) {
             __classPrivateFieldSet(this, _Metronome_subBeats, 1, "f");
         }
@@ -1307,9 +1320,7 @@ class Coordinator {
         _Coordinator_playSpeedIndex.set(this, void 0);
         _Coordinator_showNoteOffLins.set(this, false);
         _Coordinator_isHelpVisible.set(this, false);
-        _Coordinator_metronomeBpm.set(this, void 0);
-        _Coordinator_metronomeMainBeats.set(this, void 0);
-        _Coordinator_metronomeSubBeats.set(this, void 0);
+        _Coordinator_metronomeOptions.set(this, void 0);
         _Coordinator_knownRecorderState.set(this, recorder.currentState);
         _Coordinator_playbackTimerLastNow.set(this, void 0);
         _Coordinator_ignoreRepeatedRewindKey.set(this, false);
@@ -1333,12 +1344,18 @@ class Coordinator {
         __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, storedPlaySpeed ? parseInt(storedPlaySpeed) : DEFAULT_PLAY_SPEED_INDEX, "f");
         const noteOffLines = localStorage.getItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_NOTE_OFF_LINES));
         __classPrivateFieldSet(this, _Coordinator_showNoteOffLins, noteOffLines === null ? true : noteOffLines === 'true', "f");
-        const storedBpm = localStorage.getItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_BPM));
-        __classPrivateFieldSet(this, _Coordinator_metronomeBpm, storedBpm ? parseInt(storedBpm) : 60, "f");
-        const storedMainBeats = localStorage.getItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS));
-        __classPrivateFieldSet(this, _Coordinator_metronomeMainBeats, storedMainBeats ? parseInt(storedMainBeats) : 4, "f");
-        const storedSubBeats = localStorage.getItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS));
-        __classPrivateFieldSet(this, _Coordinator_metronomeSubBeats, storedSubBeats ? parseInt(storedSubBeats) : 1, "f");
+        const storedMetronomeOptions = localStorage.getItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_OPTIONS));
+        if (storedMetronomeOptions) {
+            let opts = MetronomeOptions.fromJson(storedMetronomeOptions);
+            __classPrivateFieldSet(this, _Coordinator_metronomeOptions, opts, "f");
+        }
+        else {
+            let opts = new MetronomeOptions();
+            opts.bpm = 120;
+            opts.beats = 4;
+            opts.subBeats = 1;
+            __classPrivateFieldSet(this, _Coordinator_metronomeOptions, opts, "f");
+        }
     }
     onKeyDown(ev) {
         debug("onKeyDown", ev.timeStamp, ev.code, ev);
@@ -1531,14 +1548,10 @@ class Coordinator {
             metronome.stop();
         }
         else {
-            metronomeBox.show(__classPrivateFieldGet(this, _Coordinator_metronomeBpm, "f"), __classPrivateFieldGet(this, _Coordinator_metronomeMainBeats, "f"), __classPrivateFieldGet(this, _Coordinator_metronomeSubBeats, "f"), (bpm, mainBeats, subBeats) => {
-                __classPrivateFieldSet(this, _Coordinator_metronomeBpm, bpm, "f");
-                __classPrivateFieldSet(this, _Coordinator_metronomeMainBeats, mainBeats, "f");
-                __classPrivateFieldSet(this, _Coordinator_metronomeSubBeats, subBeats, "f");
-                localStorage.setItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_BPM), String(bpm));
-                localStorage.setItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS), String(mainBeats));
-                localStorage.setItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS), String(subBeats));
-                metronome.start(bpm, mainBeats, subBeats);
+            metronomeBox.show(__classPrivateFieldGet(this, _Coordinator_metronomeOptions, "f"), (opts) => {
+                __classPrivateFieldSet(this, _Coordinator_metronomeOptions, opts, "f");
+                localStorage.setItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_METRONOME_OPTIONS), JSON.stringify(opts));
+                metronome.start(opts);
                 this.updateUi();
             });
         }
@@ -1994,7 +2007,7 @@ class Coordinator {
         this.resetMidi();
     }
 }
-_b = Coordinator, _Coordinator_nextFpsMeasureSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showOctaveLines = new WeakMap(), _Coordinator_showNoteNames = new WeakMap(), _Coordinator_scrollSpeedIndex = new WeakMap(), _Coordinator_playSpeedIndex = new WeakMap(), _Coordinator_showNoteOffLins = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_metronomeBpm = new WeakMap(), _Coordinator_metronomeMainBeats = new WeakMap(), _Coordinator_metronomeSubBeats = new WeakMap(), _Coordinator_knownRecorderState = new WeakMap(), _Coordinator_playbackTimerLastNow = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_updateNoteInformationNoteNamesShown = new WeakMap(), _Coordinator_updateNoteInformationLastNotes = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_setPlaySpeedIndex = function _Coordinator_setPlaySpeedIndex(index) {
+_b = Coordinator, _Coordinator_nextFpsMeasureSecond = new WeakMap(), _Coordinator_frames = new WeakMap(), _Coordinator_flips = new WeakMap(), _Coordinator_playbackTicks = new WeakMap(), _Coordinator_efps = new WeakMap(), _Coordinator_wakelock = new WeakMap(), _Coordinator_wakelockTimer = new WeakMap(), _Coordinator_notes = new WeakMap(), _Coordinator_chords = new WeakMap(), _Coordinator_useSharp = new WeakMap(), _Coordinator_showOctaveLines = new WeakMap(), _Coordinator_showNoteNames = new WeakMap(), _Coordinator_scrollSpeedIndex = new WeakMap(), _Coordinator_playSpeedIndex = new WeakMap(), _Coordinator_showNoteOffLins = new WeakMap(), _Coordinator_isHelpVisible = new WeakMap(), _Coordinator_metronomeOptions = new WeakMap(), _Coordinator_knownRecorderState = new WeakMap(), _Coordinator_playbackTimerLastNow = new WeakMap(), _Coordinator_ignoreRepeatedRewindKey = new WeakMap(), _Coordinator_updateNoteInformationNoteNamesShown = new WeakMap(), _Coordinator_updateNoteInformationLastNotes = new WeakMap(), _Coordinator_animationFrameId = new WeakMap(), _Coordinator_instances = new WeakSet(), _Coordinator_setPlaySpeedIndex = function _Coordinator_setPlaySpeedIndex(index) {
     __classPrivateFieldSet(this, _Coordinator_playSpeedIndex, index, "f");
     localStorage.setItem(__classPrivateFieldGet(_b, _b, "f", _Coordinator_STORAGE_KEY_PLAY_SPEED), String(index));
     this.updateUi();
@@ -2072,9 +2085,10 @@ _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES = { value: 'mvv_showNoteNames' };
 _Coordinator_STORAGE_KEY_SCROLL_SPEED = { value: 'mvv_scrollSpeed' };
 _Coordinator_STORAGE_KEY_PLAY_SPEED = { value: 'mvv_playSpeed' };
 _Coordinator_STORAGE_KEY_NOTE_OFF_LINES = { value: 'note_off_lines' };
-_Coordinator_STORAGE_KEY_METRONOME_BPM = { value: 'mvv_metronomeBpm' };
-_Coordinator_STORAGE_KEY_METRONOME_MAIN_BEATS = { value: 'mvv_metronomeMainBeats' };
-_Coordinator_STORAGE_KEY_METRONOME_SUB_BEATS = { value: 'mvv_metronomeSubBeats' };
+// static readonly #STORAGE_KEY_METRONOME_BPM = 'mvv_metronomeBpm';
+// static readonly #STORAGE_KEY_METRONOME_MAIN_BEATS = 'mvv_metronomeMainBeats';
+// static readonly #STORAGE_KEY_METRONOME_SUB_BEATS = 'mvv_metronomeSubBeats';
+_Coordinator_STORAGE_KEY_METRONOME_OPTIONS = { value: 'mvv_metronomeOptions' };
 export const coordinator = new Coordinator();
 function onMIDISuccess(midiAccess) {
     console.log("onMIDISuccess: looking for MIDI devices...");
