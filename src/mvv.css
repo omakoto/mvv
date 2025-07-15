@@ -554,6 +554,7 @@ kbd:active {
 }
 
 #metronome_box .popbox_container {
+    max-width: min(650px, 80%);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -602,7 +603,7 @@ kbd:active {
 }
 
 #metronome_tap {
-    margin-right: 6em;
+    margin-right: 3em;
 }
 
 .dialog-button {
@@ -639,7 +640,7 @@ body .ui-tooltip {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    margin-top: 10px;
+    margin: 10px 10px;
 }
 
 #metronome_auto_tempo fieldset {
@@ -651,7 +652,6 @@ body .ui-tooltip {
 
 #metronome_auto_tempo legend {
     padding: 0 5px;
-    font-weight: bold;
 }
 
 .auto_tempo_grid {

@@ -22,7 +22,7 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script> -->
     <script src="tonal.min.js"></script>
     <script src="Tone.js"></script>
-    <link rel="stylesheet" href="mvv.css?v=43"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
+    <link rel="stylesheet" href="mvv.css?v=45"> <!-- sometimes chrome won't refresh it, add a parameter to force refresh-->
 </head>
 <body tabindex="-1">
     <!-- This is used to open a "open file" system dialog box. -->
@@ -115,45 +115,47 @@
         <div id="metronome_box" data-popbox-id="metronome_box" class="popbox">
             <div class="popbox_container">
                 <div class="inputs">
-                    BPM: <input type="text" id="metronome_bpm" size="4" min="10" max="500">
-                    Beats: <input type="text" id="metronome_main_beats" size="3" min="1" max="32">
-                    Sub-beats: <input type="text" id="metronome_sub_beats" size="3" min="0" max="32">
+                    BPM: <input type="number" id="metronome_bpm" size="4" min="10" max="500">
+                    Beats: <input type="number" id="metronome_main_beats" size="3" min="1" max="32">
+                    Sub-beats: <input type="number" id="metronome_sub_beats" size="3" min="0" max="32">
                 </div>
                 <div id="metronome_auto_tempo">
                     <fieldset>
                         <legend>
-                            <label><input type="checkbox" id="increase_tempo_enabled"> Increase tempo</label>
+                            <label><input type="checkbox" id="increase_tempo_enabled"> Increase</label>
                         </legend>
                         <div class="auto_tempo_grid">
                             <span>After</span>
                             <input type="number" id="increase_tempo_after" min="1" max="999" value="1">
                             <div>
                                 <label><input type="radio" name="increase_tempo_unit" value="beats" checked> beats</label>
-                                <label><input type="radio" name="increase_tempo_unit" value="seconds"> seconds</label>
+                                <br>
+                                <label><input type="radio" name="increase_tempo_unit" value="seconds"> sec</label>
                             </div>
                             <span>BPM +</span>
                             <input type="number" id="increase_tempo_bpm" min="1" max="999" value="1">
                             <div></div>
-                            <span>Max tempo</span>
+                            <span>Max</span>
                             <input type="number" id="increase_tempo_max" min="10" max="500" value="120">
                             <div></div>
                         </div>
                     </fieldset>
                     <fieldset>
                         <legend>
-                            <label><input type="checkbox" id="decrease_tempo_enabled"> Decrease tempo</label>
+                            <label><input type="checkbox" id="decrease_tempo_enabled"> Decrease</label>
                         </legend>
                         <div class="auto_tempo_grid">
                             <span>After</span>
                             <input type="number" id="decrease_tempo_after" min="1" max="999" value="1">
                             <div>
                                 <label><input type="radio" name="decrease_tempo_unit" value="beats" checked> beats</label>
-                                <label><input type="radio" name="decrease_tempo_unit" value="seconds"> seconds</label>
+                                <br>
+                                <label><input type="radio" name="decrease_tempo_unit" value="seconds"> sec</label>
                             </div>
                             <span>BPM -</span>
                             <input type="number" id="decrease_tempo_bpm" min="1" max="999" value="1">
                             <div></div>
-                            <span>Min tempo</span>
+                            <span>Min</span>
                             <input type="number" id="decrease_tempo_min" min="10" max="500" value="60">
                             <div></div>
                         </div>
