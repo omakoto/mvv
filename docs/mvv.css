@@ -601,6 +601,10 @@ kbd:active {
     text-align: right;
 }
 
+#metronome_tap {
+    margin-right: 6em;
+}
+
 .dialog-button {
     font-size: var(--button-font-size);
     height: var(--button-height);
