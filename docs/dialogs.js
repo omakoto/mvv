@@ -217,8 +217,8 @@ class MetronomeBox extends DialogBase {
         $(`#${this._id}`).on('popbox_closing', (_ev) => {
             this.metronomeTapLastTime = 0;
         });
-        // Allow clicks on checkboxes and radio buttons
-        $('#metronome_auto_tempo input[type="checkbox"], #metronome_auto_tempo input[type="radio"]').on('click', (ev) => {
+        // Allow clicks on checkboxes, radio buttons, and their labels
+        $('#metronome_auto_tempo input[type="checkbox"], #metronome_auto_tempo input[type="radio"], #metronome_auto_tempo label').on('click', (ev) => {
             ev.stopPropagation();
         });
         const setupTempoChangeSection = (type) => {
