@@ -240,6 +240,27 @@ class MetronomeBox extends DialogBase {
         $(`#${this._id}`).on('popbox_closing', (_ev) => {
             this.metronomeTapLastTime = 0;
         });
+
+        // Allow clicks on checkboxes and radio buttons
+        $('#metronome_auto_tempo input[type="checkbox"], #metronome_auto_tempo input[type="radio"]').on('click', (ev) => {
+            ev.stopPropagation();
+        });
+
+        const setupTempoChangeSection = (type: 'increase' | 'decrease') => {
+            const enabledCheckbox = $(`#${type}_tempo_enabled`);
+            const fieldset = enabledCheckbox.closest('fieldset');
+
+            const updateState = () => {
+                const isEnabled = enabledCheckbox.is(':checked');
+                fieldset.find('input[type="number"], input[type="radio"]').prop('disabled', !isEnabled);
+            };
+
+            enabledCheckbox.on('change', updateState);
+            updateState(); // Initial state
+        };
+
+        setupTempoChangeSection('increase');
+        setupTempoChangeSection('decrease');
     }
 
     show(bpm: number, mainBeats: number, subBeats: number, okayCallback: (bpm: number, mainBeats: number, subBeats: number) => void): void {
