@@ -1,4 +1,10 @@
 'use strict';
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _MetronomeBox_instances, _MetronomeBox_updateEnablement;
 import { recorder, midiOutputDeviceSelector, midiOutputManager } from './mvv.js';
 import { info } from './util.js';
 import { getCurrentTime } from './util.js';
@@ -100,6 +106,7 @@ export var confirmBox = new ConfirmBox();
 class MetronomeBox extends DialogBase {
     constructor() {
         super('metronome_box');
+        _MetronomeBox_instances.add(this);
         this.focusedInput = null;
         this.metronomeTapLastTime = 0;
         const handleKeyDown = (ev) => {
@@ -221,18 +228,6 @@ class MetronomeBox extends DialogBase {
         $('#metronome_auto_tempo input[type="checkbox"], #metronome_auto_tempo input[type="radio"], #metronome_auto_tempo label').on('click', (ev) => {
             ev.stopPropagation();
         });
-        const setupTempoChangeSection = (type) => {
-            const enabledCheckbox = $(`#${type}_tempo_enabled`);
-            const fieldset = enabledCheckbox.closest('fieldset');
-            const updateState = () => {
-                const isEnabled = enabledCheckbox.is(':checked');
-                fieldset.find('input[type="number"], input[type="radio"]').prop('disabled', !isEnabled);
-            };
-            enabledCheckbox.on('change', updateState);
-            updateState(); // Initial state
-        };
-        setupTempoChangeSection('increase');
-        setupTempoChangeSection('decrease');
     }
     show(options, okayCallback) {
         this.metronomeTapLastTime = 0;
@@ -240,15 +235,16 @@ class MetronomeBox extends DialogBase {
         $('#metronome_main_beats').val(options.beats);
         $('#metronome_sub_beats').val(options.subBeats);
         $('#increase_tempo_enabled').prop('checked', options.automaticIncrease);
-        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBeats);
-        $('#increase_tempo_unit').val(options.increaseAfterBeats > 0 ? "beats" : "seconds");
+        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars);
+        $('#increase_tempo_unit').val(options.increaseAfterBars > 0 ? "bars" : "seconds");
         $('#increase_tempo_bpm').val(options.increaseBpm);
         $('#increase_tempo_max').val(options.increaseMaxBpm);
         $('#decrease_tempo_enabled').prop('checked', options.automaticDecrease);
-        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBeats);
-        $('#decrease_tempo_unit').val(options.decreaseAfterBeats > 0 ? "beats" : "seconds");
+        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars);
+        $('#decrease_tempo_unit').val(options.decreaseAfterBars > 0 ? "bars" : "seconds");
         $('#decrease_tempo_bpm').val(options.decreaseBpm);
         $('#decrease_tempo_max').val(options.decreaseMinBpm);
+        __classPrivateFieldGet(this, _MetronomeBox_instances, "m", _MetronomeBox_updateEnablement).call(this);
         const initialOptions = options.copy();
         $("#metronome_ok").off('click').on('click', (ev) => {
             ev.preventDefault();
@@ -304,13 +300,12 @@ class MetronomeBox extends DialogBase {
                 const itMax = check($('#increase_tempo_max'), -1);
                 if (itMax === null)
                     return;
-                const typeIsBeats = $('#increase_tempo_unit').val() === "beats";
                 opts.increaseBpm = itBpm;
                 opts.increaseMaxBpm = itMax;
-                opts.increaseAfterBeats = 0;
+                opts.increaseAfterBars = 0;
                 opts.increaseAfterSeconds = 0;
-                if (typeIsBeats) {
-                    opts.increaseAfterBeats = itAfter;
+                if ($('input[name="increase_tempo_unit"]:checked').val() === "bars") {
+                    opts.increaseAfterBars = itAfter;
                 }
                 else {
                     opts.increaseAfterSeconds = itAfter;
@@ -327,13 +322,12 @@ class MetronomeBox extends DialogBase {
                 const dtMax = check($('#decrease_tempo_min'), -1);
                 if (dtMax === null)
                     return;
-                const typeIsBeats = $('#decrease_tempo_unit').val() === "beats";
                 opts.decreaseBpm = dtBpm;
                 opts.decreaseMinBpm = dtMax;
-                opts.decreaseAfterBeats = 0;
+                opts.decreaseAfterBars = 0;
                 opts.decreaseAfterSeconds = 0;
-                if (typeIsBeats) {
-                    opts.decreaseAfterBeats = dtAfter;
+                if ($('input[name="decrease_tempo_unit"]:checked').val() === "bars") {
+                    opts.decreaseAfterBars = dtAfter;
                 }
                 else {
                     opts.decreaseAfterSeconds = dtAfter;
@@ -355,6 +349,20 @@ class MetronomeBox extends DialogBase {
         $('#metronome_bpm').focus();
     }
 }
+_MetronomeBox_instances = new WeakSet(), _MetronomeBox_updateEnablement = function _MetronomeBox_updateEnablement() {
+    const setupTempoChangeSection = (type) => {
+        const enabledCheckbox = $(`#${type}_tempo_enabled`);
+        const fieldset = enabledCheckbox.closest('fieldset');
+        const updateState = () => {
+            const isEnabled = enabledCheckbox.is(':checked');
+            fieldset.find('input[type="number"], input[type="radio"]').prop('disabled', !isEnabled);
+        };
+        enabledCheckbox.off('change').on('change', updateState);
+        updateState(); // Initial state
+    };
+    setupTempoChangeSection('increase');
+    setupTempoChangeSection('decrease');
+};
 export var metronomeBox = new MetronomeBox();
 class MidiOutputBox extends DialogBase {
     constructor() {

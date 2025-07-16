@@ -120,7 +120,6 @@
                     Sub-beats: <input type="number" id="metronome_sub_beats" size="3" min="0" max="32">
                 </div>
                 <div id="metronome_auto_tempo">
-                    AUTO INCREASE/DECREASE NOT IMPLEMENTED<br>
                     <fieldset>
                         <legend>
                             <label><input type="checkbox" id="increase_tempo_enabled"> Increase</label>
@@ -129,7 +128,7 @@
                             <span>After</span>
                             <input type="number" id="increase_tempo_after" min="1" max="999" value="1">
                             <div>
-                                <label><input type="radio" name="increase_tempo_unit" value="beats" checked> beats</label>
+                                <label><input type="radio" name="increase_tempo_unit" value="bars" checked> bars</label>
                                 <br>
                                 <label><input type="radio" name="increase_tempo_unit" value="seconds"> sec</label>
                             </div>
@@ -149,7 +148,7 @@
                             <span>After</span>
                             <input type="number" id="decrease_tempo_after" min="1" max="999" value="1">
                             <div>
-                                <label><input type="radio" name="decrease_tempo_unit" value="beats" checked> beats</label>
+                                <label><input type="radio" name="decrease_tempo_unit" value="bars" checked> bars</label>
                                 <br>
                                 <label><input type="radio" name="decrease_tempo_unit" value="seconds"> sec</label>
                             </div>

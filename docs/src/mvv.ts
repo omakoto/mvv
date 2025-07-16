@@ -835,13 +835,13 @@ export class MetronomeOptions {
     subBeats: number;
 
     automaticIncrease: boolean;
-    increaseAfterBeats: number;
+    increaseAfterBars: number;
     increaseAfterSeconds: number;
     increaseBpm: number;
     increaseMaxBpm: number;
 
     automaticDecrease: boolean;
-    decreaseAfterBeats: number;
+    decreaseAfterBars: number;
     decreaseAfterSeconds: number;
     decreaseBpm: number;
     decreaseMinBpm: number;
@@ -861,17 +861,163 @@ export class MetronomeOptions {
     }
 }
 
-class Metronome {
-    #playing = false;
+class BpmManager {
+    #options: MetronomeOptions;
+
     #bpm = 0;
     #beats = 0;
     #subBeats = 0;
 
     #intervalSec = 0;
-
-    // #beats * #subBeats
     #cycle = 0;
-    #posInCylce = 0;
+    #posInCycle = 0;
+
+    #mode = 0; // 0 == no increase/decrease, 1 == increasing, 2 == decreasing
+
+    #totalBars = 0;
+    #changeBars = 0;
+    #changeSeconds = 0;
+
+    #lastChangedTime = 0;
+
+    constructor(opts: MetronomeOptions) {
+        this.#options = opts.copy();
+
+        this.#bpm = Math.max(10, opts.bpm);
+        this.#beats = Math.max(1, opts.beats);
+        this.#subBeats = Math.max(1, opts.subBeats);
+        if (this.#beats === this.#subBeats) {
+            this.#subBeats = 1;
+        }
+
+        this.#cycle = this.#beats * this.#subBeats;
+
+        // Initialize the interval.
+        this.#updateInterval()
+
+        // Initialize increase / decrease
+        if (opts.automaticIncrease && this.#bpm < opts.increaseMaxBpm) {
+            this.#mode = 1;
+        } else if (opts.automaticDecrease && this.#bpm > opts.decreaseMinBpm) {
+            this.#mode = 2;
+        }
+
+        this.#lastChangedTime = performance.now();
+    }
+
+    #updateInterval() {
+        const measureMs = 60_000 / (this.#bpm / this.#beats);
+        this.#intervalSec = (measureMs / this.#cycle) / 1000.0;
+    }
+
+    get options(): MetronomeOptions {
+        return this.#options;
+    }
+
+    get bpm(): number {
+        return this.#bpm;
+    }
+
+    get beats(): number {
+        return this.#beats;
+    }
+
+    get subBeats(): number {
+        return this.#subBeats;
+    }
+
+    get intervalSec(): number {
+        return this.#intervalSec;
+    }
+
+    get cycle(): number {
+        return this.#cycle;
+    }
+
+    get posInCycle(): number {
+        return this.#posInCycle;
+    }
+
+    advance() {
+        var curPos = this.#posInCycle;
+
+        // This is going to be the "next" pos.
+        this.#posInCycle++;
+        if (this.#posInCycle >= this.#cycle) {
+            this.#posInCycle = 0;
+        }
+
+        if (this.#mode === 0) {
+            return; // No increase or decreaes.
+        }
+
+        // Handle increase / decrease
+
+        const increasing = this.#mode === 1;
+
+        if (curPos == 0) {
+            this.#totalBars++;
+            this.#changeBars++;
+            if (DEBUG) {
+                console.log("Bar=" + this.#totalBars);
+            }
+        }
+        const now = performance.now();
+        const sinceLastChangeSec = Math.floor((now - this.#lastChangedTime) / 1000);
+        var changed = false;
+        if (DEBUG) {
+            console.log("Metronome advance: posInCycle=" + this.#posInCycle + " mode=" + this.#mode
+                + " bar=" + this.#changeBars + "  sec=" + sinceLastChangeSec);
+        }
+        if (increasing) {
+            var doIncrease = false;
+            if (this.#options.increaseAfterBars > 0 && this.#changeBars > this.#options.increaseAfterBars) {
+                doIncrease = true;
+            }
+            if (this.#options.increaseAfterSeconds > 0 && sinceLastChangeSec >= this.#options.increaseAfterSeconds) {
+                doIncrease = true;
+            }
+            if (doIncrease) {
+                changed = true;
+
+                this.#bpm = Math.min(this.#bpm + this.#options.increaseBpm, this.#options.increaseMaxBpm);
+                if (this.#bpm >= this.#options.increaseMaxBpm) {
+                    this.#mode = this.#options.automaticDecrease ? 2 : 0;
+                }
+            }
+        } else {
+            var doDecrease = false;
+            if (this.#options.decreaseAfterBars > 0 && this.#changeBars > this.#options.decreaseAfterBars) {
+                doDecrease = true;
+            }
+            if (this.#options.decreaseAfterSeconds > 0 && sinceLastChangeSec >= this.#options.decreaseAfterSeconds) {
+                doDecrease = true;
+            }
+            if (doDecrease) {
+                changed = true;
+
+                this.#bpm = Math.max(this.#bpm - this.#options.decreaseBpm, this.#options.decreaseMinBpm);
+                if (this.#bpm <= this.#options.decreaseMinBpm) {
+                    this.#mode = this.#options.automaticIncrease ? 1 : 0;
+                }
+            }
+        }
+        if (changed) {
+            this.#changeBars = 1;
+            this.#lastChangedTime = now;
+            this.#updateInterval();
+            const msg = "Tempo changed to " + this.#bpm + " BPM";
+            if (DEBUG) {
+                console.log(msg + " mode=" + this.#mode);
+            }
+            info(msg);
+        }
+    }
+}
+
+class Metronome {
+    #playing = false;
+    #bpmm: BpmManager;
     #nextTime = 0;
 
     #synth = new Tone.PolySynth(Tone.Synth).toDestination();
@@ -884,56 +1030,38 @@ class Metronome {
         if (this.isPlaying) {
             return;
         }
-        this.#bpm = Math.max(10, opts.bpm);
-        this.#beats = Math.max(1, opts.beats);
-        this.#subBeats = Math.max(1, opts.subBeats);
-        if (this.#beats === this.#subBeats) {
-            this.#subBeats = 1;
-        }
+        console.log("Metronome start: options=", opts);
+        this.#bpmm = new BpmManager(opts);
 
-        this.#cycle = this.#beats * this.#subBeats;
-
-        const measureMs = 60_000 / (this.#bpm / this.#beats);
-        this.#intervalSec = (measureMs / this.#cycle) / 1000.0;
-
-        this.#posInCylce = -1;
         this.#nextTime = 0;
 
         Tone.start();
         Tone.Transport.cancel();
         Tone.Transport.seconds = 0;
         Tone.Transport.start();
-        // Tone.Transport.scheduleRepeat((time) => this.#beat(time), this.#intervalSec);
         Tone.Transport.scheduleOnce((time) => this.#beat(time), "+0");
 
         this.#playing = true;
     }
 
     #beat(time: any) {
-        console.log("Beat:", time)
+        // console.log("Beat:", time)
 
-        // Schedule the next one.
-        this.#nextTime += this.#intervalSec;
-        Tone.Transport.scheduleOnce((time) => this.#beat(time), this.#nextTime);
+        const bpmm = this.#bpmm;
+        const pos = bpmm.posInCycle;
 
-        var pos = this.#posInCylce + 1;
-        if (pos >= this.#cycle) {
-            pos = 0;
-        }
-        this.#posInCylce = pos;
-
-        const accent = (pos === 0 && this.#beats > 1);
+        const accent = (pos === 0 && bpmm.beats > 1);
 
         var lineType = -1;
 
-        if (this.#subBeats > 1 && ((pos % this.#beats) === 0)) {
+        if (bpmm.subBeats > 1 && ((pos % bpmm.beats) === 0)) {
             lineType = 2;
 
             // Use accent on first beat.
             const note = (pos === 0) ? "E6" : "E5";
             this.#synth.triggerAttackRelease(note, 0.05, time, 0.8);
         }
-        if ((pos % this.#subBeats) === 0) {
+        if ((pos % bpmm.subBeats) === 0) {
             lineType = 1;
 
             // Use accent on first beat, but only if beats > 1.
@@ -949,6 +1077,12 @@ class Metronome {
                 renderer.drawExtraLine(lineType);
             }, time);
         }
+        // this.#doIncreaseOrDecrease()
+
+        // Schedule the next one.
+        bpmm.advance();
+        this.#nextTime += bpmm.intervalSec;
+        Tone.Transport.scheduleOnce((time) => this.#beat(time), this.#nextTime);
     }
 
     stop() {

@@ -245,7 +245,9 @@ class MetronomeBox extends DialogBase {
         $('#metronome_auto_tempo input[type="checkbox"], #metronome_auto_tempo input[type="radio"], #metronome_auto_tempo label').on('click', (ev) => {
             ev.stopPropagation();
         });
+    }
 
+    #updateEnablement() {
         const setupTempoChangeSection = (type: 'increase' | 'decrease') => {
             const enabledCheckbox = $(`#${type}_tempo_enabled`);
             const fieldset = enabledCheckbox.closest('fieldset');
@@ -255,7 +257,7 @@ class MetronomeBox extends DialogBase {
                 fieldset.find('input[type="number"], input[type="radio"]').prop('disabled', !isEnabled);
             };
 
-            enabledCheckbox.on('change', updateState);
+            enabledCheckbox.off('change').on('change', updateState);
             updateState(); // Initial state
         };
 
@@ -270,16 +272,18 @@ class MetronomeBox extends DialogBase {
         $('#metronome_sub_beats').val(options.subBeats);
 
         $('#increase_tempo_enabled').prop('checked', options.automaticIncrease);
-        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBeats);
-        $('#increase_tempo_unit').val(options.increaseAfterBeats > 0 ? "beats" : "seconds");
+        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars);
+        $('#increase_tempo_unit').val(options.increaseAfterBars > 0 ? "bars" : "seconds");
         $('#increase_tempo_bpm').val(options.increaseBpm);
         $('#increase_tempo_max').val(options.increaseMaxBpm);
 
         $('#decrease_tempo_enabled').prop('checked', options.automaticDecrease);
-        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBeats);
-        $('#decrease_tempo_unit').val(options.decreaseAfterBeats > 0 ? "beats" : "seconds");
+        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars);
+        $('#decrease_tempo_unit').val(options.decreaseAfterBars > 0 ? "bars" : "seconds");
         $('#decrease_tempo_bpm').val(options.decreaseBpm);
         $('#decrease_tempo_max').val(options.decreaseMinBpm);
+
+        this.#updateEnablement();
 
         const initialOptions = options.copy();
 
@@ -342,15 +346,13 @@ class MetronomeBox extends DialogBase {
                 const itMax = check($('#increase_tempo_max'), -1);
                 if (itMax === null) return;
 
-                const typeIsBeats = $('#increase_tempo_unit').val() === "beats";
-
                 opts.increaseBpm = itBpm;
                 opts.increaseMaxBpm = itMax;
 
-                opts.increaseAfterBeats = 0;
+                opts.increaseAfterBars = 0;
                 opts.increaseAfterSeconds = 0;
-                if (typeIsBeats) {
-                    opts.increaseAfterBeats = itAfter;
+                if ($('input[name="increase_tempo_unit"]:checked').val() === "bars") {
+                    opts.increaseAfterBars = itAfter;
                 } else {
                     opts.increaseAfterSeconds = itAfter;
                 }
@@ -367,15 +369,13 @@ class MetronomeBox extends DialogBase {
                 const dtMax = check($('#decrease_tempo_min'), -1);
                 if (dtMax === null) return;
 
-                const typeIsBeats = $('#decrease_tempo_unit').val() === "beats";
-
                 opts.decreaseBpm = dtBpm;
                 opts.decreaseMinBpm = dtMax;
 
-                opts.decreaseAfterBeats = 0;
+                opts.decreaseAfterBars = 0;
                 opts.decreaseAfterSeconds = 0;
-                if (typeIsBeats) {
-                    opts.decreaseAfterBeats = dtAfter;
+                if ($('input[name="decrease_tempo_unit"]:checked').val() === "bars") {
+                    opts.decreaseAfterBars = dtAfter;
                 } else {
                     opts.decreaseAfterSeconds = dtAfter;
                 }
