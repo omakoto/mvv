@@ -867,9 +867,12 @@ class Metronome {
     #beats = 0;
     #subBeats = 0;
 
+    #intervalSec = 0;
+
     // #beats * #subBeats
     #cycle = 0;
-    #pos = 0;
+    #posInCylce = 0;
+    #nextTime = 0;
 
     #synth = new Tone.PolySynth(Tone.Synth).toDestination();
 
@@ -891,23 +894,32 @@ class Metronome {
         this.#cycle = this.#beats * this.#subBeats;
 
         const measureMs = 60_000 / (this.#bpm / this.#beats);
-        const intervalSec = (measureMs / this.#cycle) / 1000.0;
+        this.#intervalSec = (measureMs / this.#cycle) / 1000.0;
 
-        this.#pos = -1;
+        this.#posInCylce = -1;
+        this.#nextTime = 0;
 
         Tone.start();
+        Tone.Transport.cancel();
+        Tone.Transport.seconds = 0;
         Tone.Transport.start();
-        Tone.Transport.scheduleRepeat((time) => this.#beat(time), "" + intervalSec);
+        Tone.Transport.scheduleOnce((time) => this.#beat(time), "+0");
 
         this.#playing = true;
     }
 
     #beat(time: any) {
-        var pos = this.#pos + 1;
+        console.log("Beat:", time)
+
+        // Schedule the next one.
+        this.#nextTime += this.#intervalSec;
+        Tone.Transport.scheduleOnce((time) => this.#beat(time), this.#nextTime);
+
+        var pos = this.#posInCylce + 1;
         if (pos >= this.#cycle) {
             pos = 0;
         }
-        this.#pos = pos;
+        this.#posInCylce = pos;
 
         const accent = (pos === 0 && this.#beats > 1);
 
@@ -2339,7 +2351,7 @@ class Coordinator {
                 this.#flips++;
 
                 // Draw the current state to the off-screen canvas.
-                // This also updates the #frames count for the FPS counter.
+                // This also updates the #frames t for the FPS counter.
                 this.onDraw(time);
 
                 // Copy the off-screen canvas to the visible one.
