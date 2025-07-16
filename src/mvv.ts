@@ -943,6 +943,7 @@ class BpmManager {
             return;
         }
         this.#bpm = Math.min(500, Math.max(10, this.#bpm + increment));
+        this.#updateInterval();
         info("Tempo set to " + this.#bpm);
     }
 
@@ -1982,12 +1983,12 @@ class Coordinator {
                 break;
             case 'Equal':
             case 'NumpadAdd':
-                if (isRepeat) break;
+                // if (isRepeat) break; // allow repeats
                 metronome.adjustTempo(5);
                 break;
             case 'Minus':
             case 'NumpadMinus':
-                if (isRepeat) break;
+                // if (isRepeat) break; // allow repeats
                 metronome.adjustTempo(-5);
                 break;
             default:

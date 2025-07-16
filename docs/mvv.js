@@ -767,6 +767,14 @@ class BpmManager {
     get posInCycle() {
         return __classPrivateFieldGet(this, _BpmManager_posInCycle, "f");
     }
+    adjustTempo(increment) {
+        if (increment == 0) {
+            return;
+        }
+        __classPrivateFieldSet(this, _BpmManager_bpm, Math.min(500, Math.max(10, __classPrivateFieldGet(this, _BpmManager_bpm, "f") + increment)), "f");
+        __classPrivateFieldGet(this, _BpmManager_instances, "m", _BpmManager_updateInterval).call(this);
+        info("Tempo set to " + __classPrivateFieldGet(this, _BpmManager_bpm, "f"));
+    }
     advance() {
         var _c, _d, _e;
         var curPos = __classPrivateFieldGet(this, _BpmManager_posInCycle, "f");
@@ -874,6 +882,9 @@ class Metronome {
         __classPrivateFieldSet(this, _Metronome_playing, false, "f");
         Tone.Transport.stop();
         Tone.Transport.cancel();
+    }
+    adjustTempo(increment) {
+        __classPrivateFieldGet(this, _Metronome_bpmm, "f").adjustTempo(increment);
     }
 }
 _Metronome_playing = new WeakMap(), _Metronome_bpmm = new WeakMap(), _Metronome_nextTime = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat(time) {
@@ -1658,6 +1669,16 @@ class Coordinator {
                 if (isRepeat)
                     break;
                 this.showOutputSelector();
+                break;
+            case 'Equal':
+            case 'NumpadAdd':
+                // if (isRepeat) break; // allow repeats
+                metronome.adjustTempo(5);
+                break;
+            case 'Minus':
+            case 'NumpadMinus':
+                // if (isRepeat) break; // allow repeats
+                metronome.adjustTempo(-5);
                 break;
             default:
                 return; // Don't prevent the default behavior.

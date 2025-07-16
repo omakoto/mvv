@@ -938,6 +938,15 @@ class BpmManager {
         return this.#posInCycle;
     }
 
+    adjustTempo(increment: number) {
+        if (increment == 0) {
+            return;
+        }
+        this.#bpm = Math.min(500, Math.max(10, this.#bpm + increment));
+        this.#updateInterval();
+        info("Tempo set to " + this.#bpm);
+    }
+
     advance() {
         var curPos = this.#posInCycle;
 
@@ -1093,6 +1102,10 @@ class Metronome {
 
         Tone.Transport.stop();
         Tone.Transport.cancel();
+    }
+
+    adjustTempo(increment: number) {
+        this.#bpmm.adjustTempo(increment);
     }
 }
 
@@ -1967,6 +1980,16 @@ class Coordinator {
             case 'KeyD':
                 if (isRepeat) break;
                 this.showOutputSelector();
+                break;
+            case 'Equal':
+            case 'NumpadAdd':
+                // if (isRepeat) break; // allow repeats
+                metronome.adjustTempo(5);
+                break;
+            case 'Minus':
+            case 'NumpadMinus':
+                // if (isRepeat) break; // allow repeats
+                metronome.adjustTempo(-5);
                 break;
             default:
                 return; // Don't prevent the default behavior.
