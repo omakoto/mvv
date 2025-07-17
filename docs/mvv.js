@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _BpmManager_instances, _BpmManager_options, _BpmManager_bpm, _BpmManager_beats, _BpmManager_subBeats, _BpmManager_intervalSec, _BpmManager_cycle, _BpmManager_posInCycle, _BpmManager_mode, _BpmManager_totalBars, _BpmManager_changeBars, _BpmManager_changeSeconds, _BpmManager_lastChangedTime, _BpmManager_updateInterval, _Metronome_instances, _Metronome_playing, _Metronome_bpmm, _Metronome_nextTime, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeOptions, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_OPTIONS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _BpmManager_instances, _BpmManager_options, _BpmManager_bpm, _BpmManager_beats, _BpmManager_subBeats, _BpmManager_intervalSec, _BpmManager_cycle, _BpmManager_posInCycle, _BpmManager_mode, _BpmManager_currentBar, _BpmManager_lastChangedBar, _BpmManager_lastChangedTime, _BpmManager_updateInterval, _Metronome_instances, _Metronome_playing, _Metronome_bpmm, _Metronome_nextTime, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeOptions, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_OPTIONS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -723,9 +723,8 @@ class BpmManager {
         _BpmManager_cycle.set(this, 0);
         _BpmManager_posInCycle.set(this, 0);
         _BpmManager_mode.set(this, 0); // 0 == no increase/decrease, 1 == increasing, 2 == decreasing
-        _BpmManager_totalBars.set(this, 0);
-        _BpmManager_changeBars.set(this, 0);
-        _BpmManager_changeSeconds.set(this, 0);
+        _BpmManager_currentBar.set(this, -1);
+        _BpmManager_lastChangedBar.set(this, 0);
         _BpmManager_lastChangedTime.set(this, 0);
         __classPrivateFieldSet(this, _BpmManager_options, opts.copy(), "f");
         __classPrivateFieldSet(this, _BpmManager_bpm, Math.max(10, opts.bpm), "f");
@@ -776,7 +775,7 @@ class BpmManager {
         info("Tempo set to " + __classPrivateFieldGet(this, _BpmManager_bpm, "f"));
     }
     advance() {
-        var _c, _d, _e;
+        var _c, _d;
         var curPos = __classPrivateFieldGet(this, _BpmManager_posInCycle, "f");
         // This is going to be the "next" pos.
         __classPrivateFieldSet(this, _BpmManager_posInCycle, (_c = __classPrivateFieldGet(this, _BpmManager_posInCycle, "f"), _c++, _c), "f");
@@ -789,22 +788,23 @@ class BpmManager {
         // Handle increase / decrease
         const increasing = __classPrivateFieldGet(this, _BpmManager_mode, "f") === 1;
         if (curPos == 0) {
-            __classPrivateFieldSet(this, _BpmManager_totalBars, (_d = __classPrivateFieldGet(this, _BpmManager_totalBars, "f"), _d++, _d), "f");
-            __classPrivateFieldSet(this, _BpmManager_changeBars, (_e = __classPrivateFieldGet(this, _BpmManager_changeBars, "f"), _e++, _e), "f");
+            __classPrivateFieldSet(this, _BpmManager_currentBar, (_d = __classPrivateFieldGet(this, _BpmManager_currentBar, "f"), _d++, _d), "f");
             if (DEBUG) {
-                console.log("Bar=" + __classPrivateFieldGet(this, _BpmManager_totalBars, "f"));
+                console.log("Bar=" + __classPrivateFieldGet(this, _BpmManager_currentBar, "f"));
             }
         }
         const now = performance.now();
+        const sinceLastChangeBar = __classPrivateFieldGet(this, _BpmManager_currentBar, "f") - __classPrivateFieldGet(this, _BpmManager_lastChangedBar, "f");
         const sinceLastChangeSec = Math.floor((now - __classPrivateFieldGet(this, _BpmManager_lastChangedTime, "f")) / 1000);
         var changed = false;
         if (DEBUG) {
-            console.log("Metronome advance: posInCycle=" + __classPrivateFieldGet(this, _BpmManager_posInCycle, "f") + " mode=" + __classPrivateFieldGet(this, _BpmManager_mode, "f")
-                + " bar=" + __classPrivateFieldGet(this, _BpmManager_changeBars, "f") + "  sec=" + sinceLastChangeSec);
+            console.log("Metronome advance: bar=" + __classPrivateFieldGet(this, _BpmManager_currentBar, "f")
+                + " posInCycle=" + __classPrivateFieldGet(this, _BpmManager_posInCycle, "f") + " mode=" + __classPrivateFieldGet(this, _BpmManager_mode, "f")
+                + " delta bar=" + sinceLastChangeBar + " delta sec=" + sinceLastChangeSec);
         }
         if (increasing) {
             var doIncrease = false;
-            if (__classPrivateFieldGet(this, _BpmManager_options, "f").increaseAfterBars > 0 && __classPrivateFieldGet(this, _BpmManager_changeBars, "f") > __classPrivateFieldGet(this, _BpmManager_options, "f").increaseAfterBars) {
+            if (__classPrivateFieldGet(this, _BpmManager_options, "f").increaseAfterBars > 0 && sinceLastChangeBar >= __classPrivateFieldGet(this, _BpmManager_options, "f").increaseAfterBars) {
                 doIncrease = true;
             }
             if (__classPrivateFieldGet(this, _BpmManager_options, "f").increaseAfterSeconds > 0 && sinceLastChangeSec >= __classPrivateFieldGet(this, _BpmManager_options, "f").increaseAfterSeconds) {
@@ -820,7 +820,7 @@ class BpmManager {
         }
         else {
             var doDecrease = false;
-            if (__classPrivateFieldGet(this, _BpmManager_options, "f").decreaseAfterBars > 0 && __classPrivateFieldGet(this, _BpmManager_changeBars, "f") > __classPrivateFieldGet(this, _BpmManager_options, "f").decreaseAfterBars) {
+            if (__classPrivateFieldGet(this, _BpmManager_options, "f").decreaseAfterBars > 0 && sinceLastChangeBar >= __classPrivateFieldGet(this, _BpmManager_options, "f").decreaseAfterBars) {
                 doDecrease = true;
             }
             if (__classPrivateFieldGet(this, _BpmManager_options, "f").decreaseAfterSeconds > 0 && sinceLastChangeSec >= __classPrivateFieldGet(this, _BpmManager_options, "f").decreaseAfterSeconds) {
@@ -835,7 +835,7 @@ class BpmManager {
             }
         }
         if (changed) {
-            __classPrivateFieldSet(this, _BpmManager_changeBars, 1, "f");
+            __classPrivateFieldSet(this, _BpmManager_lastChangedBar, __classPrivateFieldGet(this, _BpmManager_currentBar, "f"), "f");
             __classPrivateFieldSet(this, _BpmManager_lastChangedTime, now, "f");
             __classPrivateFieldGet(this, _BpmManager_instances, "m", _BpmManager_updateInterval).call(this);
             const msg = "Tempo changed to " + __classPrivateFieldGet(this, _BpmManager_bpm, "f") + " BPM";
@@ -846,7 +846,7 @@ class BpmManager {
         }
     }
 }
-_BpmManager_options = new WeakMap(), _BpmManager_bpm = new WeakMap(), _BpmManager_beats = new WeakMap(), _BpmManager_subBeats = new WeakMap(), _BpmManager_intervalSec = new WeakMap(), _BpmManager_cycle = new WeakMap(), _BpmManager_posInCycle = new WeakMap(), _BpmManager_mode = new WeakMap(), _BpmManager_totalBars = new WeakMap(), _BpmManager_changeBars = new WeakMap(), _BpmManager_changeSeconds = new WeakMap(), _BpmManager_lastChangedTime = new WeakMap(), _BpmManager_instances = new WeakSet(), _BpmManager_updateInterval = function _BpmManager_updateInterval() {
+_BpmManager_options = new WeakMap(), _BpmManager_bpm = new WeakMap(), _BpmManager_beats = new WeakMap(), _BpmManager_subBeats = new WeakMap(), _BpmManager_intervalSec = new WeakMap(), _BpmManager_cycle = new WeakMap(), _BpmManager_posInCycle = new WeakMap(), _BpmManager_mode = new WeakMap(), _BpmManager_currentBar = new WeakMap(), _BpmManager_lastChangedBar = new WeakMap(), _BpmManager_lastChangedTime = new WeakMap(), _BpmManager_instances = new WeakSet(), _BpmManager_updateInterval = function _BpmManager_updateInterval() {
     const measureMs = 60000 / (__classPrivateFieldGet(this, _BpmManager_bpm, "f") / __classPrivateFieldGet(this, _BpmManager_beats, "f"));
     __classPrivateFieldSet(this, _BpmManager_intervalSec, (measureMs / __classPrivateFieldGet(this, _BpmManager_cycle, "f")) / 1000.0, "f");
 };

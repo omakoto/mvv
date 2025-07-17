@@ -874,10 +874,9 @@ class BpmManager {
 
     #mode = 0; // 0 == no increase/decrease, 1 == increasing, 2 == decreasing
 
-    #totalBars = 0;
-    #changeBars = 0;
-    #changeSeconds = 0;
+    #currentBar = -1;
 
+    #lastChangedBar = 0;
     #lastChangedTime = 0;
 
     constructor(opts: MetronomeOptions) {
@@ -965,22 +964,23 @@ class BpmManager {
         const increasing = this.#mode === 1;
 
         if (curPos == 0) {
-            this.#totalBars++;
-            this.#changeBars++;
+            this.#currentBar++;
             if (DEBUG) {
-                console.log("Bar=" + this.#totalBars);
+                console.log("Bar=" + this.#currentBar);
             }
         }
         const now = performance.now();
+        const sinceLastChangeBar = this.#currentBar - this.#lastChangedBar;
         const sinceLastChangeSec = Math.floor((now - this.#lastChangedTime) / 1000);
         var changed = false;
         if (DEBUG) {
-            console.log("Metronome advance: posInCycle=" + this.#posInCycle + " mode=" + this.#mode
-                + " bar=" + this.#changeBars + "  sec=" + sinceLastChangeSec);
+            console.log("Metronome advance: bar=" + this.#currentBar
+                + " posInCycle=" + this.#posInCycle + " mode=" + this.#mode
+                + " delta bar=" + sinceLastChangeBar + " delta sec=" + sinceLastChangeSec);
         }
         if (increasing) {
             var doIncrease = false;
-            if (this.#options.increaseAfterBars > 0 && this.#changeBars > this.#options.increaseAfterBars) {
+            if (this.#options.increaseAfterBars > 0 && sinceLastChangeBar >= this.#options.increaseAfterBars) {
                 doIncrease = true;
             }
             if (this.#options.increaseAfterSeconds > 0 && sinceLastChangeSec >= this.#options.increaseAfterSeconds) {
@@ -996,7 +996,7 @@ class BpmManager {
             }
         } else {
             var doDecrease = false;
-            if (this.#options.decreaseAfterBars > 0 && this.#changeBars > this.#options.decreaseAfterBars) {
+            if (this.#options.decreaseAfterBars > 0 && sinceLastChangeBar >= this.#options.decreaseAfterBars) {
                 doDecrease = true;
             }
             if (this.#options.decreaseAfterSeconds > 0 && sinceLastChangeSec >= this.#options.decreaseAfterSeconds) {
@@ -1012,7 +1012,7 @@ class BpmManager {
             }
         }
         if (changed) {
-            this.#changeBars = 1;
+            this.#lastChangedBar = this.#currentBar;
             this.#lastChangedTime = now;
             this.#updateInterval();
             const msg = "Tempo changed to " + this.#bpm + " BPM";
