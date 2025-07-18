@@ -108,8 +108,6 @@ class MetronomeBox extends DialogBase {
         super('metronome_box');
         _MetronomeBox_instances.add(this);
         this.focusedInput = null;
-        this.lastSelectionStart = 0;
-        this.lastSelectionEnd = 0;
         this.metronomeTapLastTime = 0;
         const handleKeyDown = (ev) => {
             if (!this.focusedInput)
@@ -141,19 +139,9 @@ class MetronomeBox extends DialogBase {
         $('#metronome_bpm').on('keydown', (ev) => handleKeyDown(ev));
         $('#metronome_main_beats').on('keydown', (ev) => handleKeyDown(ev));
         $('#metronome_sub_beats').on('keydown', (ev) => handleKeyDown(ev));
-        const onSelectionChange = (ev) => {
-            const inputEl = ev.target;
-            if (inputEl.selectionStart !== null && inputEl.selectionEnd !== null) {
-                this.lastSelectionStart = inputEl.selectionStart;
-                this.lastSelectionEnd = inputEl.selectionEnd;
-                console.log(this.lastSelectionStart, this.lastSelectionEnd);
-            }
-        };
-        $("#metronome_box input").on('select keyup mouseup', onSelectionChange);
         $("#metronome_box input").on('focus', (ev) => {
             this.focusedInput = $(ev.target);
             $(ev.target).select();
-            onSelectionChange(ev);
         });
         $("#metronome_keypad .keypad_key").on('click', (ev) => {
             if (!this.focusedInput)
@@ -161,32 +149,32 @@ class MetronomeBox extends DialogBase {
             const inputEl = this.focusedInput[0];
             const key = $(ev.target).text();
             let val = inputEl.value;
-            const selectionStart = this.lastSelectionStart;
-            const selectionEnd = this.lastSelectionEnd;
-            let newCursorPos;
+            const selectionStart = inputEl.selectionStart || 0;
+            const selectionEnd = inputEl.selectionEnd || 0;
+            const anythingSelected = (selectionStart !== selectionEnd);
             if (key === 'BS') {
-                if (selectionStart === selectionEnd) { // nothing selected
-                    if (selectionStart > 0) {
-                        val = val.slice(0, selectionStart - 1) + val.slice(selectionEnd);
-                        newCursorPos = selectionStart - 1;
-                    }
-                    else {
-                        newCursorPos = selectionStart;
-                    }
+                if (!anythingSelected) {
+                    // No selection, delete the last character
+                    val = val.slice(0, -1);
                 }
-                else { // something selected
-                    val = val.slice(0, selectionStart) + val.slice(selectionEnd);
-                    newCursorPos = selectionStart;
+                else {
+                    // Selection exists, assume it's selecting the whole text, and delete all.
+                    val = "";
                 }
             }
-            else { // digit
-                val = val.slice(0, selectionStart) + key + val.slice(selectionEnd);
-                newCursorPos = selectionStart + key.length;
+            else {
+                if (!anythingSelected) {
+                    // No selection, add the digit.
+                    val = val + key;
+                }
+                else {
+                    // Selection exists, assume it's selecting the whole text, and replace all.
+                    val = key;
+                }
             }
             inputEl.value = val;
-            this.focusedInput.focus();
+            const newCursorPos = val.length;
             inputEl.setSelectionRange(newCursorPos, newCursorPos);
-            this.lastSelectionStart = this.lastSelectionEnd = newCursorPos;
         });
         $("#metronome_adj_keys .adj_key").on('click', (ev) => {
             if (!this.focusedInput)
