@@ -597,9 +597,10 @@ kbd:active {
     height: var(--button-height);
 }
 
-#metronome_box input {
+#metronome_box input[type="text"] {
     font-size: var(--button-font-size);
     text-align: right;
+    width: 3em;
 }
 
 #metronome_tap {
