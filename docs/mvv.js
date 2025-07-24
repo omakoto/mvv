@@ -449,8 +449,8 @@ class Renderer {
     get isVideoMuted() {
         return $('#canvases').css('display') === 'none';
     }
-    drawExtraLine(type = -1) {
-        __classPrivateFieldSet(this, _Renderer_extraLineType, type, "f");
+    drawExtraLine(type) {
+        __classPrivateFieldSet(this, _Renderer_extraLineType, Math.max(__classPrivateFieldGet(this, _Renderer_extraLineType, "f"), type), "f");
         __classPrivateFieldSet(this, _Renderer_needsAnimation, true, "f");
         coordinator.startAnimationLoop();
     }
@@ -1457,7 +1457,7 @@ class AudioProcessor {
                 __classPrivateFieldSet(this, _AudioProcessor_audioContext, new (window.AudioContext || window.webkitAudioContext)(), "f");
                 const source = __classPrivateFieldGet(this, _AudioProcessor_audioContext, "f").createMediaStreamSource(stream);
                 // Use ScriptProcessorNode for simplicity
-                const bufferSize = 1024;
+                const bufferSize = 512;
                 __classPrivateFieldSet(this, _AudioProcessor_scriptNode, __classPrivateFieldGet(this, _AudioProcessor_audioContext, "f").createScriptProcessor(bufferSize, 1, 1), "f");
                 __classPrivateFieldGet(this, _AudioProcessor_scriptNode, "f").onaudioprocess = (audioProcessingEvent) => {
                     const inputBuffer = audioProcessingEvent.inputBuffer;

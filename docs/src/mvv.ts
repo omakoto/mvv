@@ -537,8 +537,8 @@ class Renderer {
         return $('#canvases').css('display') === 'none';
     }
 
-    drawExtraLine(type: number = -1) {
-        this.#extraLineType = type;
+    drawExtraLine(type: number) {
+        this.#extraLineType = Math.max(this.#extraLineType, type);
         this.#needsAnimation = true;
         coordinator.startAnimationLoop();
     }
@@ -1765,7 +1765,7 @@ class AudioProcessor {
             const source = this.#audioContext.createMediaStreamSource(stream);
 
             // Use ScriptProcessorNode for simplicity
-            const bufferSize = 1024;
+            const bufferSize = 512;
             this.#scriptNode = this.#audioContext.createScriptProcessor(bufferSize, 1, 1);
 
             this.#scriptNode.onaudioprocess = (audioProcessingEvent) => {
