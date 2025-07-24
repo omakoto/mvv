@@ -10,6 +10,7 @@
             "es6",
             "dom",
         ],
+        "skipLibCheck": true,
     },
     "include": [
         "src/**/*",

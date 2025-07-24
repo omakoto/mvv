@@ -7,6 +7,7 @@
     "tonal": "^6.4.2"
   },
   "devDependencies": {
+    "@types/audioworklet": "^0.0.81",
     "@types/jquery": "^3.5.32"
   }
 }

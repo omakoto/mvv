@@ -1745,10 +1745,7 @@ export const recorder = new Recorder();
 
 class AudioProcessor {
     #audioContext: AudioContext | null = null;
-    #scriptNode: ScriptProcessorNode | null = null;
-    #analyser: AnalyserNode | null = null;
-    #lastMaxVolume = 0;
-    #attackThreshold = 0.1; // Tweak this value
+    #workletNode: AudioWorkletNode | null = null;
 
     constructor() {
     }
@@ -1762,30 +1759,19 @@ class AudioProcessor {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             this.#audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const source = this.#audioContext.createMediaStreamSource(stream);
-
-            // Use ScriptProcessorNode for simplicity
-            const bufferSize = 512;
-            this.#scriptNode = this.#audioContext.createScriptProcessor(bufferSize, 1, 1);
-
-            this.#scriptNode.onaudioprocess = (audioProcessingEvent) => {
-                const inputBuffer = audioProcessingEvent.inputBuffer;
-                const inputData = inputBuffer.getChannelData(0);
-
-                let maxVal = 0;
-                for (let i = 0; i < inputData.length; i++) {
-                    maxVal = Math.max(maxVal, Math.abs(inputData[i]));
-                }
-
-                if (this.#lastMaxVolume < this.#attackThreshold && maxVal >= this.#attackThreshold) {
-                    // Attack detected
+            
+            await this.#audioContext.audioWorklet.addModule('attack-processor.js');
+            
+            this.#workletNode = new AudioWorkletNode(this.#audioContext, 'attack-processor');
+            this.#workletNode.port.onmessage = (event) => {
+                if (event.data.type === 'attack') {
                     renderer.drawExtraLine(3);
                 }
-                this.#lastMaxVolume = maxVal;
             };
 
-            source.connect(this.#scriptNode);
-            this.#scriptNode.connect(this.#audioContext.destination);
+            const source = this.#audioContext.createMediaStreamSource(stream);
+            source.connect(this.#workletNode);
+            this.#workletNode.connect(this.#audioContext.destination);
 
             info("Audio recording and analysis started. Press 'i' again to stop.");
 
@@ -1796,9 +1782,10 @@ class AudioProcessor {
     }
 
     stop() {
-        if (this.#scriptNode) {
-            this.#scriptNode.disconnect();
-            this.#scriptNode = null;
+        if (this.#workletNode) {
+            this.#workletNode.port.onmessage = null;
+            this.#workletNode.disconnect();
+            this.#workletNode = null;
         }
         if (this.#audioContext) {
             this.#audioContext.close().then(() => {
