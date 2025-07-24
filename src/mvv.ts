@@ -187,9 +187,11 @@ class Renderer {
     #extraLineType = -1;
 
     readonly #EXTRA_LINE_COLORS = [
-        "#FF9090", // #FF9090
-        "#FFC0FF", // #FFC0FF
-        "#C0C0FF", // #C0C0FF
+        "#FF9090",
+        "#FFC0FF",
+        "#C0C0FF",
+        "#FFFFC0",
+        "#C0FFFF",
     ];
 
     readonly #EXTRA_LINE_HEIGHT = s(3);
@@ -1740,6 +1742,83 @@ class Recorder {
 
 export const recorder = new Recorder();
 
+
+class AudioProcessor {
+    #audioContext: AudioContext | null = null;
+    #scriptNode: ScriptProcessorNode | null = null;
+    #analyser: AnalyserNode | null = null;
+    #lastMaxVolume = 0;
+    #attackThreshold = 0.1; // Tweak this value
+
+    constructor() {
+    }
+
+    async start() {
+        if (this.#audioContext) {
+            info("Audio processor already running.");
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            this.#audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = this.#audioContext.createMediaStreamSource(stream);
+
+            // Use ScriptProcessorNode for simplicity
+            const bufferSize = 1024;
+            this.#scriptNode = this.#audioContext.createScriptProcessor(bufferSize, 1, 1);
+
+            this.#scriptNode.onaudioprocess = (audioProcessingEvent) => {
+                const inputBuffer = audioProcessingEvent.inputBuffer;
+                const inputData = inputBuffer.getChannelData(0);
+
+                let maxVal = 0;
+                for (let i = 0; i < inputData.length; i++) {
+                    maxVal = Math.max(maxVal, Math.abs(inputData[i]));
+                }
+
+                if (this.#lastMaxVolume < this.#attackThreshold && maxVal >= this.#attackThreshold) {
+                    // Attack detected
+                    renderer.drawExtraLine(3);
+                }
+                this.#lastMaxVolume = maxVal;
+            };
+
+            source.connect(this.#scriptNode);
+            this.#scriptNode.connect(this.#audioContext.destination);
+
+            info("Audio recording and analysis started. Press 'i' again to stop.");
+
+        } catch (err) {
+            console.error("Error starting audio processor:", err);
+            info("Could not start audio recording. Please grant microphone permission.");
+        }
+    }
+
+    stop() {
+        if (this.#scriptNode) {
+            this.#scriptNode.disconnect();
+            this.#scriptNode = null;
+        }
+        if (this.#audioContext) {
+            this.#audioContext.close().then(() => {
+                this.#audioContext = null;
+                info("Audio recording and analysis stopped.");
+            });
+        }
+    }
+
+    toggle() {
+        if (this.#audioContext) {
+            this.stop();
+        } else {
+            this.start();
+        }
+    }
+}
+
+export const audioProcessor = new AudioProcessor();
+
 class Coordinator {
     #nextFpsMeasureSecond = 0;
     #frames = 0;
@@ -1980,6 +2059,10 @@ class Coordinator {
             case 'KeyD':
                 if (isRepeat) break;
                 this.showOutputSelector();
+                break;
+            case 'KeyI':
+                if (isRepeat) break;
+                audioProcessor.toggle();
                 break;
             case 'Equal':
             case 'NumpadAdd':

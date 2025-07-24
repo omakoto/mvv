@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _BpmManager_instances, _BpmManager_options, _BpmManager_bpm, _BpmManager_beats, _BpmManager_subBeats, _BpmManager_intervalSec, _BpmManager_cycle, _BpmManager_posInCycle, _BpmManager_mode, _BpmManager_currentBar, _BpmManager_lastChangedBar, _BpmManager_lastChangedTime, _BpmManager_updateInterval, _Metronome_instances, _Metronome_playing, _Metronome_bpmm, _Metronome_nextTime, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeOptions, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_OPTIONS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
+var _Renderer_instances, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_barAreaChanged, _MidiRenderingStatus_tick, _MidiRenderingStatus_notes, _MidiRenderingStatus_damperPedal, _MidiRenderingStatus_sostenuto, _MidiRenderingStatus_onNoteCountInTick, _MidiRenderingStatus_offNoteCountInTick, _MidiRenderingStatus_lastNoteOnTick, _MidiRenderingStatus_lastNoteOffTick, _MidiOutputManager_device, _a, _MidiOutputDeviceSelector_devices, _MidiOutputDeviceSelector_selectedDeviceName, _MidiOutputDeviceSelector_STORAGE_KEY_OUTPUT_DEVICE, _BpmManager_instances, _BpmManager_options, _BpmManager_bpm, _BpmManager_beats, _BpmManager_subBeats, _BpmManager_intervalSec, _BpmManager_cycle, _BpmManager_posInCycle, _BpmManager_mode, _BpmManager_currentBar, _BpmManager_lastChangedBar, _BpmManager_lastChangedTime, _BpmManager_updateInterval, _Metronome_instances, _Metronome_playing, _Metronome_bpmm, _Metronome_nextTime, _Metronome_synth, _Metronome_beat, _AlwaysRecorder_events, _Recorder_instances, _Recorder_events, _Recorder_state, _Recorder_sections, _Recorder_recordingStartTimestamp, _Recorder_currentPlaybackTimestamp, _Recorder_nextPlaybackIndex, _Recorder_lastEventTimestamp, _Recorder_isDirty, _Recorder_timer, _Recorder_startRecording, _Recorder_stopRecording, _Recorder_startPlaying, _Recorder_stopPlaying, _Recorder_startTimer, _Recorder_stopTimer, _Recorder_moveUpToTimestamp, _Recorder_detectSections, _AudioProcessor_audioContext, _AudioProcessor_scriptNode, _AudioProcessor_analyser, _AudioProcessor_lastMaxVolume, _AudioProcessor_attackThreshold, _Coordinator_instances, _b, _Coordinator_nextFpsMeasureSecond, _Coordinator_frames, _Coordinator_flips, _Coordinator_playbackTicks, _Coordinator_efps, _Coordinator_wakelock, _Coordinator_wakelockTimer, _Coordinator_notes, _Coordinator_chords, _Coordinator_useSharp, _Coordinator_showOctaveLines, _Coordinator_showNoteNames, _Coordinator_scrollSpeedIndex, _Coordinator_playSpeedIndex, _Coordinator_showNoteOffLins, _Coordinator_isHelpVisible, _Coordinator_metronomeOptions, _Coordinator_knownRecorderState, _Coordinator_playbackTimerLastNow, _Coordinator_STORAGE_KEY_USE_SHARP, _Coordinator_STORAGE_KEY_SHOW_VLINES, _Coordinator_STORAGE_KEY_SHOW_NOTE_NAMES, _Coordinator_STORAGE_KEY_SCROLL_SPEED, _Coordinator_STORAGE_KEY_PLAY_SPEED, _Coordinator_STORAGE_KEY_NOTE_OFF_LINES, _Coordinator_STORAGE_KEY_METRONOME_OPTIONS, _Coordinator_setPlaySpeedIndex, _Coordinator_ensureOutputDevice, _Coordinator_ignoreRepeatedRewindKey, _Coordinator_onRewindPressed, _Coordinator_onFastForwardPressed, _Coordinator_normalizeMidiEvent, _Coordinator_updateFps, _Coordinator_updateNoteInformationNoteNamesShown, _Coordinator_updateNoteInformationLastNotes, _Coordinator_arraySame, _Coordinator_animationFrameId;
 import { info, debug, DEBUG, toggleDebug } from './util.js';
 import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
@@ -173,9 +173,11 @@ class Renderer {
         _Renderer_needsAnimation.set(this, false);
         _Renderer_extraLineType.set(this, -1);
         _Renderer_EXTRA_LINE_COLORS.set(this, [
-            "#FF9090", // #FF9090
-            "#FFC0FF", // #FFC0FF
-            "#C0C0FF", // #C0C0FF
+            "#FF9090",
+            "#FFC0FF",
+            "#C0C0FF",
+            "#FFFFC0",
+            "#C0FFFF",
         ]);
         _Renderer_EXTRA_LINE_HEIGHT.set(this, s(3));
         _Renderer_EXTRA_LINE_DASH.set(this, [__classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 4, __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 8]);
@@ -1436,6 +1438,73 @@ _Recorder_events = new WeakMap(), _Recorder_state = new WeakMap(), _Recorder_sec
     console.log("Detected " + __classPrivateFieldGet(this, _Recorder_sections, "f").length + " sections: " + __classPrivateFieldGet(this, _Recorder_sections, "f").map(s => (s / 1000).toFixed(1)).join(', '));
 };
 export const recorder = new Recorder();
+class AudioProcessor {
+    constructor() {
+        _AudioProcessor_audioContext.set(this, null);
+        _AudioProcessor_scriptNode.set(this, null);
+        _AudioProcessor_analyser.set(this, null);
+        _AudioProcessor_lastMaxVolume.set(this, 0);
+        _AudioProcessor_attackThreshold.set(this, 0.1); // Tweak this value
+    }
+    start() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (__classPrivateFieldGet(this, _AudioProcessor_audioContext, "f")) {
+                info("Audio processor already running.");
+                return;
+            }
+            try {
+                const stream = yield navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                __classPrivateFieldSet(this, _AudioProcessor_audioContext, new (window.AudioContext || window.webkitAudioContext)(), "f");
+                const source = __classPrivateFieldGet(this, _AudioProcessor_audioContext, "f").createMediaStreamSource(stream);
+                // Use ScriptProcessorNode for simplicity
+                const bufferSize = 1024;
+                __classPrivateFieldSet(this, _AudioProcessor_scriptNode, __classPrivateFieldGet(this, _AudioProcessor_audioContext, "f").createScriptProcessor(bufferSize, 1, 1), "f");
+                __classPrivateFieldGet(this, _AudioProcessor_scriptNode, "f").onaudioprocess = (audioProcessingEvent) => {
+                    const inputBuffer = audioProcessingEvent.inputBuffer;
+                    const inputData = inputBuffer.getChannelData(0);
+                    let maxVal = 0;
+                    for (let i = 0; i < inputData.length; i++) {
+                        maxVal = Math.max(maxVal, Math.abs(inputData[i]));
+                    }
+                    if (__classPrivateFieldGet(this, _AudioProcessor_lastMaxVolume, "f") < __classPrivateFieldGet(this, _AudioProcessor_attackThreshold, "f") && maxVal >= __classPrivateFieldGet(this, _AudioProcessor_attackThreshold, "f")) {
+                        // Attack detected
+                        renderer.drawExtraLine(3);
+                    }
+                    __classPrivateFieldSet(this, _AudioProcessor_lastMaxVolume, maxVal, "f");
+                };
+                source.connect(__classPrivateFieldGet(this, _AudioProcessor_scriptNode, "f"));
+                __classPrivateFieldGet(this, _AudioProcessor_scriptNode, "f").connect(__classPrivateFieldGet(this, _AudioProcessor_audioContext, "f").destination);
+                info("Audio recording and analysis started. Press 'i' again to stop.");
+            }
+            catch (err) {
+                console.error("Error starting audio processor:", err);
+                info("Could not start audio recording. Please grant microphone permission.");
+            }
+        });
+    }
+    stop() {
+        if (__classPrivateFieldGet(this, _AudioProcessor_scriptNode, "f")) {
+            __classPrivateFieldGet(this, _AudioProcessor_scriptNode, "f").disconnect();
+            __classPrivateFieldSet(this, _AudioProcessor_scriptNode, null, "f");
+        }
+        if (__classPrivateFieldGet(this, _AudioProcessor_audioContext, "f")) {
+            __classPrivateFieldGet(this, _AudioProcessor_audioContext, "f").close().then(() => {
+                __classPrivateFieldSet(this, _AudioProcessor_audioContext, null, "f");
+                info("Audio recording and analysis stopped.");
+            });
+        }
+    }
+    toggle() {
+        if (__classPrivateFieldGet(this, _AudioProcessor_audioContext, "f")) {
+            this.stop();
+        }
+        else {
+            this.start();
+        }
+    }
+}
+_AudioProcessor_audioContext = new WeakMap(), _AudioProcessor_scriptNode = new WeakMap(), _AudioProcessor_analyser = new WeakMap(), _AudioProcessor_lastMaxVolume = new WeakMap(), _AudioProcessor_attackThreshold = new WeakMap();
+export const audioProcessor = new AudioProcessor();
 class Coordinator {
     constructor() {
         _Coordinator_instances.add(this);
@@ -1669,6 +1738,11 @@ class Coordinator {
                 if (isRepeat)
                     break;
                 this.showOutputSelector();
+                break;
+            case 'KeyI':
+                if (isRepeat)
+                    break;
+                audioProcessor.toggle();
                 break;
             case 'Equal':
             case 'NumpadAdd':
