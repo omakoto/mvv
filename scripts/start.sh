@@ -4,16 +4,6 @@ set -e
 
 cd "${0%/*}/.." # Move to the top dir
 
-./scripts/build.sh
+npm run build
 
-cd docs
-
-port=11080
-(
-    sleep 0.5
-    cd /
-    (nohup google-chrome "http://localhost:$port/${ARGS:+?}${ARGS:-}" &)
-
-) &
-
-python3 -m http.server $port
+npx live-server docs --port=11080 --open="/${ARGS:+?}${ARGS:-}"

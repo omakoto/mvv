@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build": "node scripts/build.js",
+    "start": "./scripts/start.sh"
+  },
   "dependencies": {
     "@types/dom-screen-wake-lock": "^1.0.3",
     "@types/jqueryui": "^1.12.24",
