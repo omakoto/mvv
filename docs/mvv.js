@@ -188,10 +188,10 @@ class Renderer {
         __classPrivateFieldSet(this, _Renderer_H, s(screen.height), "f");
         __classPrivateFieldSet(this, _Renderer_BAR_H, int(__classPrivateFieldGet(this, _Renderer_H, "f") * BAR_RATIO), "f");
         __classPrivateFieldSet(this, _Renderer_ROLL_H, __classPrivateFieldGet(this, _Renderer_H, "f") - __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), "f");
-        _c = this, _d = this, [({ set value(_l) { __classPrivateFieldSet(_c, _Renderer_cbar, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_d, _Renderer_bar, _l, "f"); } }).value] = Renderer.getCanvas("bar");
-        _e = this, _f = this, [({ set value(_l) { __classPrivateFieldSet(_e, _Renderer_cbar2, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_f, _Renderer_bar2, _l, "f"); } }).value] = Renderer.getCanvas("bar2");
-        _g = this, _h = this, [({ set value(_l) { __classPrivateFieldSet(_g, _Renderer_croll, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_h, _Renderer_roll, _l, "f"); } }).value] = Renderer.getCanvas("roll");
-        _j = this, _k = this, [({ set value(_l) { __classPrivateFieldSet(_j, _Renderer_croll2, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_k, _Renderer_roll2, _l, "f"); } }).value] = Renderer.getCanvas("roll2");
+        _c = this, _d = this, [({ set value(_a) { __classPrivateFieldSet(_c, _Renderer_cbar, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_d, _Renderer_bar, _a, "f"); } }).value] = Renderer.getCanvas("bar");
+        _e = this, _f = this, [({ set value(_a) { __classPrivateFieldSet(_e, _Renderer_cbar2, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_f, _Renderer_bar2, _a, "f"); } }).value] = Renderer.getCanvas("bar2");
+        _g = this, _h = this, [({ set value(_a) { __classPrivateFieldSet(_g, _Renderer_croll, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_h, _Renderer_roll, _a, "f"); } }).value] = Renderer.getCanvas("roll");
+        _j = this, _k = this, [({ set value(_a) { __classPrivateFieldSet(_j, _Renderer_croll2, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_k, _Renderer_roll2, _a, "f"); } }).value] = Renderer.getCanvas("roll2");
         __classPrivateFieldGet(this, _Renderer_bar, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_bar2, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_roll, "f").imageSmoothingEnabled = false;
