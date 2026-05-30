@@ -12,8 +12,8 @@ import { MidiEvent, SmfWriter, loadMidi } from './smf.js';
 import { controls } from './controls.js';
 import { saveAsBox, confirmBox, metronomeBox, midiOutputBox } from './dialogs.js';
 import { getNoteFullName, analyzeChord } from './chords.js';
-declare var Tonal: any;
-declare var Tone: any;
+declare const Tonal: any;
+declare const Tone: any;
 
 // 2D game with canvas example: https://github.com/end3r/Gamedev-Canvas-workshop/blob/gh-pages/lesson10.html
 // Get screen size: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
@@ -26,7 +26,7 @@ declare class Popbox {
 };
 
 
-const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp")) !== 0;
+const LOW_PERF_MODE = parseInt("0" + (new URLSearchParams(window.location.search)).get("lp"), 10) !== 0;
 if (!LOW_PERF_MODE) {
     console.log(`Low-perf is disabled. Use ${location.origin}${location.pathname}?lp=1 to enable low-perf mode for slow devices`);
 }
@@ -35,7 +35,7 @@ const SCALE_ARG = parseFloat("0" + (new URLSearchParams(window.location.search))
 const SCALE = SCALE_ARG > 0 ? SCALE_ARG : window.devicePixelRatio;
 console.log("Scale: " + SCALE);
 
-const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"));
+const PLAYBACK_RESOLUTION_ARG = parseInt("0" + (new URLSearchParams(window.location.search)).get("pres"), 10);
 const PLAYBACK_RESOLUTION_MS = 1000 / (PLAYBACK_RESOLUTION_ARG > 0 ? PLAYBACK_RESOLUTION_ARG : LOW_PERF_MODE ? 60 : 120);
 
 const MAX_FPS = 100;
@@ -70,7 +70,7 @@ const SHORTEST_NOTE_LENGTH = 1;
 // If true, simulate drum-style midi input devices, which can be used to
 // debug the above SHORTEST_NOTE_LENGTH handling.
 // It's not const, so we can flip it at runtime using the debugger.
-var SIMULATE_ZERO_LENGTH_NOTES = false;
+let SIMULATE_ZERO_LENGTH_NOTES = false;
 
 // Utility functions
 
@@ -359,9 +359,9 @@ class Renderer {
         // Individual bar width
         let bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
 
-        var drawHeight: number = 0;
-        var scrollPx = coordinator.scrollSpeedPx;
-        var scrollFactor = coordinator.scrollSpeedFactor;
+        let drawHeight = 0;
+        const scrollPx = coordinator.scrollSpeedPx;
+        const scrollFactor = coordinator.scrollSpeedFactor;
 
         if (!this.#rollFrozen) {
             this.#subpixelScroll += scrollPx;
@@ -578,7 +578,7 @@ class MidiRenderingNoteStatus {
     }
 
     copy(): MidiRenderingNoteStatus {
-        var copy = new MidiRenderingNoteStatus();
+        const copy = new MidiRenderingNoteStatus();
         Object.assign(copy, this);
         return copy;
     }
@@ -855,15 +855,15 @@ export class MetronomeOptions {
     decreaseMinBpm: number;
 
     copy(): MetronomeOptions {
-        var copy = new MetronomeOptions();
+        const copy = new MetronomeOptions();
         Object.assign(copy, this);
         return copy;
     }
 
     static fromJson(json: string): MetronomeOptions {
-        const obj = JSON.parse(json)
+        const obj = JSON.parse(json);
 
-        var copy = new MetronomeOptions();
+        const copy = new MetronomeOptions();
         Object.assign(copy, obj);
         return copy;
     }
@@ -955,7 +955,7 @@ class BpmManager {
     }
 
     advance() {
-        var curPos = this.#posInCycle;
+        const curPos = this.#posInCycle;
 
         // This is going to be the "next" pos.
         this.#posInCycle++;
@@ -980,14 +980,14 @@ class BpmManager {
         const now = performance.now();
         const sinceLastChangeBar = this.#currentBar - this.#lastChangedBar;
         const sinceLastChangeSec = Math.floor((now - this.#lastChangedTime) / 1000);
-        var changed = false;
+        let changed = false;
         if (DEBUG) {
             console.log("Metronome advance: bar=" + this.#currentBar
                 + " posInCycle=" + this.#posInCycle + " mode=" + this.#mode
                 + " delta bar=" + sinceLastChangeBar + " delta sec=" + sinceLastChangeSec);
         }
         if (increasing) {
-            var doIncrease = false;
+            let doIncrease = false;
             if (this.#options.increaseAfterBars > 0 && sinceLastChangeBar >= this.#options.increaseAfterBars) {
                 doIncrease = true;
             }
@@ -1003,7 +1003,7 @@ class BpmManager {
                 }
             }
         } else {
-            var doDecrease = false;
+            let doDecrease = false;
             if (this.#options.decreaseAfterBars > 0 && sinceLastChangeBar >= this.#options.decreaseAfterBars) {
                 doDecrease = true;
             }
@@ -1069,7 +1069,7 @@ class Metronome {
 
         const accent = (pos === 0 && bpmm.beats > 1);
 
-        var lineType = -1;
+        let lineType = -1;
 
         if (bpmm.subBeats > 1 && ((pos % bpmm.beats) === 0)) {
             lineType = 2;
@@ -1494,7 +1494,7 @@ class Recorder {
             // debug(this.#playbackStartTimestamp, performance.now(), this.#playbackTimeAdjustment, this.#getPausingDuration());
         }
 
-        var noteChanged = false;
+        let noteChanged = false;
         const stillPlaying = this.#moveUpToTimestamp(ts, (ev: MidiEvent) => {
             if (DEBUG) {
                 // debug("Playback: time=" + int(this.currentPlaybackTimestamp / 1000) +
@@ -1827,7 +1827,7 @@ class Coordinator {
     #showNoteNames: boolean;
     #scrollSpeedIndex: number;
     #playSpeedIndex: number;
-    #showNoteOffLins = false;
+    #showNoteOffLines = false;
 
     #isHelpVisible = false;
     #metronomeOptions: MetronomeOptions;
@@ -1865,13 +1865,13 @@ class Coordinator {
         this.#showNoteNames = storedNoteNames === null ? true : storedNoteNames === 'true';
 
         const storedSpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_SCROLL_SPEED);
-        this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed) : 0;
+        this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed, 10) : 0;
 
         const storedPlaySpeed = localStorage.getItem(Coordinator.#STORAGE_KEY_PLAY_SPEED);
-        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed) : DEFAULT_PLAY_SPEED_INDEX;
+        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed, 10) : DEFAULT_PLAY_SPEED_INDEX;
 
         const noteOffLines = localStorage.getItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES);
-        this.#showNoteOffLins = noteOffLines === null ? true : noteOffLines === 'true';
+        this.#showNoteOffLines = noteOffLines === null ? true : noteOffLines === 'true';
 
         const storedMetronomeOptions = localStorage.getItem(Coordinator.#STORAGE_KEY_METRONOME_OPTIONS);
         if (storedMetronomeOptions) {
@@ -2182,13 +2182,13 @@ class Coordinator {
     }
 
     get isShowingNoteOffLines(): boolean {
-        return this.#showNoteOffLins;
+        return this.#showNoteOffLines;
     }
 
     toggleNoteOffLines(): void {
         info("Toggle note-off lines");
-        this.#showNoteOffLins = !this.#showNoteOffLins;
-        localStorage.setItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES, String(this.#showNoteOffLins));
+        this.#showNoteOffLines = !this.#showNoteOffLines;
+        localStorage.setItem(Coordinator.#STORAGE_KEY_NOTE_OFF_LINES, String(this.#showNoteOffLines));
         this.updateUi();
     }
 
@@ -2570,12 +2570,12 @@ class Coordinator {
         console.log("Animation started")
         this.#updateFps();
 
-        var nextFlip = -1;
+        let nextFlip = -1;
 
         const loop = (time: number, forceRequest: boolean) => {
             this.#frames++;
 
-            var requestNext = false;
+            let requestNext = false;
             if (time < nextFlip) {
                 requestNext = true;
             } else {
@@ -2705,7 +2705,7 @@ function onMIDISuccess(midiAccess: WebMidi.MIDIAccess): void {
         }
     }
     const outputs = Array.from(midiAccess.outputs.values());
-    for (var output of outputs) {
+    for (const output of outputs) {
         console.log("Discovered output device: " + output.name, output);
     }
     midiOutputDeviceSelector.setDevices(outputs);
