@@ -363,7 +363,7 @@ _TickConverter_ticksPerBeat = new WeakMap(), _TickConverter_tempos = new WeakMap
     return ((ticks / __classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f")) * mspb) / 1000;
 };
 function hex8(v) {
-    return v.toString(16); // TODO pad-0
+    return ("0" + v.toString(16)).slice(-2);
 }
 class SmfReader {
     constructor(ar) {
@@ -495,7 +495,8 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                 lastStatus = status;
                 const statusType = status & 0xf0;
                 // const _channel = status & 0x0f;
-                // TODO: Ignore non-channel-0 data??
+                // We could ignore non-channel-0 data, but for now, we'll load all channels
+                // and play them back.
                 let data2 = 0;
                 switch (statusType) {
                     case 0xc0: // program change
@@ -608,10 +609,9 @@ _SmfWriter_writer = new WeakMap(), _SmfWriter_trackLengthPos = new WeakMap(), _S
         w.writeU8(0xb0);
         w.writeU8(7);
         w.writeU8(127);
-        // // All reset
-        // TODO: Hmm, 0xFF conflicts with meta event header, so we can't use it?
-        // w.writeVar(0); // time
-        // w.writeU8(255);
+        // Note: System Reset (0xFF) cannot be used in standard MIDI files (SMF)
+        // because it is reserved exclusively for Meta event headers and would
+        // corrupt file parsing. Device reset is handled above via CC 121 and 123.
     });
 };
 function downloadMidi(blob, filename) {

@@ -423,7 +423,7 @@ class TickConverter {
 }
 
 function hex8(v: number): string {
-    return v.toString(16); // TODO pad-0
+    return ("0" + v.toString(16)).slice(-2);
 }
 
 class SmfReader {
@@ -589,7 +589,8 @@ class SmfReader {
                     const statusType = status & 0xf0;
                     // const _channel = status & 0x0f;
 
-                    // TODO: Ignore non-channel-0 data??
+                    // We could ignore non-channel-0 data, but for now, we'll load all channels
+                    // and play them back.
 
                     let data2 = 0;
                     switch (statusType) {
@@ -691,10 +692,9 @@ export class SmfWriter {
             w.writeU8(7);
             w.writeU8(127);
 
-            // // All reset
-            // TODO: Hmm, 0xFF conflicts with meta event header, so we can't use it?
-            // w.writeVar(0); // time
-            // w.writeU8(255);
+            // Note: System Reset (0xFF) cannot be used in standard MIDI files (SMF)
+            // because it is reserved exclusively for Meta event headers and would
+            // corrupt file parsing. Device reset is handled above via CC 121 and 123.
         });
     }
 
