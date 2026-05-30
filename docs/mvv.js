@@ -194,10 +194,10 @@ class Renderer {
         __classPrivateFieldSet(this, _Renderer_H, s(screen.height), "f");
         __classPrivateFieldSet(this, _Renderer_BAR_H, int(__classPrivateFieldGet(this, _Renderer_H, "f") * BAR_RATIO), "f");
         __classPrivateFieldSet(this, _Renderer_ROLL_H, __classPrivateFieldGet(this, _Renderer_H, "f") - __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), "f");
-        _c = this, _d = this, [({ set value(_a) { __classPrivateFieldSet(_c, _Renderer_cbar, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_d, _Renderer_bar, _a, "f"); } }).value] = Renderer.getCanvas("bar");
-        _e = this, _f = this, [({ set value(_a) { __classPrivateFieldSet(_e, _Renderer_cbar2, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_f, _Renderer_bar2, _a, "f"); } }).value] = Renderer.getCanvas("bar2");
-        _g = this, _h = this, [({ set value(_a) { __classPrivateFieldSet(_g, _Renderer_croll, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_h, _Renderer_roll, _a, "f"); } }).value] = Renderer.getCanvas("roll");
-        _j = this, _k = this, [({ set value(_a) { __classPrivateFieldSet(_j, _Renderer_croll2, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_k, _Renderer_roll2, _a, "f"); } }).value] = Renderer.getCanvas("roll2");
+        _c = this, _d = this, [({ set value(_l) { __classPrivateFieldSet(_c, _Renderer_cbar, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_d, _Renderer_bar, _l, "f"); } }).value] = Renderer.getCanvas("bar");
+        _e = this, _f = this, [({ set value(_l) { __classPrivateFieldSet(_e, _Renderer_cbar2, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_f, _Renderer_bar2, _l, "f"); } }).value] = Renderer.getCanvas("bar2");
+        _g = this, _h = this, [({ set value(_l) { __classPrivateFieldSet(_g, _Renderer_croll, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_h, _Renderer_roll, _l, "f"); } }).value] = Renderer.getCanvas("roll");
+        _j = this, _k = this, [({ set value(_l) { __classPrivateFieldSet(_j, _Renderer_croll2, _l, "f"); } }).value, ({ set value(_l) { __classPrivateFieldSet(_k, _Renderer_roll2, _l, "f"); } }).value] = Renderer.getCanvas("roll2");
         __classPrivateFieldGet(this, _Renderer_bar, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_bar2, "f").imageSmoothingEnabled = false;
         __classPrivateFieldGet(this, _Renderer_roll, "f").imageSmoothingEnabled = false;
@@ -477,6 +477,7 @@ class MidiRenderingNoteStatus {
     }
     reset() {
         this.noteOn = false;
+        this.note = 0;
         this.velocity = 0;
         this.onTick = -99999;
         this.offTick = -99999;
@@ -891,7 +892,8 @@ class Metronome {
         Tone.Transport.cancel();
     }
     adjustTempo(increment) {
-        __classPrivateFieldGet(this, _Metronome_bpmm, "f").adjustTempo(increment);
+        if (__classPrivateFieldGet(this, _Metronome_bpmm, "f"))
+            __classPrivateFieldGet(this, _Metronome_bpmm, "f").adjustTempo(increment);
     }
 }
 _Metronome_playing = new WeakMap(), _Metronome_bpmm = new WeakMap(), _Metronome_nextTime = new WeakMap(), _Metronome_synth = new WeakMap(), _Metronome_instances = new WeakSet(), _Metronome_beat = function _Metronome_beat(time) {
@@ -1798,7 +1800,8 @@ class Coordinator {
         return getScrollSpeedPx(this.scrollSpeedIndex);
     }
     get scrollSpeedFactor() {
-        return this.scrollSpeedPx / getScrollSpeedPx(0);
+        const base = getScrollSpeedPx(0);
+        return base > 0 ? this.scrollSpeedPx / base : 1;
     }
     get scrollSpeedIndex() {
         return __classPrivateFieldGet(this, _Coordinator_scrollSpeedIndex, "f");

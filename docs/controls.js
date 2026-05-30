@@ -47,12 +47,14 @@ class TimeKeeper {
     getHumanReadable() {
         if (__classPrivateFieldGet(this, _TimeKeeper_text, "f") === null) {
             if (__classPrivateFieldGet(this, _TimeKeeper_second, "f") === null) {
-                return "0:00";
+                __classPrivateFieldSet(this, _TimeKeeper_text, "0:00", "f");
             }
-            const s = __classPrivateFieldGet(this, _TimeKeeper_second, "f");
-            const minutes = Math.floor(s / 60);
-            const seconds = s % 60;
-            return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            else {
+                const s = __classPrivateFieldGet(this, _TimeKeeper_second, "f");
+                const minutes = Math.floor(s / 60);
+                const seconds = s % 60;
+                __classPrivateFieldSet(this, _TimeKeeper_text, minutes + ":" + (seconds < 10 ? "0" + seconds : seconds), "f");
+            }
         }
         return __classPrivateFieldGet(this, _TimeKeeper_text, "f");
     }

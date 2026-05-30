@@ -40,12 +40,13 @@ class TimeKeeper {
     getHumanReadable(): string {
         if (this.#text === null) {
             if (this.#second === null) {
-                return "0:00";
+                this.#text = "0:00";
+            } else {
+                const s = this.#second;
+                const minutes = Math.floor(s / 60);
+                const seconds = s % 60;
+                this.#text = minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
             }
-            const s = this.#second;
-            const minutes = Math.floor(s / 60);
-            const seconds = s % 60;
-            return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
         }
         return this.#text;
     }

@@ -572,6 +572,7 @@ class MidiRenderingNoteStatus {
 
     reset(): void {
         this.noteOn = false;
+        this.note = 0;
         this.velocity = 0;
         this.onTick = -99999;
         this.offTick = -99999;
@@ -1113,7 +1114,7 @@ class Metronome {
     }
 
     adjustTempo(increment: number) {
-        this.#bpmm.adjustTempo(increment);
+        if (this.#bpmm) this.#bpmm.adjustTempo(increment);
     }
 }
 
@@ -2127,7 +2128,8 @@ class Coordinator {
     }
 
     get scrollSpeedFactor(): number {
-        return this.scrollSpeedPx / getScrollSpeedPx(0);
+        const base = getScrollSpeedPx(0);
+        return base > 0 ? this.scrollSpeedPx / base : 1;
     }
 
     get scrollSpeedIndex(): number {
