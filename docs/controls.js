@@ -1,3 +1,8 @@
+/**
+ * @file controls.ts
+ * @description Manages the HTML playback and settings controls interface, mapping user inputs
+ * (clicks/dragging) to the core playback coordinator and updating UI indicators in real-time.
+ */
 'use strict';
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");

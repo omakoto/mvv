@@ -1,3 +1,9 @@
+/**
+ * @file dialogs.ts
+ * @description Controls the display and input logic for modal popup dialog boxes, including
+ * the "Save As" file box, metronome settings (BPM/beats/tempo change), and MIDI output selector.
+ */
+
 'use strict';
 
 import { recorder, midiOutputDeviceSelector, midiOutputManager, MetronomeOptions } from './mvv.js';

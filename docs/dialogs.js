@@ -1,3 +1,8 @@
+/**
+ * @file dialogs.ts
+ * @description Controls the display and input logic for modal popup dialog boxes, including
+ * the "Save As" file box, metronome settings (BPM/beats/tempo change), and MIDI output selector.
+ */
 'use strict';
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");

@@ -1,3 +1,9 @@
+/**
+ * @file smf.ts
+ * @description Provides a parser and generator for Standard MIDI Files (SMF, Format 0).
+ * Implements TickConverter for absolute timeline mapping, MidiEvent description formatting,
+ * and robust binary reading/writing structures.
+ */
 'use strict';
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");

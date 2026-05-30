@@ -1,3 +1,10 @@
+/**
+ * @file mvv.ts
+ * @description The main logic and coordination module for MVV (MIDI Event Visualizer).
+ * Manages the high-performance double-buffered Canvas rendering loop, WebMIDI device connectivity,
+ * event scheduling, metronome playing, always-recording buffers, and key binding listeners.
+ */
+
 'use strict';
 
 import { info, debug, DEBUG, toggleDebug } from './util.js';

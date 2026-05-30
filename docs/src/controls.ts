@@ -1,3 +1,9 @@
+/**
+ * @file controls.ts
+ * @description Manages the HTML playback and settings controls interface, mapping user inputs
+ * (clicks/dragging) to the core playback coordinator and updating UI indicators in real-time.
+ */
+
 'use strict';
 
 import { DEFAULT_PLAY_SPEED_INDEX, coordinator, renderer, recorder, metronome } from './mvv.js';

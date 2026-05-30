@@ -1,4 +1,8 @@
-// Note names
+/**
+ * @file chords.ts
+ * @description Provides chord detection and note name formatting utilities using both
+ * a lightweight fallback dictionary and the Tonal.js library for advanced analysis.
+ */
 //const NOTE_NAMES = ["C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"];
 const NOTE_NAMES_SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_NAMES_FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];

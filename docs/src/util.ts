@@ -1,3 +1,9 @@
+/**
+ * @file util.ts
+ * @description Declares lightweight utility functions including console logging wrappers, status area
+ * message overlays, a structural "with" helper, time generators, and a custom LiteEvent emitter.
+ */
+
 'use strict';
 
 var DEBUG = parseInt((new URLSearchParams(window.location.search)).get("debug") ?? "0") ? true : false;

@@ -1,3 +1,9 @@
+/**
+ * @file chords.ts
+ * @description Provides chord detection and note name formatting utilities using both
+ * a lightweight fallback dictionary and the Tonal.js library for advanced analysis.
+ */
+
 // Note names
 
 import { note } from "tonal";

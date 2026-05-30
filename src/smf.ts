@@ -1,3 +1,10 @@
+/**
+ * @file smf.ts
+ * @description Provides a parser and generator for Standard MIDI Files (SMF, Format 0).
+ * Implements TickConverter for absolute timeline mapping, MidiEvent description formatting,
+ * and robust binary reading/writing structures.
+ */
+
 'use strict';
 
 // SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
