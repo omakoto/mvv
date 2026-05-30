@@ -420,7 +420,6 @@ class Controls {
     private positionDrag(_ev: any, ui: any): void {
         if (ui.position.left < 0) {
             ui.position.left = 0;
-            return;
         }
         const max: number = this.#positionOuter.innerWidth()!;
         if (ui.position.left > max) {

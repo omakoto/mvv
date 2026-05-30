@@ -363,7 +363,6 @@ class Controls {
     positionDrag(_ev, ui) {
         if (ui.position.left < 0) {
             ui.position.left = 0;
-            return;
         }
         const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
         if (ui.position.left > max) {
