@@ -540,6 +540,7 @@ class SmfReader {
 
                 console.log("Track #", track, "len", trackLen);
 
+                const trackStart = rd.getPos();
                 let lastStatus = 0;
                 let tick = 0;
                 for (;;) {
@@ -607,6 +608,10 @@ class SmfReader {
                     // console.log(ev);
                     this.#events.push(ev);
                 }
+                const bytesRead = rd.getPos() - trackStart;
+                if (bytesRead < trackLen) {
+                    rd.skip(trackLen - bytesRead);
+                }
             }
         });
         console.log("Done parsing")
@@ -660,7 +665,7 @@ export class SmfWriter {
             w.writeU8(0xff);
             w.writeU8(0x51);
             w.writeU8(0x03);
-            w.writeU24(1000000); // 100,000 === 60 bpm
+            w.writeU24(1000000); // 1,000,000 === 60 bpm
 
             this.#writeResetData();
         });

@@ -540,6 +540,7 @@ class SmfReader {
 
                 console.log("Track #", track, "len", trackLen);
 
+                const trackStart = rd.getPos();
                 let lastStatus = 0;
                 let tick = 0;
                 for (;;) {
@@ -606,6 +607,10 @@ class SmfReader {
                     let ev = new MidiEvent(tc.getTime(tick), [status, data1, data2]);
                     // console.log(ev);
                     this.#events.push(ev);
+                }
+                const bytesRead = rd.getPos() - trackStart;
+                if (bytesRead < trackLen) {
+                    rd.skip(trackLen - bytesRead);
                 }
             }
         });

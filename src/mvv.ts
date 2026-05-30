@@ -419,7 +419,7 @@ class Renderer {
 
                 this.#roll.beginPath();
                 this.#roll.moveTo(0, drawHeight - this.#EXTRA_LINE_HEIGHT);
-                this.#roll.lineTo(this.#W, 0)
+                this.#roll.lineTo(this.#W, drawHeight - this.#EXTRA_LINE_HEIGHT);
                 this.#roll.stroke();
 
                 this.#extraLineType = -1;
@@ -481,7 +481,7 @@ class Renderer {
 
                         this.#lastNoteNameDrawFrame[i] = this.#currentFrame;
 
-                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).replace(/-?\d+$/, '');
                         this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
                         this.#roll.textAlign = 'center';
                         this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';

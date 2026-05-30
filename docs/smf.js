@@ -451,6 +451,7 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
             __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 0x4d54726B); // Track header
             const trackLen = rd.readU32();
             console.log("Track #", track, "len", trackLen);
+            const trackStart = rd.getPos();
             let lastStatus = 0;
             let tick = 0;
             for (;;) {
@@ -511,6 +512,10 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
                 let ev = new MidiEvent(tc.getTime(tick), [status, data1, data2]);
                 // console.log(ev);
                 __classPrivateFieldGet(this, _SmfReader_events, "f").push(ev);
+            }
+            const bytesRead = rd.getPos() - trackStart;
+            if (bytesRead < trackLen) {
+                rd.skip(trackLen - bytesRead);
             }
         }
     });

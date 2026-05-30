@@ -481,7 +481,7 @@ class Renderer {
 
                         this.#lastNoteNameDrawFrame[i] = this.#currentFrame;
 
-                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).replace(/-?\d+$/, '');
                         this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
                         this.#roll.textAlign = 'center';
                         this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';

@@ -403,7 +403,7 @@ class Renderer {
                     if ((noteOffAge > (NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD / scrollFactor))
                         || (sinceLastDraw > (NOTE_NAME_FRAME_THRESHOLD / scrollFactor))) {
                         __classPrivateFieldGet(this, _Renderer_lastNoteNameDrawFrame, "f")[i] = __classPrivateFieldGet(this, _Renderer_currentFrame, "f");
-                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).slice(0, -1);
+                        const noteName = Tonal.Midi.midiToNoteName(i, { sharps: coordinator.isSharpMode }).replace(/-?\d+$/, '');
                         __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
                         __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
                         __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = 'rgba(0, 0, 0, 0.7)';
