@@ -418,8 +418,7 @@ class Renderer {
                 this.#roll.lineWidth = this.#EXTRA_LINE_HEIGHT;
 
                 this.#roll.beginPath();
-                this.#roll.moveTo(0, drawHeight - this.#EXTRA_LINE_HEIGHT);
-                this.#roll.lineTo(this.#W, 0)
+                this.#roll.rect(0, 0, this.#W, drawHeight);
                 this.#roll.stroke();
 
                 this.#extraLineType = -1;

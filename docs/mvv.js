@@ -357,8 +357,7 @@ class Renderer {
                 __classPrivateFieldGet(this, _Renderer_roll, "f").setLineDash(__classPrivateFieldGet(this, _Renderer_EXTRA_LINE_DASH, "f"));
                 __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f");
                 __classPrivateFieldGet(this, _Renderer_roll, "f").beginPath();
-                __classPrivateFieldGet(this, _Renderer_roll, "f").moveTo(0, drawHeight - __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f"));
-                __classPrivateFieldGet(this, _Renderer_roll, "f").lineTo(__classPrivateFieldGet(this, _Renderer_W, "f"), 0);
+                __classPrivateFieldGet(this, _Renderer_roll, "f").rect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), drawHeight);
                 __classPrivateFieldGet(this, _Renderer_roll, "f").stroke();
                 __classPrivateFieldSet(this, _Renderer_extraLineType, -1, "f");
             }

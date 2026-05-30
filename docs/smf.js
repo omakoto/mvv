@@ -556,7 +556,7 @@ export class SmfWriter {
             w.writeU8(0xff);
             w.writeU8(0x51);
             w.writeU8(0x03);
-            w.writeU24(1000000); // 100,000 === 60 bpm
+            w.writeU24(1000000); // 1,000,000 === 60 bpm
             __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_writeResetData).call(this);
         });
     }
