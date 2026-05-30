@@ -7,18 +7,17 @@
 'use strict';
 
 import { recorder, midiOutputDeviceSelector, midiOutputManager, MetronomeOptions } from './mvv.js';
-import { info } from './util.js';
-import { getCurrentTime } from './util.js';
+import { info, getCurrentTime } from './util.js';
 
-function refocusBody() {
+function refocusBody(): void {
     setTimeout(() => $('body').focus(), 0);
 }
 
-declare var Popbox: any;
+declare const Popbox: any;
 
 class DialogBase {
-    _box: any | null = null;
-    _id: string;
+    protected _box: any | null = null;
+    protected _id: string;
 
     constructor(id: string) {
         this._id = id;
@@ -27,9 +26,9 @@ class DialogBase {
         });
     }
 
-    _handleKeyDown(ev: JQuery.KeyDownEvent, okId: string, cancelId: string) {
+    protected _handleKeyDown(ev: JQuery.KeyDownEvent, okId: string, cancelId: string): void {
         ev.stopPropagation();
-        if (ev.code === 'Enter') { // enter
+        if (ev.code === 'Enter') {
             $(`#${okId}`).trigger('click');
             ev.preventDefault();
         } else if (ev.code === 'Escape') {
@@ -42,18 +41,22 @@ class DialogBase {
 class SaveAsBox extends DialogBase {
     constructor() {
         super('save_as_box');
-        $("#save_as_filename").keydown((ev) => {
+        $("#save_as_filename").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'save', 'save_as_cancel');
         });
 
         $("#save").on('click', (ev) => {
-            this._box.clear();
+            if (this._box) {
+                this._box.clear();
+            }
             this.doDownload();
             ev.preventDefault();
         });
 
         $("#save_as_cancel").on('click', (ev) => {
-            this._box!.clear();
+            if (this._box) {
+                this._box.clear();
+            }
             ev.preventDefault();
         });
     }
@@ -63,7 +66,7 @@ class SaveAsBox extends DialogBase {
             info("Nothing is recorded");
             return;
         }
-        let filename = "mvv-" + getCurrentTime();
+        const filename = "mvv-" + getCurrentTime();
         $('#save_as_filename').val(filename);
         this._box = new Popbox({
             blur: true,
@@ -86,7 +89,7 @@ class SaveAsBox extends DialogBase {
     }
 }
 
-export var saveAsBox = new SaveAsBox();
+export const saveAsBox = new SaveAsBox();
 
 class ConfirmBox extends DialogBase {
     constructor() {
@@ -96,17 +99,23 @@ class ConfirmBox extends DialogBase {
         });
     }
 
-    show(text: string, okayCallback: ()=> void): void {
+    show(text: string, okayCallback: () => void): void {
         $('#confirm_text').text(text);
-        $("#confirm_ok").off('click').on('click', (ev) => { // Use .off('click') to prevent multiple bindings
+        $("#confirm_ok").off('click').on('click', (ev) => {
             console.log("ok");
-            this._box!.clear(); // Close the box
+            if (this._box) {
+                this._box.clear();
+            }
             ev.preventDefault();
-            if (okayCallback) okayCallback();
+            if (okayCallback) {
+                okayCallback();
+            }
         });
         $("#confirm_cancel").off('click').on('click', (ev) => {
             console.log("canceled");
-            this._box!.clear(); // Close the box
+            if (this._box) {
+                this._box.clear();
+            }
             ev.preventDefault();
         });
 
@@ -119,21 +128,26 @@ class ConfirmBox extends DialogBase {
     }
 }
 
-export var confirmBox = new ConfirmBox();
+export const confirmBox = new ConfirmBox();
 
 class MetronomeBox extends DialogBase {
     private focusedInput: JQuery<HTMLElement> | null = null;
-    private metronomeTapLastTime: number = 0;
+    private metronomeTapLastTime = 0;
 
     constructor() {
         super('metronome_box');
         const handleKeyDown = (ev: JQuery.KeyDownEvent) => {
-            if (!this.focusedInput) return;
+            if (!this.focusedInput) {
+                return;
+            }
 
-            let val = parseInt($(ev.target).val() as string);
+            let val = parseInt($(ev.target).val() as string, 10);
+            if (isNaN(val)) {
+                val = 0;
+            }
 
-            const min = parseInt(this.focusedInput.attr('min') || "0");
-            const max = parseInt(this.focusedInput.attr('max') || "0");
+            const min = parseInt(this.focusedInput.attr('min') || "0", 10);
+            const max = parseInt(this.focusedInput.attr('max') || "0", 10);
 
             if (ev.code === 'ArrowUp') {
                 val = Math.min(max, val + 1);
@@ -154,9 +168,9 @@ class MetronomeBox extends DialogBase {
             }
         };
 
-        $('#metronome_bpm').on('keydown', (ev) => handleKeyDown(ev));
-        $('#metronome_main_beats').on('keydown', (ev) => handleKeyDown(ev));
-        $('#metronome_sub_beats').on('keydown', (ev) => handleKeyDown(ev));
+        $('#metronome_bpm').on('keydown', handleKeyDown);
+        $('#metronome_main_beats').on('keydown', handleKeyDown);
+        $('#metronome_sub_beats').on('keydown', handleKeyDown);
 
         $("#metronome_box input").on('focus', (ev) => {
             this.focusedInput = $(ev.target);
@@ -164,7 +178,9 @@ class MetronomeBox extends DialogBase {
         });
 
         $("#metronome_keypad .keypad_key").on('click', (ev) => {
-            if (!this.focusedInput) return;
+            if (!this.focusedInput) {
+                return;
+            }
 
             const inputEl = this.focusedInput[0] as HTMLInputElement;
             const key = $(ev.target).text();
@@ -175,18 +191,14 @@ class MetronomeBox extends DialogBase {
 
             if (key === 'BS') {
                 if (!anythingSelected) {
-                    // No selection, delete the last character
                     val = val.slice(0, -1);
                 } else {
-                    // Selection exists, assume it's selecting the whole text, and delete all.
                     val = "";
                 }
             } else {
                 if (!anythingSelected) {
-                    // No selection, add the digit.
                     val = val + key;
                 } else {
-                    // Selection exists, assume it's selecting the whole text, and replace all.
                     val = key;
                 }
             }
@@ -196,24 +208,27 @@ class MetronomeBox extends DialogBase {
         });
 
         $("#metronome_adj_keys .adj_key").on('click', (ev) => {
-            if (!this.focusedInput) return;
+            if (!this.focusedInput) {
+                return;
+            }
 
             const inputEl = this.focusedInput[0] as HTMLInputElement;
-
-            const key = $(ev.target)
-            const adj = parseInt(key.attr('adj') || "0");
+            const key = $(ev.target);
+            const adj = parseInt(key.attr('adj') || "0", 10);
             const factor = parseFloat(key.attr('factor') || "0");
 
             let val = parseInt(inputEl.value, 10);
-            if (isNaN(val)) val = 0;
+            if (isNaN(val)) {
+                val = 0;
+            }
 
             if (adj !== 0) {
                 val += adj;
             } else if (factor !== 0) {
                 val = Math.round(val * factor);
             }
-            const min = parseInt(this.focusedInput.attr('min') || "0");
-            const max = parseInt(this.focusedInput.attr('max') || "0");
+            const min = parseInt(this.focusedInput.attr('min') || "0", 10);
+            const max = parseInt(this.focusedInput.attr('max') || "0", 10);
             if (val < min) {
                 val = min;
             } else if (val > max) {
@@ -235,12 +250,11 @@ class MetronomeBox extends DialogBase {
                     if (delta < 2000) {
                         const bpm = Math.floor(60 * 1000 / delta);
                         const bpmInput = $('#metronome_bpm');
-                        const min = parseInt(bpmInput.attr('min') || "10");
-                        const max = parseInt(bpmInput.attr('max') || "500");
+                        const min = parseInt(bpmInput.attr('min') || "10", 10);
+                        const max = parseInt(bpmInput.attr('max') || "500", 10);
                         const clampedBpm = Math.max(min, Math.min(max, bpm));
                         bpmInput.val(clampedBpm);
                     } else {
-                        // Reset tapping history if the user paused too long
                         this.metronomeTapLastTime = 0;
                     }
                 }
@@ -252,13 +266,12 @@ class MetronomeBox extends DialogBase {
             this.metronomeTapLastTime = 0;
         });
 
-        // Allow clicks on checkboxes, radio buttons, and their labels
         $('#metronome_auto_tempo input[type="checkbox"], #metronome_auto_tempo input[type="radio"], #metronome_auto_tempo label').on('click', (ev) => {
             ev.stopPropagation();
         });
     }
 
-    #updateEnablement() {
+    #updateEnablement(): void {
         const setupTempoChangeSection = (type: 'increase' | 'decrease') => {
             const enabledCheckbox = $(`#${type}_tempo_enabled`);
             const fieldset = enabledCheckbox.closest('fieldset');
@@ -269,7 +282,7 @@ class MetronomeBox extends DialogBase {
             };
 
             enabledCheckbox.off('change').on('change', updateState);
-            updateState(); // Initial state
+            updateState();
         };
 
         setupTempoChangeSection('increase');
@@ -302,8 +315,8 @@ class MetronomeBox extends DialogBase {
             ev.preventDefault();
 
             const check = (el: JQuery<HTMLElement>, defValue: number): number | null => {
-                const min = parseInt(el.attr('min') || "0");
-                const max = parseInt(el.attr('max') || "0");
+                const min = parseInt(el.attr('min') || "0", 10);
+                const max = parseInt(el.attr('max') || "0", 10);
 
                 const valStr = (el.val() as string).trim();
                 el.val(valStr);
@@ -329,9 +342,7 @@ class MetronomeBox extends DialogBase {
                 return val;
             };
 
-            // Initialize with the initial values, so that all the initial
-            // automaticXxx fields will be preserved when the checkbox is off.
-            var opts = initialOptions.copy();
+            const opts = initialOptions.copy();
 
             const bpm = check($('#metronome_bpm'), -1);
             if (bpm === null) return;
@@ -392,12 +403,18 @@ class MetronomeBox extends DialogBase {
                 }
             }
 
-            this._box!.clear();
-            if (okayCallback) okayCallback(opts);
+            if (this._box) {
+                this._box.clear();
+            }
+            if (okayCallback) {
+                okayCallback(opts);
+            }
         });
 
         $("#metronome_cancel").off('click').on('click', (ev) => {
-            this._box!.clear();
+            if (this._box) {
+                this._box.clear();
+            }
             ev.preventDefault();
         });
 
@@ -410,7 +427,7 @@ class MetronomeBox extends DialogBase {
     }
 }
 
-export var metronomeBox = new MetronomeBox();
+export const metronomeBox = new MetronomeBox();
 
 class MidiOutputBox extends DialogBase {
     constructor() {
@@ -422,12 +439,16 @@ class MidiOutputBox extends DialogBase {
         $("#midi_output_ok").on('click', (ev) => {
             const selectedDevice = $('#midi_output_select').val() as string;
             midiOutputDeviceSelector.selectDevice(selectedDevice);
-            this._box!.clear();
+            if (this._box) {
+                this._box.clear();
+            }
             ev.preventDefault();
         });
 
         $("#midi_output_cancel").on('click', (ev) => {
-            this._box!.clear();
+            if (this._box) {
+                this._box.clear();
+            }
             ev.preventDefault();
         });
     }
@@ -455,4 +476,4 @@ class MidiOutputBox extends DialogBase {
     }
 }
 
-export var midiOutputBox = new MidiOutputBox();
+export const midiOutputBox = new MidiOutputBox();

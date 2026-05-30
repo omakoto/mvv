@@ -24,11 +24,11 @@
  */
 class AttackProcessor extends AudioWorkletProcessor {
     constructor() {
-        super();
+        super(...arguments);
         this.lastMaxVolume = 0;
         this.attackThreshold = 0.1;
     }
-    process(inputs, outputs, parameters) {
+    process(inputs, _outputs, _parameters) {
         const input = inputs[0];
         if (!input || input.length === 0) {
             return true;
