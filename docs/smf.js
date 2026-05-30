@@ -4,7 +4,19 @@
  * Implements TickConverter for absolute timeline mapping, MidiEvent description formatting,
  * and robust binary reading/writing structures.
  */
+// SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
+// https://www.music.mcgill.ca/~gary/306/week9/smf.html
+// https://midimusic.github.io/tech/midispec.html
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -16,19 +28,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _MidiEvent_timestamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_grow, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU8, _SmfReader_ensureU16, _SmfReader_ensureU32, _SmfReader_ensureU8Array, _SmfReader_withReader, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_withWriter, _SmfWriter_writeResetData;
-// SMF Format: https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
-// https://www.music.mcgill.ca/~gary/306/week9/smf.html
-// https://midimusic.github.io/tech/midispec.html
+var _MidiEvent_timestamp, _MidiEvent_data, _MidiEvent_device, _BytesWriter_instances, _BytesWriter_cap, _BytesWriter_size, _BytesWriter_buf, _BytesWriter_ensureCap, _BytesReader_buffer, _BytesReader_pos, _TickConverter_instances, _TickConverter_ticksPerBeat, _TickConverter_tempos, _TickConverter_lastTempoEvent, _TickConverter_ticksToMilliseconds, _SmfReader_instances, _SmfReader_reader, _SmfReader_loaded, _SmfReader_events, _SmfReader_onInvalidFormat, _SmfReader_ensureU32, _SmfReader_cleanEvents, _SmfReader_load, _SmfReader_loadInner, _SmfWriter_instances, _SmfWriter_writer, _SmfWriter_trackLengthPos, _SmfWriter_closed, _SmfWriter_writeResetData;
 import { debug } from './util.js';
-function logBlob(blob) {
-    let fileReader = new FileReader();
-    fileReader.readAsArrayBuffer(blob);
-    fileReader.onload = function (_event) {
-        console.log(fileReader.result);
-    };
-    return blob;
-}
 const MIDI_COMMANDS = {
     0x8: 'Note Off',
     0x9: 'Note On',
@@ -40,38 +41,66 @@ const MIDI_COMMANDS = {
 };
 // --- MIDI Control Change Names ---
 const MIDI_CONTROL_CHANGE = {
-    0: 'Bank Select', 1: 'Modulation', 2: 'Breath Controller', 4: 'Foot Controller',
-    5: 'Portamento Time', 6: 'Data Entry MSB', 7: 'Channel Volume', 8: 'Balance',
-    10: 'Pan', 11: 'Expression Controller', 12: 'Effect Control 1', 13: 'Effect Control 2',
-    16: 'General Purpose Controller 1', 17: 'General Purpose Controller 2', 18: 'General Purpose Controller 3', 19: 'General Purpose Controller 4',
-    64: 'Damper Pedal (Sustain)', 65: 'Portamento On/Off', 66: 'Sostenuto', 67: 'Soft Pedal',
-    68: 'Legato Footswitch', 69: 'Hold 2', 70: 'Sound Controller 1 (Sound Variation)', 71: 'Sound Controller 2 (Timbre/Harmonic Content)',
-    72: 'Sound Controller 3 (Release Time)', 73: 'Sound Controller 4 (Attack Time)', 74: 'Sound Controller 5 (Brightness)',
-    84: 'Portamento Control', 91: 'Effects 1 Depth (Reverb)', 93: 'Effects 3 Depth (Chorus)',
-    121: 'Reset All Controllers', 123: 'All Notes Off'
+    0: 'Bank Select',
+    1: 'Modulation',
+    2: 'Breath Controller',
+    4: 'Foot Controller',
+    5: 'Portamento Time',
+    6: 'Data Entry MSB',
+    7: 'Channel Volume',
+    8: 'Balance',
+    10: 'Pan',
+    11: 'Expression Controller',
+    12: 'Effect Control 1',
+    13: 'Effect Control 2',
+    16: 'General Purpose Controller 1',
+    17: 'General Purpose Controller 2',
+    18: 'General Purpose Controller 3',
+    19: 'General Purpose Controller 4',
+    64: 'Damper Pedal (Sustain)',
+    65: 'Portamento On/Off',
+    66: 'Sostenuto',
+    67: 'Soft Pedal',
+    68: 'Legato Footswitch',
+    69: 'Hold 2',
+    70: 'Sound Controller 1 (Sound Variation)',
+    71: 'Sound Controller 2 (Timbre/Harmonic Content)',
+    72: 'Sound Controller 3 (Release Time)',
+    73: 'Sound Controller 4 (Attack Time)',
+    74: 'Sound Controller 5 (Brightness)',
+    84: 'Portamento Control',
+    91: 'Effects 1 Depth (Reverb)',
+    93: 'Effects 3 Depth (Chorus)',
+    121: 'Reset All Controllers',
+    123: 'All Notes Off'
 };
-function byteToHex(byte) {
-    return ("0" + byte.toString(16).toUpperCase()).slice(-2);
+/**
+ * Converts a byte number to a padded 2-character hex string.
+ */
+function byteToHex(byte, uppercase = true) {
+    const hex = ("0" + byte.toString(16)).slice(-2);
+    return uppercase ? hex.toUpperCase() : hex;
 }
 export class MidiEvent {
-    constructor(timeStamp, data, device) {
+    constructor(timestamp, data, device) {
         _MidiEvent_timestamp.set(this, void 0);
         _MidiEvent_data.set(this, void 0);
         _MidiEvent_device.set(this, void 0);
-        __classPrivateFieldSet(this, _MidiEvent_timestamp, timeStamp, "f");
+        __classPrivateFieldSet(this, _MidiEvent_timestamp, timestamp, "f");
         __classPrivateFieldSet(this, _MidiEvent_data, data, "f");
-        __classPrivateFieldSet(this, _MidiEvent_device, device ? device : "unknown-device", "f");
+        __classPrivateFieldSet(this, _MidiEvent_device, device !== null && device !== void 0 ? device : "unknown-device", "f");
     }
     static fromNativeEvent(e) {
         return new MidiEvent(e.timeStamp, e.data, e.currentTarget.name);
     }
     clone() {
         const dataCopy = Array.isArray(__classPrivateFieldGet(this, _MidiEvent_data, "f"))
-            ? [...__classPrivateFieldGet(this, _MidiEvent_data, "f")] : new Uint8Array(__classPrivateFieldGet(this, _MidiEvent_data, "f"));
+            ? [...__classPrivateFieldGet(this, _MidiEvent_data, "f")]
+            : new Uint8Array(__classPrivateFieldGet(this, _MidiEvent_data, "f"));
         return new MidiEvent(__classPrivateFieldGet(this, _MidiEvent_timestamp, "f"), dataCopy, __classPrivateFieldGet(this, _MidiEvent_device, "f"));
     }
-    withTimestamp(timeStamp) {
-        return new MidiEvent(timeStamp, __classPrivateFieldGet(this, _MidiEvent_data, "f"), __classPrivateFieldGet(this, _MidiEvent_device, "f"));
+    withTimestamp(timestamp) {
+        return new MidiEvent(timestamp, __classPrivateFieldGet(this, _MidiEvent_data, "f"), __classPrivateFieldGet(this, _MidiEvent_device, "f"));
     }
     get timestamp() {
         return __classPrivateFieldGet(this, _MidiEvent_timestamp, "f");
@@ -84,7 +113,7 @@ export class MidiEvent {
     }
     getData(index) {
         if (index < 0) {
-            throw "Index cannot be negative";
+            throw new RangeError("Index cannot be negative");
         }
         if (index >= __classPrivateFieldGet(this, _MidiEvent_data, "f").length) {
             return 0;
@@ -93,10 +122,10 @@ export class MidiEvent {
     }
     replaceData(index, value) {
         if (index < 0) {
-            throw "Index cannot be negative";
+            throw new RangeError("Index cannot be negative");
         }
         if (index >= __classPrivateFieldGet(this, _MidiEvent_data, "f").length) {
-            throw "Index out of range";
+            throw new RangeError("Index out of range");
         }
         __classPrivateFieldGet(this, _MidiEvent_data, "f")[index] = value;
     }
@@ -124,7 +153,6 @@ export class MidiEvent {
     get isNoteOff() {
         return this.status === 0x80 || (this.status === 0x90 && this.data2 === 0);
     }
-    // Control change?
     get isCC() {
         return this.status === 0xB0;
     }
@@ -132,49 +160,61 @@ export class MidiEvent {
         return __classPrivateFieldGet(this, _MidiEvent_data, "f");
     }
     toString() {
-        const timestamp = Math.floor(this.timestamp * 1000) / 1000;
-        const data = __classPrivateFieldGet(this, _MidiEvent_data, "f");
-        const hexString = Array.from(data).map(byte => byteToHex(byte)).join(' ');
+        const formattedTime = (Math.floor(this.timestamp * 1000) / 1000).toFixed(3);
+        const hexString = Array.from(__classPrivateFieldGet(this, _MidiEvent_data, "f")).map(byte => byteToHex(byte)).join(' ');
         const description = this.describeMidiEvent();
-        return `time=${timestamp}, data=${hexString}: ${description}`;
+        return `time=${formattedTime}, data=${hexString}: ${description}`;
     }
     describeMidiEvent() {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         const data = __classPrivateFieldGet(this, _MidiEvent_data, "f");
-        const commandByte = data[0] >> 4;
-        const channel = (data[0] & 0x0f) + 1;
-        const eventName = MIDI_COMMANDS[commandByte] || `[Unknown Event:${byteToHex(data[0])}]`;
+        const statusByte = data[0];
+        if (statusByte === undefined) {
+            return "[Empty MIDI Event]";
+        }
+        const commandByte = statusByte >> 4;
+        const channel = (statusByte & 0x0f) + 1;
+        const eventName = MIDI_COMMANDS[commandByte] || `[Unknown Event:${byteToHex(statusByte)}]`;
         let details = '';
         switch (commandByte) {
             case 0x9: // Note On
-            case 0x8: // Note Off
-                const note = data[1];
-                const velocity = data[2];
+            case 0x8: { // Note Off
+                const note = (_a = data[1]) !== null && _a !== void 0 ? _a : 0;
+                const velocity = (_b = data[2]) !== null && _b !== void 0 ? _b : 0;
                 details = `Note: ${note}, Vel: ${velocity}`;
                 break;
-            case 0xB: // Control Change
-                const controllerNumber = data[1];
-                const controllerValue = data[2];
+            }
+            case 0xB: { // Control Change
+                const controllerNumber = (_c = data[1]) !== null && _c !== void 0 ? _c : 0;
+                const controllerValue = (_d = data[2]) !== null && _d !== void 0 ? _d : 0;
                 const controllerName = MIDI_CONTROL_CHANGE[controllerNumber] || `CC #${controllerNumber}`;
                 details = `${controllerName}: ${controllerValue}`;
                 break;
-            case 0xE: // Pitch Bend
+            }
+            case 0xE: { // Pitch Bend
                 // Combine two 7-bit bytes into a 14-bit value. Center is 8192.
-                const pitchValue = ((data[2] << 7) | data[1]) - 8192;
+                const val1 = (_e = data[1]) !== null && _e !== void 0 ? _e : 0;
+                const val2 = (_f = data[2]) !== null && _f !== void 0 ? _f : 0;
+                const pitchValue = ((val2 << 7) | val1) - 8192;
                 details = `Value: ${pitchValue}`;
                 break;
-            case 0xA: // Polyphonic Key Pressure (Note Aftertouch)
-                const pressureNote = data[1];
-                const pressureValue = data[2];
+            }
+            case 0xA: { // Polyphonic Key Pressure (Note Aftertouch)
+                const pressureNote = (_g = data[1]) !== null && _g !== void 0 ? _g : 0;
+                const pressureValue = (_h = data[2]) !== null && _h !== void 0 ? _h : 0;
                 details = `Note: ${pressureNote}, Pressure: ${pressureValue}`;
                 break;
-            case 0xD: // Channel Pressure (Channel Aftertouch)
-                const channelPressure = data[1];
+            }
+            case 0xD: { // Channel Pressure (Channel Aftertouch)
+                const channelPressure = (_j = data[1]) !== null && _j !== void 0 ? _j : 0;
                 details = `Pressure: ${channelPressure}`;
                 break;
-            case 0xC: // Program Change
-                const programNum = data[1];
+            }
+            case 0xC: { // Program Change
+                const programNum = (_k = data[1]) !== null && _k !== void 0 ? _k : 0;
                 details = `Program: ${programNum}`;
                 break;
+            }
         }
         return `${eventName} (ch:${channel}) [${details}]`;
     }
@@ -182,16 +222,17 @@ export class MidiEvent {
 _MidiEvent_timestamp = new WeakMap(), _MidiEvent_data = new WeakMap(), _MidiEvent_device = new WeakMap();
 const TICKS_PER_SECOND = 1000;
 class BytesWriter {
-    constructor() {
+    constructor(initialCapacity = 4096) {
         _BytesWriter_instances.add(this);
-        _BytesWriter_cap.set(this, 2); // 1024 * 32;
+        _BytesWriter_cap.set(this, void 0);
         _BytesWriter_size.set(this, 0);
         _BytesWriter_buf.set(this, void 0);
+        __classPrivateFieldSet(this, _BytesWriter_cap, initialCapacity, "f");
         __classPrivateFieldSet(this, _BytesWriter_buf, new Uint8Array(__classPrivateFieldGet(this, _BytesWriter_cap, "f")), "f");
     }
     writeVar(value) {
         if (value < 0) {
-            throw new Error("Value must be non-negative.");
+            throw new RangeError("Value must be non-negative.");
         }
         const buffer = [];
         do {
@@ -226,25 +267,25 @@ class BytesWriter {
     }
     setU8(pos, val) {
         __classPrivateFieldGet(this, _BytesWriter_instances, "m", _BytesWriter_ensureCap).call(this, pos + 1);
-        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 0] = val & 255;
+        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos] = val & 255;
         return this;
     }
     setU16(pos, val) {
         __classPrivateFieldGet(this, _BytesWriter_instances, "m", _BytesWriter_ensureCap).call(this, pos + 2);
-        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 0] = (val >> 8) & 255;
+        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos] = (val >> 8) & 255;
         __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 1] = val & 255;
         return this;
     }
     setU24(pos, val) {
         __classPrivateFieldGet(this, _BytesWriter_instances, "m", _BytesWriter_ensureCap).call(this, pos + 3);
-        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 0] = (val >> 16) & 255;
+        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos] = (val >> 16) & 255;
         __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 1] = (val >> 8) & 255;
         __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 2] = val & 255;
         return this;
     }
     setU32(pos, val) {
         __classPrivateFieldGet(this, _BytesWriter_instances, "m", _BytesWriter_ensureCap).call(this, pos + 4);
-        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 0] = (val >> 24) & 255;
+        __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos] = (val >> 24) & 255;
         __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 1] = (val >> 16) & 255;
         __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 2] = (val >> 8) & 255;
         __classPrivateFieldGet(this, _BytesWriter_buf, "f")[pos + 3] = val & 255;
@@ -254,48 +295,43 @@ class BytesWriter {
         return __classPrivateFieldGet(this, _BytesWriter_size, "f");
     }
     getBlob(contentType) {
-        let ret = (new Blob([__classPrivateFieldGet(this, _BytesWriter_buf, "f")])).slice(0, __classPrivateFieldGet(this, _BytesWriter_size, "f"), contentType);
-        // logBlob(ret);
-        return ret;
+        return new Blob([__classPrivateFieldGet(this, _BytesWriter_buf, "f").subarray(0, __classPrivateFieldGet(this, _BytesWriter_size, "f"))], { type: contentType });
     }
 }
-_BytesWriter_cap = new WeakMap(), _BytesWriter_size = new WeakMap(), _BytesWriter_buf = new WeakMap(), _BytesWriter_instances = new WeakSet(), _BytesWriter_grow = function _BytesWriter_grow() {
-    __classPrivateFieldSet(this, _BytesWriter_cap, __classPrivateFieldGet(this, _BytesWriter_cap, "f") * 2, "f");
-    let nb = new Uint8Array(__classPrivateFieldGet(this, _BytesWriter_cap, "f"));
-    nb.set(__classPrivateFieldGet(this, _BytesWriter_buf, "f"));
-    __classPrivateFieldSet(this, _BytesWriter_buf, nb, "f");
-    return this;
-}, _BytesWriter_ensureCap = function _BytesWriter_ensureCap(cap) {
-    if (__classPrivateFieldGet(this, _BytesWriter_cap, "f") >= cap) {
-        return this;
+_BytesWriter_cap = new WeakMap(), _BytesWriter_size = new WeakMap(), _BytesWriter_buf = new WeakMap(), _BytesWriter_instances = new WeakSet(), _BytesWriter_ensureCap = function _BytesWriter_ensureCap(requiredCap) {
+    if (__classPrivateFieldGet(this, _BytesWriter_cap, "f") >= requiredCap) {
+        return;
     }
-    __classPrivateFieldGet(this, _BytesWriter_instances, "m", _BytesWriter_grow).call(this);
-    return this;
+    let newCap = __classPrivateFieldGet(this, _BytesWriter_cap, "f");
+    while (newCap < requiredCap) {
+        newCap *= 2;
+    }
+    __classPrivateFieldSet(this, _BytesWriter_cap, newCap, "f");
+    const newBuf = new Uint8Array(__classPrivateFieldGet(this, _BytesWriter_cap, "f"));
+    newBuf.set(__classPrivateFieldGet(this, _BytesWriter_buf, "f"));
+    __classPrivateFieldSet(this, _BytesWriter_buf, newBuf, "f");
 };
 class BytesReader {
     constructor(ar) {
         _BytesReader_buffer.set(this, void 0);
         _BytesReader_pos.set(this, 0);
-        __classPrivateFieldSet(this, _BytesReader_buffer, new Uint8Array(ar), "f");
+        __classPrivateFieldSet(this, _BytesReader_buffer, ar, "f");
     }
     readU8() {
         var _a, _b;
         if (__classPrivateFieldGet(this, _BytesReader_buffer, "f").length <= __classPrivateFieldGet(this, _BytesReader_pos, "f")) {
-            throw "Reading after EOF";
+            throw new Error("Reading after EOF");
         }
         return __classPrivateFieldGet(this, _BytesReader_buffer, "f")[__classPrivateFieldSet(this, _BytesReader_pos, (_b = __classPrivateFieldGet(this, _BytesReader_pos, "f"), _a = _b++, _b), "f"), _a];
     }
     readU16() {
         return (this.readU8() << 8) + this.readU8();
-        ;
     }
     readU24() {
         return (this.readU16() << 8) + this.readU8();
-        ;
     }
     readU32() {
         return (this.readU16() << 16) + this.readU16();
-        ;
     }
     getPos() {
         return __classPrivateFieldGet(this, _BytesReader_pos, "f");
@@ -319,15 +355,14 @@ class BytesReader {
 _BytesReader_buffer = new WeakMap(), _BytesReader_pos = new WeakMap();
 class TempoEvent {
     constructor(ticks, mspb, timeOffset) {
-        this.ticks = 0;
-        this.mspb = 0;
-        this.timeOffset = 0;
         this.ticks = ticks;
         this.mspb = mspb;
         this.timeOffset = timeOffset;
     }
 }
-// Converts "ticks" (not delta ticks, but absolute ticks) in a midi file to milliseconds.
+/**
+ * Converts "ticks" (absolute ticks from the start of the MIDI file) to milliseconds.
+ */
 class TickConverter {
     constructor(ticksPerBeat) {
         _TickConverter_instances.add(this);
@@ -335,7 +370,7 @@ class TickConverter {
         _TickConverter_tempos.set(this, []);
         _TickConverter_lastTempoEvent.set(this, void 0);
         __classPrivateFieldSet(this, _TickConverter_ticksPerBeat, ticksPerBeat, "f");
-        // Arbitrary initial tempo
+        // Start with an arbitrary initial tempo of 120 BPM (500,000 microseconds per beat)
         __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, new TempoEvent(0, 500000, 0), "f");
         __classPrivateFieldGet(this, _TickConverter_tempos, "f").push(__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f"));
     }
@@ -344,23 +379,22 @@ class TickConverter {
         const deltaTicks = ticks - last.ticks;
         const deltaTimeOffset = __classPrivateFieldGet(this, _TickConverter_instances, "m", _TickConverter_ticksToMilliseconds).call(this, deltaTicks, last.mspb);
         const timeOffset = last.timeOffset + deltaTimeOffset;
-        __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, { ticks: ticks, mspb: microsecondsPerBeat, timeOffset: timeOffset }, "f");
+        __classPrivateFieldSet(this, _TickConverter_lastTempoEvent, new TempoEvent(ticks, microsecondsPerBeat, timeOffset), "f");
         __classPrivateFieldGet(this, _TickConverter_tempos, "f").push(__classPrivateFieldGet(this, _TickConverter_lastTempoEvent, "f"));
     }
-    // Convert a "midi tick" number to a millisecond.
+    /**
+     * Converts a absolute MIDI tick number to milliseconds.
+     */
     getTime(ticks) {
         if (ticks < 0) {
-            throw "ticks must not be negative";
+            throw new RangeError("ticks must not be negative");
         }
-        let nearestTempo;
-        for (let t of __classPrivateFieldGet(this, _TickConverter_tempos, "f")) {
+        let nearestTempo = __classPrivateFieldGet(this, _TickConverter_tempos, "f")[0];
+        for (const t of __classPrivateFieldGet(this, _TickConverter_tempos, "f")) {
             if (t.ticks > ticks) {
                 break;
             }
             nearestTempo = t;
-        }
-        if (!nearestTempo) {
-            throw "Internal error: nearestTempo not found.";
         }
         return nearestTempo.timeOffset + __classPrivateFieldGet(this, _TickConverter_instances, "m", _TickConverter_ticksToMilliseconds).call(this, ticks - nearestTempo.ticks, nearestTempo.mspb);
     }
@@ -368,9 +402,6 @@ class TickConverter {
 _TickConverter_ticksPerBeat = new WeakMap(), _TickConverter_tempos = new WeakMap(), _TickConverter_lastTempoEvent = new WeakMap(), _TickConverter_instances = new WeakSet(), _TickConverter_ticksToMilliseconds = function _TickConverter_ticksToMilliseconds(ticks, mspb) {
     return ((ticks / __classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f")) * mspb) / 1000;
 };
-function hex8(v) {
-    return ("0" + v.toString(16)).slice(-2);
-}
 class SmfReader {
     constructor(ar) {
         _SmfReader_instances.add(this);
@@ -385,41 +416,21 @@ class SmfReader {
     }
 }
 _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader_events = new WeakMap(), _SmfReader_instances = new WeakSet(), _SmfReader_onInvalidFormat = function _SmfReader_onInvalidFormat() {
-    throw 'Unexpected byte found near index ' +
-        (__classPrivateFieldGet(this, _SmfReader_reader, "f").getPos() - 1);
-}, _SmfReader_ensureU8 = function _SmfReader_ensureU8(v) {
-    if (__classPrivateFieldGet(this, _SmfReader_reader, "f").readU8() != v) {
-        __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_onInvalidFormat).call(this);
-    }
-}, _SmfReader_ensureU16 = function _SmfReader_ensureU16(v) {
-    if (__classPrivateFieldGet(this, _SmfReader_reader, "f").readU16() != v) {
-        __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_onInvalidFormat).call(this);
-    }
+    throw new Error(`Unexpected byte found near index ${__classPrivateFieldGet(this, _SmfReader_reader, "f").getPos() - 1}`);
 }, _SmfReader_ensureU32 = function _SmfReader_ensureU32(v) {
-    if (__classPrivateFieldGet(this, _SmfReader_reader, "f").readU32() != v) {
+    if (__classPrivateFieldGet(this, _SmfReader_reader, "f").readU32() !== v) {
         __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_onInvalidFormat).call(this);
     }
-}, _SmfReader_ensureU8Array = function _SmfReader_ensureU8Array(ar) {
-    ar.forEach((v) => __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU8).call(this, v));
-}, _SmfReader_withReader = function _SmfReader_withReader(callback) {
-    callback(__classPrivateFieldGet(this, _SmfReader_reader, "f"));
 }, _SmfReader_cleanEvents = function _SmfReader_cleanEvents() {
-    __classPrivateFieldGet(this, _SmfReader_events, "f").sort((a, b) => {
-        return a.timestamp - b.timestamp;
-    });
-    // Find the first note event;
-    let firstNoteOnTime = 0;
-    for (let ev of __classPrivateFieldGet(this, _SmfReader_events, "f")) {
-        if (ev.isNoteOn) {
-            firstNoteOnTime = ev.timestamp;
-            break;
-        }
-    }
-    if (firstNoteOnTime === 0) {
+    __classPrivateFieldGet(this, _SmfReader_events, "f").sort((a, b) => a.timestamp - b.timestamp);
+    // Find the first Note On event to use as the timing anchor
+    const firstNoteOn = __classPrivateFieldGet(this, _SmfReader_events, "f").find(ev => ev.isNoteOn);
+    if (!firstNoteOn || firstNoteOn.timestamp === 0) {
         return;
     }
-    for (let ev of __classPrivateFieldGet(this, _SmfReader_events, "f")) {
-        ev.shiftTime(-firstNoteOnTime);
+    const shiftTime = firstNoteOn.timestamp;
+    for (const ev of __classPrivateFieldGet(this, _SmfReader_events, "f")) {
+        ev.shiftTime(-shiftTime);
     }
 }, _SmfReader_load = function _SmfReader_load() {
     if (__classPrivateFieldGet(this, _SmfReader_loaded, "f")) {
@@ -430,103 +441,96 @@ _SmfReader_reader = new WeakMap(), _SmfReader_loaded = new WeakMap(), _SmfReader
     __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_cleanEvents).call(this);
     __classPrivateFieldSet(this, _SmfReader_loaded, true, "f");
 }, _SmfReader_loadInner = function _SmfReader_loadInner() {
-    console.log("Parsing a midi file with a new parser...");
-    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 0x4d546864); // MIDI header
-    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 6); // Header length
-    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_withReader).call(this, (rd) => {
-        // Parse MIDI header.
-        const type = rd.readU16();
-        if (type > 2) {
-            throw "Invalid file format: " + type;
-        }
-        const numTracks = rd.readU16();
-        const ticksPerBeat = rd.readU16();
-        if (ticksPerBeat >= 0x8000) {
-            throw "SMPTE time format not supported";
-        }
-        console.log("Type", type, "numTracks", numTracks, "ticksPerBeat", ticksPerBeat);
-        const tc = new TickConverter(ticksPerBeat);
-        // Track start
-        let track = 0;
+    debug("Parsing a midi file with a new parser...");
+    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 0x4d546864); // MIDI "MThd" header
+    __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 6); // Header length must be 6
+    const rd = __classPrivateFieldGet(this, _SmfReader_reader, "f");
+    const type = rd.readU16();
+    if (type > 2) {
+        throw new Error(`Invalid file format: ${type}`);
+    }
+    const numTracks = rd.readU16();
+    const ticksPerBeat = rd.readU16();
+    if (ticksPerBeat >= 0x8000) {
+        throw new Error("SMPTE time format not supported");
+    }
+    debug("MIDI Type:", type, "numTracks:", numTracks, "ticksPerBeat:", ticksPerBeat);
+    const tc = new TickConverter(ticksPerBeat);
+    for (let track = 0; track < numTracks; track++) {
+        debug("Current tick converter status:", tc);
+        __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 0x4d54726b); // Track "MTrk" header
+        const trackLen = rd.readU32();
+        debug("Track #", track + 1, "len", trackLen);
+        const trackStart = rd.getPos();
+        let lastStatus = 0;
+        let tick = 0;
         for (;;) {
-            console.log("Current tick converter status:", tc);
-            if (track >= numTracks) {
-                break;
-            }
-            track++;
-            __classPrivateFieldGet(this, _SmfReader_instances, "m", _SmfReader_ensureU32).call(this, 0x4d54726B); // Track header
-            const trackLen = rd.readU32();
-            console.log("Track #", track, "len", trackLen);
-            const trackStart = rd.getPos();
-            let lastStatus = 0;
-            let tick = 0;
-            for (;;) {
-                const delta = rd.readVar();
-                let status = rd.readU8();
-                tick += delta;
-                // META message?
-                if (status === 0xff) {
-                    const type = rd.readU8();
-                    const len = rd.readVar();
-                    // console.log("        Meta 0x" + hex8(type) + " len=" + len);
-                    if (type === 0x2f) {
-                        // end of track
-                        break;
-                    }
-                    if (type === 0x51) {
-                        // tempo
-                        const tempo = rd.readU24();
-                        debug("  @" + tick + " Tempo=" + tempo);
-                        tc.setTempo(tick, tempo);
-                        continue;
-                    }
-                    // console.log("        [ignored]");
-                    rd.skip(len);
+            const delta = rd.readVar();
+            let status = rd.readU8();
+            tick += delta;
+            // META message?
+            if (status === 0xFF) {
+                const metaType = rd.readU8();
+                const len = rd.readVar();
+                if (metaType === 0x2F) {
+                    // End of track
+                    break;
+                }
+                if (metaType === 0x51) {
+                    // Tempo change
+                    const tempo = rd.readU24();
+                    debug(`  @${tick} Tempo=${tempo}`);
+                    tc.setTempo(tick, tempo);
                     continue;
                 }
-                // SysEX?
-                if (status === 0xf0 || status === 0xf7) {
-                    const len = rd.readVar();
-                    rd.skip(len);
-                    continue;
-                }
-                let data1;
-                if (status >= 0x80) {
-                    data1 = rd.readU8();
-                }
-                else {
-                    data1 = status;
-                    status = lastStatus;
-                }
-                lastStatus = status;
-                const statusType = status & 0xf0;
-                // const _channel = status & 0x0f;
-                // We could ignore non-channel-0 data, but for now, we'll load all channels
-                // and play them back.
-                let data2 = 0;
-                switch (statusType) {
-                    case 0xc0: // program change
-                        // Ignore all program changes!
-                        continue;
-                    case 0x80: // note off
-                    case 0x90: // note on
-                    case 0xa0: // after touch
-                    case 0xb0: // control change
-                    case 0xe0: // pitch wheel
-                        data2 = rd.readU8();
-                        break;
-                }
-                let ev = new MidiEvent(tc.getTime(tick), [status, data1, data2]);
-                // console.log(ev);
-                __classPrivateFieldGet(this, _SmfReader_events, "f").push(ev);
+                rd.skip(len);
+                continue;
             }
-            const bytesRead = rd.getPos() - trackStart;
-            if (bytesRead < trackLen) {
-                rd.skip(trackLen - bytesRead);
+            // SysEx message?
+            if (status === 0xF0 || status === 0xF7) {
+                const len = rd.readVar();
+                rd.skip(len);
+                continue;
             }
+            // Running status or standard channel voice message
+            let data1;
+            if (status >= 0x80) {
+                data1 = rd.readU8();
+            }
+            else {
+                // Running status: the status byte is omitted, and the byte read is actually data1
+                data1 = status;
+                status = lastStatus;
+                if (status === 0) {
+                    throw new Error("Invalid running status: no previous status byte set.");
+                }
+            }
+            lastStatus = status;
+            const statusType = status & 0xF0;
+            // Program changes (0xC0) are ignored in this application.
+            // Channel Pressure (0xD0) is 1-byte, others (0x80, 0x90, 0xA0, 0xB0, 0xE0) are 2-bytes.
+            if (statusType === 0xC0) {
+                continue;
+            }
+            let data2 = 0;
+            switch (statusType) {
+                case 0x80: // note off
+                case 0x90: // note on
+                case 0xA0: // polyphonic key pressure
+                case 0xB0: // control change
+                case 0xE0: // pitch bend
+                    data2 = rd.readU8();
+                    break;
+            }
+            const ev = new MidiEvent(tc.getTime(tick), [status, data1, data2]);
+            __classPrivateFieldGet(this, _SmfReader_events, "f").push(ev);
         }
-    });
-    console.log("Done parsing");
+        const bytesRead = rd.getPos() - trackStart;
+        if (bytesRead < trackLen) {
+            rd.skip(trackLen - bytesRead);
+        }
+    }
+    debug("Done parsing MIDI file.");
 };
 export class SmfWriter {
     constructor() {
@@ -534,53 +538,47 @@ export class SmfWriter {
         _SmfWriter_writer.set(this, new BytesWriter());
         _SmfWriter_trackLengthPos.set(this, 0);
         _SmfWriter_closed.set(this, false);
-        __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_withWriter).call(this, (w) => {
-            w.writeU8(0x4D); // M
-            w.writeU8(0x54); // T
-            w.writeU8(0x68); // h
-            w.writeU8(0x64); // d
-            w.writeU32(6); // header length
-            w.writeU16(0); // single track
-            w.writeU16(1); // contains a single track
-            w.writeU16(TICKS_PER_SECOND); // 1000 per quarter-note === 1ms / unit
-            w.writeU8(0x4D); // M
-            w.writeU8(0x54); // T
-            w.writeU8(0x72); // r
-            w.writeU8(0x6B); // k
-            __classPrivateFieldSet(this, _SmfWriter_trackLengthPos, w.getSize(), "f");
-            w.writeU32(0); // Track length
-            // Time signature
-            w.writeVar(0); // time
-            w.writeU8(0xff);
-            w.writeU8(0x58);
-            w.writeU8(0x04);
-            w.writeU8(0x04);
-            w.writeU8(0x02);
-            w.writeU8(0x18);
-            w.writeU8(0x08);
-            // tempo
-            w.writeVar(0); // time
-            w.writeU8(0xff);
-            w.writeU8(0x51);
-            w.writeU8(0x03);
-            w.writeU24(1000000); // 1,000,000 === 60 bpm
-            __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_writeResetData).call(this);
-        });
+        const w = __classPrivateFieldGet(this, _SmfWriter_writer, "f");
+        w.writeU32(0x4D546864); // "MThd" header
+        w.writeU32(6); // Header length
+        w.writeU16(0); // Format 0 (single track)
+        w.writeU16(1); // One track
+        w.writeU16(TICKS_PER_SECOND); // 1000 ticks per quarter-note (1ms resolution)
+        w.writeU32(0x4D54726B); // "MTrk" track header
+        __classPrivateFieldSet(this, _SmfWriter_trackLengthPos, w.getSize(), "f");
+        w.writeU32(0); // Placeholder for track length
+        // Time Signature Meta Event (4/4 time signature)
+        // 0xFF 0x58 [length=4] [numerator=4] [denominator=2 (2^2=4)] [clocks=24] [32nd-notes=8]
+        w.writeVar(0);
+        w.writeU8(0xFF);
+        w.writeU8(0x58);
+        w.writeU8(0x04);
+        w.writeU8(0x04);
+        w.writeU8(0x02);
+        w.writeU8(0x18);
+        w.writeU8(0x08);
+        // Tempo Meta Event (60 BPM)
+        // 0xFF 0x51 [length=3] [microseconds per beat = 1,000,000 (1 second)]
+        w.writeVar(0);
+        w.writeU8(0xFF);
+        w.writeU8(0x51);
+        w.writeU8(0x03);
+        w.writeU24(1000000);
+        __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_writeResetData).call(this);
     }
     close() {
         if (__classPrivateFieldGet(this, _SmfWriter_closed, "f")) {
             return;
         }
         __classPrivateFieldSet(this, _SmfWriter_closed, true, "f");
-        __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_withWriter).call(this, (w) => {
-            // end of track
-            w.writeVar(0); // time
-            w.writeU8(0xff);
-            w.writeU8(0x2f);
-            w.writeU8(0x00);
-            let pos = w.getSize();
-            w.setU32(__classPrivateFieldGet(this, _SmfWriter_trackLengthPos, "f"), pos - __classPrivateFieldGet(this, _SmfWriter_trackLengthPos, "f") - 4);
-        });
+        const w = __classPrivateFieldGet(this, _SmfWriter_writer, "f");
+        // End of Track Meta Event (0xFF 0x2F 0x00)
+        w.writeVar(0);
+        w.writeU8(0xFF);
+        w.writeU8(0x2F);
+        w.writeU8(0x00);
+        const pos = w.getSize();
+        w.setU32(__classPrivateFieldGet(this, _SmfWriter_trackLengthPos, "f"), pos - __classPrivateFieldGet(this, _SmfWriter_trackLengthPos, "f") - 4);
     }
     getBlob() {
         this.close();
@@ -590,73 +588,56 @@ export class SmfWriter {
         downloadMidi(this.getBlob(), filename);
     }
     writeMessage(deltaTimeMs, data) {
-        __classPrivateFieldGet(this, _SmfWriter_writer, "f").writeVar(deltaTimeMs / (1000 / TICKS_PER_SECOND));
-        for (let d of data) {
+        __classPrivateFieldGet(this, _SmfWriter_writer, "f").writeVar(deltaTimeMs);
+        for (const d of data) {
             __classPrivateFieldGet(this, _SmfWriter_writer, "f").writeU8(d);
         }
     }
 }
-_SmfWriter_writer = new WeakMap(), _SmfWriter_trackLengthPos = new WeakMap(), _SmfWriter_closed = new WeakMap(), _SmfWriter_instances = new WeakSet(), _SmfWriter_withWriter = function _SmfWriter_withWriter(callback) {
-    callback(__classPrivateFieldGet(this, _SmfWriter_writer, "f"));
-}, _SmfWriter_writeResetData = function _SmfWriter_writeResetData() {
-    __classPrivateFieldGet(this, _SmfWriter_instances, "m", _SmfWriter_withWriter).call(this, (w) => {
-        // All notes off
-        w.writeVar(0); // time
-        w.writeU8(0xb0);
-        w.writeU8(123);
-        w.writeU8(0);
-        // Reset all controllers
-        w.writeVar(0); // time
-        w.writeU8(0xb0);
-        w.writeU8(121);
-        w.writeU8(0);
-        // Set channel volume
-        w.writeVar(0); // time
-        w.writeU8(0xb0);
-        w.writeU8(7);
-        w.writeU8(127);
-        // Note: System Reset (0xFF) cannot be used in standard MIDI files (SMF)
-        // because it is reserved exclusively for Meta event headers and would
-        // corrupt file parsing. Device reset is handled above via CC 121 and 123.
-    });
+_SmfWriter_writer = new WeakMap(), _SmfWriter_trackLengthPos = new WeakMap(), _SmfWriter_closed = new WeakMap(), _SmfWriter_instances = new WeakSet(), _SmfWriter_writeResetData = function _SmfWriter_writeResetData() {
+    const w = __classPrivateFieldGet(this, _SmfWriter_writer, "f");
+    // All Notes Off
+    w.writeVar(0);
+    w.writeU8(0xB0);
+    w.writeU8(123);
+    w.writeU8(0);
+    // Reset All Controllers
+    w.writeVar(0);
+    w.writeU8(0xB0);
+    w.writeU8(121);
+    w.writeU8(0);
+    // Set Channel Volume
+    w.writeVar(0);
+    w.writeU8(0xB0);
+    w.writeU8(7);
+    w.writeU8(127);
 };
-function downloadMidi(blob, filename) {
-    if (!filename) {
-        filename = "unnamed.mid";
-    }
-    let element = document.createElement('a');
-    element.setAttribute('download', filename);
+function downloadMidi(blob, filename = "unnamed.mid") {
+    const url = URL.createObjectURL(blob);
+    const element = document.createElement('a');
+    element.href = url;
+    element.download = filename;
     element.style.display = 'none';
     document.body.appendChild(element);
-    let reader = new FileReader();
-    reader.readAsDataURL(blob); // converts the blob to base64 and calls onload
-    reader.onload = function () {
-        element.href = reader.result; // data url
-        element.click();
-        document.body.removeChild(element);
-    };
+    element.click();
+    document.body.removeChild(element);
+    URL.revokeObjectURL(url);
 }
-// Returns a promise
+/**
+ * Loads and parses a Standard MIDI File from a Blob/File.
+ */
 export function loadMidi(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function (_event) {
-            const ar = new Uint8Array(reader.result);
-            console.log("Read from file", file);
-            try {
-                resolve((new SmfReader(ar)).getEvents());
-            }
-            catch (error) {
-                if (reject)
-                    reject(error);
-            }
-        };
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(file);
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const buffer = yield file.arrayBuffer();
+            const ar = new Uint8Array(buffer);
+            debug("Read from file", file);
+            return new SmfReader(ar).getEvents();
+        }
+        catch (error) {
+            console.error("Failed to load MIDI file:", error);
+            throw error;
+        }
     });
-}
-// For manual testing
-function t() {
-    (new SmfWriter()).download();
 }
 //# sourceMappingURL=smf.js.map
