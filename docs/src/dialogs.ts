@@ -226,12 +226,17 @@ class MetronomeBox extends DialogBase {
             if (this.metronomeTapLastTime > 0) {
                 const delta = now - this.metronomeTapLastTime;
                 if (delta > 50) { // debounce
-                    const bpm = Math.floor(60 * 1000 / delta);
-                    const bpmInput = $('#metronome_bpm');
-                    const min = parseInt(bpmInput.attr('min') || "10");
-                    const max = parseInt(bpmInput.attr('max') || "500");
-                    const clampedBpm = Math.max(min, Math.min(max, bpm));
-                    bpmInput.val(clampedBpm);
+                    if (delta < 2000) {
+                        const bpm = Math.floor(60 * 1000 / delta);
+                        const bpmInput = $('#metronome_bpm');
+                        const min = parseInt(bpmInput.attr('min') || "10");
+                        const max = parseInt(bpmInput.attr('max') || "500");
+                        const clampedBpm = Math.max(min, Math.min(max, bpm));
+                        bpmInput.val(clampedBpm);
+                    } else {
+                        // Reset tapping history if the user paused too long
+                        this.metronomeTapLastTime = 0;
+                    }
                 }
             }
             this.metronomeTapLastTime = now;
