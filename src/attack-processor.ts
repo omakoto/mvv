@@ -45,12 +45,37 @@ class AttackProcessor extends AudioWorkletProcessor {
         }
 
         let maxVal = 0;
-        for (let i = 0; i < channelData.length; i++) {
-            maxVal = Math.max(maxVal, Math.abs(channelData[i]));
-        }
+        const len = channelData.length;
+        const threshold = this.attackThreshold;
 
-        if (this.lastMaxVolume < this.attackThreshold && maxVal >= this.attackThreshold) {
-            this.port.postMessage({ type: 'attack' });
+        if (this.lastMaxVolume < threshold) {
+            // Eligible for new attack detection.
+            // Break early as soon as any sample crosses the threshold.
+            let crossed = false;
+            for (let i = 0; i < len; i++) {
+                const val = channelData[i]!;
+                const absVal = val < 0 ? -val : val;
+                if (absVal >= threshold) {
+                    crossed = true;
+                    maxVal = absVal;
+                    break;
+                }
+                if (absVal > maxVal) {
+                    maxVal = absVal;
+                }
+            }
+            if (crossed) {
+                this.port.postMessage({ type: 'attack' });
+            }
+        } else {
+            // Already in a loud state, we just compute peak volume to track decay.
+            for (let i = 0; i < len; i++) {
+                const val = channelData[i]!;
+                const absVal = val < 0 ? -val : val;
+                if (absVal > maxVal) {
+                    maxVal = absVal;
+                }
+            }
         }
         this.lastMaxVolume = maxVal;
 
