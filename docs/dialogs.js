@@ -236,14 +236,14 @@ class MetronomeBox extends DialogBase {
         $('#metronome_sub_beats').val(options.subBeats);
         $('#increase_tempo_enabled').prop('checked', options.automaticIncrease);
         $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars);
-        $('#increase_tempo_unit').val(options.increaseAfterBars > 0 ? "bars" : "seconds");
+        $(`input[name="increase_tempo_unit"][value="${options.increaseAfterBars > 0 ? "bars" : "seconds"}"]`).prop('checked', true);
         $('#increase_tempo_bpm').val(options.increaseBpm);
         $('#increase_tempo_max').val(options.increaseMaxBpm);
         $('#decrease_tempo_enabled').prop('checked', options.automaticDecrease);
         $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars);
-        $('#decrease_tempo_unit').val(options.decreaseAfterBars > 0 ? "bars" : "seconds");
+        $(`input[name="decrease_tempo_unit"][value="${options.decreaseAfterBars > 0 ? "bars" : "seconds"}"]`).prop('checked', true);
         $('#decrease_tempo_bpm').val(options.decreaseBpm);
-        $('#decrease_tempo_max').val(options.decreaseMinBpm);
+        $('#decrease_tempo_min').val(options.decreaseMinBpm);
         __classPrivateFieldGet(this, _MetronomeBox_instances, "m", _MetronomeBox_updateEnablement).call(this);
         const initialOptions = options.copy();
         $("#metronome_ok").off('click').on('click', (ev) => {
@@ -355,7 +355,7 @@ _MetronomeBox_instances = new WeakSet(), _MetronomeBox_updateEnablement = functi
         const fieldset = enabledCheckbox.closest('fieldset');
         const updateState = () => {
             const isEnabled = enabledCheckbox.is(':checked');
-            fieldset.find('input[type="number"], input[type="radio"]').prop('disabled', !isEnabled);
+            fieldset.find('input').not(enabledCheckbox).prop('disabled', !isEnabled);
         };
         enabledCheckbox.off('change').on('change', updateState);
         updateState(); // Initial state

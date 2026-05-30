@@ -1496,7 +1496,7 @@ class Recorder {
             }
             midiRenderingStatus.onMidiMessage(ev);
             midiOutputManager.sendEvent(ev.getDataAsArray(), 0)
-            if (ev.isNoteOn || ev.isNoteOn) {
+            if (ev.isNoteOn || ev.isNoteOff) {
                 noteChanged = true;
             }
         });
