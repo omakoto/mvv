@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "types": ["node", "jquery", "jqueryui", "webmidi", "audioworklet", "dom-screen-wake-lock"]
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ]
+}

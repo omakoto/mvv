@@ -178,5 +178,5 @@ function analyzeChord(notes, sharp) {
     const fallbackChord = analyzeChordFallback(notes, sharp);
     return fallbackChord ? [fallbackChord] : [];
 }
-export { getNoteFullName, analyzeChord };
+export { getNoteName, getNoteFullName, getCombinations, findChordInDictionary, analyzeChordFallback, analyzeChordTonal, analyzeChordTonalInner, analyzeChord, };
 //# sourceMappingURL=chords.js.map

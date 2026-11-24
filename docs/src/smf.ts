@@ -230,12 +230,12 @@ export class MidiEvent {
     }
 }
 
-const TICKS_PER_SECOND = 1000;
+export const TICKS_PER_SECOND = 1000;
 
-class BytesWriter {
+export class BytesWriter {
     #cap: number;
     #size = 0;
-    #buf: Uint8Array;
+    #buf: Uint8Array<ArrayBuffer>;
 
     constructor(initialCapacity = 4096) {
         this.#cap = initialCapacity;
@@ -331,12 +331,16 @@ class BytesWriter {
         return this.#size;
     }
 
+    getBytes(): Uint8Array<ArrayBuffer> {
+        return this.#buf.subarray(0, this.#size);
+    }
+
     getBlob(contentType: string): Blob {
-        return new Blob([this.#buf.subarray(0, this.#size)], { type: contentType });
+        return new Blob([this.getBytes()], { type: contentType });
     }
 }
 
-class BytesReader {
+export class BytesReader {
     readonly #buffer: Uint8Array;
     #pos = 0;
 
@@ -386,7 +390,7 @@ class BytesReader {
     }
 }
 
-class TempoEvent {
+export class TempoEvent {
     constructor(
         public readonly ticks: number,
         public readonly mspb: number,
@@ -397,7 +401,7 @@ class TempoEvent {
 /**
  * Converts "ticks" (absolute ticks from the start of the MIDI file) to milliseconds.
  */
-class TickConverter {
+export class TickConverter {
     readonly #ticksPerBeat: number;
     readonly #tempos: TempoEvent[] = [];
     #lastTempoEvent: TempoEvent;
@@ -443,7 +447,7 @@ class TickConverter {
     }
 }
 
-class SmfReader {
+export class SmfReader {
     readonly #reader: BytesReader;
     #loaded = false;
     #events: MidiEvent[] = [];
@@ -682,6 +686,11 @@ export class SmfWriter {
         w.setU32(this.#trackLengthPos, pos - this.#trackLengthPos - 4);
     }
 
+    getBytes(): Uint8Array {
+        this.close();
+        return this.#writer.getBytes();
+    }
+
     getBlob(): Blob {
         this.close();
         return this.#writer.getBlob("audio/mid");
@@ -699,7 +708,7 @@ export class SmfWriter {
     }
 }
 
-function downloadMidi(blob: Blob, filename = "unnamed.mid"): void {
+export function downloadMidi(blob: Blob, filename = "unnamed.mid"): void {
     const url = URL.createObjectURL(blob);
     const element = document.createElement('a');
     element.href = url;

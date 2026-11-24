@@ -1,7 +1,10 @@
 {
   "scripts": {
     "build": "node scripts/build.js",
-    "start": "./scripts/start.sh"
+    "start": "./scripts/start.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
     "@types/dom-screen-wake-lock": "^1.0.3",
@@ -12,6 +15,10 @@
   },
   "devDependencies": {
     "@types/audioworklet": "^0.0.100",
-    "@types/jquery": "^4.0.0"
+    "@types/jquery": "^4.0.0",
+    "@types/node": "^26.6.6",
+    "jquery": "^4.1.0",
+    "jsdom": "^31.0.1",
+    "vitest": "^5.1.1"
   }
 }

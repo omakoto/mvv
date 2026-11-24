@@ -1,18 +1,25 @@
 {
     "compilerOptions": {
-        "baseUrl": "./src",
+        "rootDir": "./src",
         "outDir": "./docs",
         "target": "es6",
-        "module": "es6",
-        "moduleResolution": "node",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "sourceMap": true,
         "lib": [
             "es6",
-            "dom",
+            "dom"
         ],
-        "skipLibCheck": true,
+        "types": [
+            "jquery",
+            "jqueryui",
+            "webmidi",
+            "audioworklet",
+            "dom-screen-wake-lock"
+        ],
+        "skipLibCheck": true
     },
     "include": [
-        "src/**/*",
-    ],
+        "src/**/*"
+    ]
 }

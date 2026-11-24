@@ -6,7 +6,7 @@
 
 'use strict';
 
-import { DEFAULT_PLAY_SPEED_INDEX, coordinator, renderer, recorder, metronome } from './mvv.js';
+import { DEFAULT_PLAY_SPEED_INDEX } from './config.js';
 
 const rollSpeedClasses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
 const playSpeedClasses = [
@@ -19,7 +19,7 @@ const playSpeedClasses = [
     "play-speed-800"
 ];
 
-class TimeKeeper {
+export class TimeKeeper {
     #second: number | null = null;
     #text: string | null = null;
 
@@ -52,7 +52,70 @@ class TimeKeeper {
     }
 }
 
-class Controls {
+export interface ControlsCoordinator {
+    readonly scrollSpeedIndex: number;
+    readonly playSpeedIndex: number;
+    readonly isSharpMode: boolean;
+    readonly isShowingOctaveLines: boolean;
+    readonly isShowingNoteNames: boolean;
+    readonly isShowingNoteOffLines: boolean;
+    readonly isReplayAvailable: boolean;
+    moveToStart(): void;
+    togglePlayback(): void;
+    startPlayback(): void;
+    pause(): void;
+    stop(): void;
+    rotatePlaySpeed(): void;
+    resetPlaySpeed(): void;
+    startRecording(): void;
+    replayFromAlwaysRecordingBuffer(): void;
+    uploadRequested(): void;
+    downloadRequested(): void;
+    toggleRollFrozen(): void;
+    toggleVideoMute(): void;
+    setSharpMode(useSharp: boolean): void;
+    setShowingOctaveLines(show: boolean): void;
+    rotateScrollSpeed(): void;
+    toggleNoteNames(): void;
+    toggleNoteOffLines(): void;
+    toggleMetronome(): void;
+    showOutputSelector(): void;
+    moveToPercent(percent: number): void;
+    moveToTime(newTime: number): void;
+}
+
+export interface ControlsRenderer {
+    readonly isRollFrozen: boolean;
+    readonly isVideoMuted: boolean;
+}
+
+export interface ControlsRecorder {
+    readonly isRecording: boolean;
+    readonly isPlaying: boolean;
+    readonly isPausing: boolean;
+    readonly isAnythingRecorded: boolean;
+    readonly sections: readonly number[];
+    readonly lastEventTimestamp: number;
+    readonly currentPlaybackTimestamp: number;
+}
+
+export interface ControlsMetronome {
+    readonly isPlaying: boolean;
+}
+
+export interface ControlsDeps {
+    coordinator: ControlsCoordinator;
+    renderer: ControlsRenderer;
+    recorder: ControlsRecorder;
+    metronome: ControlsMetronome;
+}
+
+export class Controls {
+    #coordinator: ControlsCoordinator;
+    #renderer: ControlsRenderer;
+    #recorder: ControlsRecorder;
+    #metronome: ControlsMetronome;
+
     #top: JQuery<HTMLElement>;
     #rewind: JQuery<HTMLElement>;
     #play: JQuery<HTMLElement>;
@@ -76,7 +139,7 @@ class Controls {
     #rollSpeed: JQuery<HTMLElement>;
     #notenames: JQuery<HTMLElement>;
     #noteOffLines: JQuery<HTMLElement>;
-    #metronome: JQuery<HTMLElement>;
+    #metronomeBtn: JQuery<HTMLElement>;
     #midiOutput: JQuery<HTMLElement>;
 
     #timestamp: JQuery<HTMLElement>;
@@ -90,7 +153,12 @@ class Controls {
     #isPositionDragging = false;
     #wasPlayingBeforeDrag = false;
 
-    constructor() {
+    constructor(deps: ControlsDeps) {
+        this.#coordinator = deps.coordinator;
+        this.#renderer = deps.renderer;
+        this.#recorder = deps.recorder;
+        this.#metronome = deps.metronome;
+
         this.#top = $("#top");
         this.#play = $("#play");
         this.#pause = $("#pause");
@@ -119,113 +187,115 @@ class Controls {
         this.#notenames = $("#notenames");
         this.#noteOffLines = $("#off-lines");
 
-        this.#metronome = $("#metronome");
+        this.#metronomeBtn = $("#metronome");
         this.#midiOutput = $("#midi-output");
 
         this.#timestamp = $("#timestamp");
 
         this.#top.on('click', (ev) => {
-            coordinator.moveToStart();
+            this.#coordinator.moveToStart();
             ev.stopPropagation();
         });
         this.#play.on('click', (ev) => {
-            coordinator.togglePlayback();
+            this.#coordinator.togglePlayback();
             ev.stopPropagation();
         });
         this.#pause.on('click', (ev) => {
-            coordinator.pause();
+            this.#coordinator.pause();
             ev.stopPropagation();
         });
         this.#stop.on('click', (ev) => {
-            coordinator.stop();
+            this.#coordinator.stop();
             ev.stopPropagation();
         });
         this.#playSpeed.on('click', (ev) => {
-            coordinator.rotatePlaySpeed();
+            this.#coordinator.rotatePlaySpeed();
             this.update();
             ev.stopPropagation();
         });
         this.#playSpeed.on('dblclick', (ev) => {
-            coordinator.resetPlaySpeed();
+            this.#coordinator.resetPlaySpeed();
             this.update();
             ev.stopPropagation();
         });
         this.#record.on('click', (ev) => {
-            coordinator.startRecording();
+            this.#coordinator.startRecording();
             ev.stopPropagation();
         });
         this.#replay.on('click', (ev) => {
-            coordinator.replayFromAlwaysRecordingBuffer();
+            this.#coordinator.replayFromAlwaysRecordingBuffer();
             ev.stopPropagation();
         });
 
         this.#up.on('click', (ev) => {
-            coordinator.uploadRequested();
+            this.#coordinator.uploadRequested();
             ev.stopPropagation();
         });
         this.#down.on('click', (ev) => {
-            coordinator.downloadRequested();
+            this.#coordinator.downloadRequested();
             ev.stopPropagation();
         });
         this.#freeze.on('click', (ev) => {
-            coordinator.toggleRollFrozen();
+            this.#coordinator.toggleRollFrozen();
             this.update();
             ev.stopPropagation();
         });
         this.#videoMute.on('click', (ev) => {
-            coordinator.toggleVideoMute();
+            this.#coordinator.toggleVideoMute();
             this.update();
             ev.stopPropagation();
         });
 
         this.#sharp.on('click', (ev) => {
-            coordinator.setSharpMode(true);
+            this.#coordinator.setSharpMode(true);
             this.update();
             ev.stopPropagation();
         });
 
         this.#flat.on('click', (ev) => {
-            coordinator.setSharpMode(false);
+            this.#coordinator.setSharpMode(false);
             this.update();
             ev.stopPropagation();
         });
 
         this.#vlines.on('click', (ev) => {
-            coordinator.setShowingOctaveLines(!coordinator.isShowingOctaveLines);
+            this.#coordinator.setShowingOctaveLines(!this.#coordinator.isShowingOctaveLines);
             this.update();
             ev.stopPropagation();
         });
         this.#rollSpeed.on('click', (ev) => {
-            coordinator.rotateScrollSpeed();
+            this.#coordinator.rotateScrollSpeed();
             this.update();
             ev.stopPropagation();
         });
 
         this.#notenames.on('click', (ev) => {
-            coordinator.toggleNoteNames();
+            this.#coordinator.toggleNoteNames();
             this.update();
             ev.stopPropagation();
         });
         this.#noteOffLines.on('click', (ev) => {
-            coordinator.toggleNoteOffLines();
+            this.#coordinator.toggleNoteOffLines();
             this.update();
             ev.stopPropagation();
         });
-        this.#metronome.on('click', (ev) => {
-            coordinator.toggleMetronome();
+        this.#metronomeBtn.on('click', (ev) => {
+            this.#coordinator.toggleMetronome();
             this.update();
             ev.stopPropagation();
         });
         this.#midiOutput.on('click', (ev) => {
-            coordinator.showOutputSelector();
+            this.#coordinator.showOutputSelector();
             ev.stopPropagation();
         });
 
-        // Initialize drag-drop positioning
-        (this.#position as any).draggable({
-            addClasses: false,
-            axis: "x"
-        });
+        // Initialize drag-drop positioning when jQuery UI draggable is loaded.
+        if (typeof (this.#position as any).draggable === 'function') {
+            (this.#position as any).draggable({
+                addClasses: false,
+                axis: "x"
+            });
+        }
         this.#position.on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
         this.#position.on('drag', (ev, ui) => this.positionDrag(ev, ui));
         this.#position.on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
@@ -262,8 +332,8 @@ class Controls {
 
         // Update section markers on the progress bar
         this.#sectionMarkersContainer.empty();
-        const sections = recorder.sections;
-        const totalTime = recorder.lastEventTimestamp;
+        const sections = this.#recorder.sections;
+        const totalTime = this.#recorder.lastEventTimestamp;
         if (totalTime > 0) {
             for (const sectionTime of sections) {
                 const percent = (sectionTime / totalTime) * 100;
@@ -275,26 +345,26 @@ class Controls {
 
         // Update control panel button states based on current settings
         this.#rollSpeed.removeClass(rollSpeedClasses.join(' '));
-        this.#rollSpeed.addClass(rollSpeedClasses[coordinator.scrollSpeedIndex]!);
-        this.activate(this.#rollSpeed, coordinator.scrollSpeedIndex > 0);
+        this.#rollSpeed.addClass(rollSpeedClasses[this.#coordinator.scrollSpeedIndex]!);
+        this.activate(this.#rollSpeed, this.#coordinator.scrollSpeedIndex > 0);
 
         this.#playSpeed.removeClass(playSpeedClasses.join(' '));
-        this.#playSpeed.addClass(playSpeedClasses[coordinator.playSpeedIndex]!);
-        this.activate(this.#playSpeed, coordinator.playSpeedIndex !== DEFAULT_PLAY_SPEED_INDEX);
+        this.#playSpeed.addClass(playSpeedClasses[this.#coordinator.playSpeedIndex]!);
+        this.activate(this.#playSpeed, this.#coordinator.playSpeedIndex !== DEFAULT_PLAY_SPEED_INDEX);
 
-        this.activate(this.#freeze, renderer.isRollFrozen);
-        this.activate(this.#videoMute, renderer.isVideoMuted);
+        this.activate(this.#freeze, this.#renderer.isRollFrozen);
+        this.activate(this.#videoMute, this.#renderer.isVideoMuted);
 
-        this.activate(this.#sharp, coordinator.isSharpMode);
-        this.activate(this.#flat, !coordinator.isSharpMode);
-        this.activate(this.#vlines, coordinator.isShowingOctaveLines);
-        this.activate(this.#notenames, coordinator.isShowingNoteNames);
-        this.activate(this.#noteOffLines, coordinator.isShowingNoteOffLines);
+        this.activate(this.#sharp, this.#coordinator.isSharpMode);
+        this.activate(this.#flat, !this.#coordinator.isSharpMode);
+        this.activate(this.#vlines, this.#coordinator.isShowingOctaveLines);
+        this.activate(this.#notenames, this.#coordinator.isShowingNoteNames);
+        this.activate(this.#noteOffLines, this.#coordinator.isShowingNoteOffLines);
 
-        this.activate(this.#metronome, metronome.isPlaying);
+        this.activate(this.#metronomeBtn, this.#metronome.isPlaying);
 
         // Adjust availability of playback controls based on state (playing, paused, recording, etc.)
-        if (recorder.isRecording) {
+        if (this.#recorder.isRecording) {
             this.disable(this.#top);
             this.disable(this.#play);
             this.disable(this.#pause);
@@ -306,8 +376,8 @@ class Controls {
             this.disable(this.#replay);
             return;
         }
-        
-        if (recorder.isPlaying) {
+
+        if (this.#recorder.isPlaying) {
             this.enable(this.#top);
             this.activateUnclickable(this.#play);
             this.enable(this.#pause);
@@ -319,8 +389,8 @@ class Controls {
             this.disable(this.#replay);
             return;
         }
-        
-        if (recorder.isPausing) {
+
+        if (this.#recorder.isPausing) {
             this.enable(this.#top);
             this.enable(this.#play);
             this.enable(this.#pause);
@@ -333,7 +403,7 @@ class Controls {
             this.disable(this.#replay);
             return;
         }
-        
+
         this.disable(this.#top);
         this.disable(this.#play);
         this.disable(this.#pause);
@@ -345,13 +415,13 @@ class Controls {
         this.disable(this.#down);
         this.disable(this.#position);
 
-        if (recorder.isAnythingRecorded) {
+        if (this.#recorder.isAnythingRecorded) {
             this.enable(this.#play);
             this.enable(this.#down);
             this.enable(this.#position);
         }
-        
-        if (coordinator.isReplayAvailable) {
+
+        if (this.#coordinator.isReplayAvailable) {
             this.enable(this.#replay);
         } else {
             this.disable(this.#replay);
@@ -374,17 +444,17 @@ class Controls {
     }
 
     public updateTimestamp(): void {
-        if (recorder.isRecording) {
+        if (this.#recorder.isRecording) {
             this.#setTimestamp("-");
             this.#setTimePercent(0);
             return;
         }
 
-        const totalTime = recorder.lastEventTimestamp;
-        const currentTime = recorder.currentPlaybackTimestamp;
+        const totalTime = this.#recorder.lastEventTimestamp;
+        const currentTime = this.#recorder.currentPlaybackTimestamp;
 
-        if (recorder.isAnythingRecorded) {
-            // Evaluate both time keepers to prevent short-circuit evaluation bug
+        if (this.#recorder.isAnythingRecorded) {
+            // Evaluate both time keepers to ensure both update even when the first changes.
             const totalTimeChanged = this.#totalTime.setSecond(totalTime / 1000);
             const currentTimeChanged = this.#currentTime.setSecond(currentTime / 1000);
 
@@ -407,9 +477,9 @@ class Controls {
         this.#isPositionDragging = true;
 
         this.#wasPlayingBeforeDrag = false;
-        if (recorder.isPlaying) {
+        if (this.#recorder.isPlaying) {
             this.#wasPlayingBeforeDrag = true;
-            coordinator.pause();
+            this.#coordinator.pause();
         }
     }
 
@@ -418,11 +488,11 @@ class Controls {
             ui.position.left = 0;
         }
         const max = this.#positionOuter.innerWidth();
-        if (max !== undefined) {
+        if (max !== undefined && max > 0) {
             if (ui.position.left > max) {
                 ui.position.left = max;
             }
-            coordinator.moveToPercent(ui.position.left / max);
+            this.#coordinator.moveToPercent(ui.position.left / max);
         }
     }
 
@@ -431,24 +501,24 @@ class Controls {
         this.#isPositionDragging = false;
 
         const max = this.#positionOuter.innerWidth();
-        if (max !== undefined) {
-            coordinator.moveToPercent(ui.position.left / max);
+        if (max !== undefined && max > 0) {
+            this.#coordinator.moveToPercent(ui.position.left / max);
         }
 
         if (this.#wasPlayingBeforeDrag) {
-            coordinator.startPlayback();
+            this.#coordinator.startPlayback();
         }
     }
 
     private directJump(ev: any): void {
         const max = this.#positionBar.innerWidth();
-        if (max === undefined) {
+        if (max === undefined || max <= 0) {
             return;
         }
-        
+
         const clickX = ev.offsetX;
-        const sections = recorder.sections;
-        const totalTime = recorder.lastEventTimestamp;
+        const sections = this.#recorder.sections;
+        const totalTime = this.#recorder.lastEventTimestamp;
 
         if (totalTime > 0 && sections.length > 0) {
             const snapThreshold = 16; // 16px range
@@ -467,14 +537,12 @@ class Controls {
 
             if (closestSectionTime !== null && minDistance <= snapThreshold) {
                 console.log("Snapping to section at " + closestSectionTime);
-                coordinator.moveToTime(closestSectionTime - 10);
+                this.#coordinator.moveToTime(closestSectionTime - 10);
                 return;
             }
         }
 
         console.log("jump to: " + clickX + " / " + max);
-        coordinator.moveToPercent(clickX / max);
+        this.#coordinator.moveToPercent(clickX / max);
     }
 }
-
-export const controls = new Controls();

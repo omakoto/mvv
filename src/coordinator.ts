@@ -1,0 +1,953 @@
+/**
+ * @file coordinator.ts
+ * @description Coordinates application state, user settings persistence, keyboard shortcuts,
+ * animation loop lifecycle, MIDI message routing, note/chord display, and wake lock management.
+ */
+
+'use strict';
+
+import {
+    DEFAULT_PLAY_SPEED_INDEX,
+    FPS_TO_MILLIS,
+    WAKE_LOCK_MILLIS,
+    getCappedPlayIndex,
+    getNextPlaySpeedIndex,
+    getNextScrollSpeedIndex,
+    getPlaySpeedFactor,
+    getScrollSpeedPx,
+    int,
+} from './config.js';
+import { getNoteFullName, analyzeChord } from './chords.js';
+import { MidiEvent } from './smf.js';
+import { DEBUG, debug, info, toggleDebug } from './util.js';
+import { MidiRenderingStatus } from './midi-status.js';
+import { MidiOutputManager } from './midi-output.js';
+import { Metronome, MetronomeOptions } from './metronome.js';
+import { AlwaysRecorder, Recorder, RecorderState } from './recorder.js';
+import { Renderer } from './renderer.js';
+import { AudioProcessor } from './audio-processor.js';
+
+export interface CoordinatorUiComponents {
+    controls?: { update(): void; updateTimestamp(): void };
+    saveAsBox?: { open(): void };
+    confirmBox?: { show(text: string, okayCallback: () => void): void };
+    metronomeBox?: { show(options: MetronomeOptions, okayCallback: (options: MetronomeOptions) => void): void };
+    midiOutputBox?: { open(): void };
+}
+
+export interface CoordinatorDeps extends CoordinatorUiComponents {
+    renderer: Renderer;
+    midiRenderingStatus: MidiRenderingStatus;
+    midiOutputManager: MidiOutputManager;
+    metronome: Metronome;
+    alwaysRecorder: AlwaysRecorder;
+    recorder: Recorder;
+    audioProcessor: AudioProcessor;
+    scale?: number;
+    storage?: Storage | null;
+    now?: () => number;
+    simulateZeroLengthNotes?: boolean;
+}
+
+export class Coordinator {
+    #renderer: Renderer;
+    #midiRenderingStatus: MidiRenderingStatus;
+    #midiOutputManager: MidiOutputManager;
+    #metronome: Metronome;
+    #alwaysRecorder: AlwaysRecorder;
+    #recorder: Recorder;
+    #audioProcessor: AudioProcessor;
+
+    #controls?: { update(): void; updateTimestamp(): void };
+    #saveAsBox?: { open(): void };
+    #confirmBox?: { show(text: string, okayCallback: () => void): void };
+    #metronomeBox?: { show(options: MetronomeOptions, okayCallback: (options: MetronomeOptions) => void): void };
+    #midiOutputBox?: { open(): void };
+
+    #scale: number;
+    #storage: Storage | null;
+    #now: () => number;
+    #simulateZeroLengthNotes: boolean;
+
+    #nextFpsMeasureSecond = 0;
+    #frames = 0;
+    #flips = 0;
+    #playbackTicks = 0;
+    #efps: JQuery<HTMLElement>;
+    #wakelock: WakeLockSentinel | null = null;
+    #wakelockTimer: ReturnType<typeof setTimeout> | null = null;
+    #notes: JQuery<HTMLElement>;
+    #chords: JQuery<HTMLElement>;
+    #useSharp: boolean;
+    #showOctaveLines: boolean;
+    #showNoteNames: boolean;
+    #scrollSpeedIndex: number;
+    #playSpeedIndex: number;
+    #showNoteOffLines = false;
+
+    #isHelpVisible = false;
+    #metronomeOptions: MetronomeOptions;
+
+    #knownRecorderState: RecorderState;
+
+    #playbackTimerLastNow = 0;
+
+    static readonly STORAGE_KEY_USE_SHARP = 'mvv_useSharp';
+    static readonly STORAGE_KEY_SHOW_VLINES = 'mvv_showVlines';
+    static readonly STORAGE_KEY_SHOW_NOTE_NAMES = 'mvv_showNoteNames';
+    static readonly STORAGE_KEY_SCROLL_SPEED = 'mvv_scrollSpeed';
+    static readonly STORAGE_KEY_PLAY_SPEED = 'mvv_playSpeed';
+    static readonly STORAGE_KEY_NOTE_OFF_LINES = 'note_off_lines';
+    static readonly STORAGE_KEY_METRONOME_OPTIONS = 'mvv_metronomeOptions';
+
+    constructor(deps: CoordinatorDeps) {
+        this.#renderer = deps.renderer;
+        this.#midiRenderingStatus = deps.midiRenderingStatus;
+        this.#midiOutputManager = deps.midiOutputManager;
+        this.#metronome = deps.metronome;
+        this.#alwaysRecorder = deps.alwaysRecorder;
+        this.#recorder = deps.recorder;
+        this.#audioProcessor = deps.audioProcessor;
+
+        this.#controls = deps.controls;
+        this.#saveAsBox = deps.saveAsBox;
+        this.#confirmBox = deps.confirmBox;
+        this.#metronomeBox = deps.metronomeBox;
+        this.#midiOutputBox = deps.midiOutputBox;
+
+        this.#scale = deps.scale ?? 1;
+        this.#storage = deps.storage !== undefined
+            ? deps.storage
+            : (typeof localStorage !== 'undefined' ? localStorage : null);
+        this.#now = deps.now ?? (() => performance.now());
+        this.#simulateZeroLengthNotes = deps.simulateZeroLengthNotes ?? false;
+
+        this.#knownRecorderState = this.#recorder.currentState;
+        this.#nextFpsMeasureSecond = this.#now() + 1000;
+        this.#efps = $("#fps");
+        this.#notes = $('#notes');
+        this.#chords = $('#chords');
+
+        // Load settings from storage
+        const storedSharp = this.#storage?.getItem(Coordinator.STORAGE_KEY_USE_SHARP) ?? null;
+        this.#useSharp = storedSharp === null ? true : storedSharp === 'true';
+
+        const storedVlines = this.#storage?.getItem(Coordinator.STORAGE_KEY_SHOW_VLINES) ?? null;
+        this.#showOctaveLines = storedVlines === null ? true : storedVlines === 'true';
+
+        const storedNoteNames = this.#storage?.getItem(Coordinator.STORAGE_KEY_SHOW_NOTE_NAMES) ?? null;
+        this.#showNoteNames = storedNoteNames === null ? true : storedNoteNames === 'true';
+
+        const storedSpeed = this.#storage?.getItem(Coordinator.STORAGE_KEY_SCROLL_SPEED) ?? null;
+        this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed, 10) : 0;
+
+        const storedPlaySpeed = this.#storage?.getItem(Coordinator.STORAGE_KEY_PLAY_SPEED) ?? null;
+        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed, 10) : DEFAULT_PLAY_SPEED_INDEX;
+
+        const noteOffLines = this.#storage?.getItem(Coordinator.STORAGE_KEY_NOTE_OFF_LINES) ?? null;
+        this.#showNoteOffLines = noteOffLines === null ? true : noteOffLines === 'true';
+
+        const storedMetronomeOptions = this.#storage?.getItem(Coordinator.STORAGE_KEY_METRONOME_OPTIONS) ?? null;
+        if (storedMetronomeOptions) {
+            this.#metronomeOptions = MetronomeOptions.fromJson(storedMetronomeOptions);
+        } else {
+            const opts = new MetronomeOptions();
+            opts.bpm = 120;
+            opts.beats = 4;
+            opts.subBeats = 1;
+            this.#metronomeOptions = opts;
+        }
+    }
+
+    setUiComponents(ui: CoordinatorUiComponents): void {
+        if (ui.controls !== undefined) this.#controls = ui.controls;
+        if (ui.saveAsBox !== undefined) this.#saveAsBox = ui.saveAsBox;
+        if (ui.confirmBox !== undefined) this.#confirmBox = ui.confirmBox;
+        if (ui.metronomeBox !== undefined) this.#metronomeBox = ui.metronomeBox;
+        if (ui.midiOutputBox !== undefined) this.#midiOutputBox = ui.midiOutputBox;
+    }
+
+    setSimulateZeroLengthNotes(enabled: boolean): void {
+        this.#simulateZeroLengthNotes = enabled;
+    }
+
+    get isHelpVisible(): boolean {
+        return this.#isHelpVisible;
+    }
+
+    onKeyDown(ev: KeyboardEvent): void {
+        debug("onKeyDown", ev.timeStamp, ev.code, ev);
+
+        // Always allow '?' and 'Escape' to control the help screen.
+        if (ev.key === '?') {
+            if (ev.repeat) return;
+            this.toggleHelpScreen();
+            ev.preventDefault();
+            return;
+        }
+        if (ev.code === 'Escape') {
+            if (this.#isHelpVisible) {
+                this.toggleHelpScreen();
+                ev.preventDefault();
+                return;
+            }
+        }
+
+        // If help is visible, block all other shortcuts.
+        if (this.#isHelpVisible) {
+            return;
+        }
+
+        this.extendWakelock();
+
+        if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
+            return;
+        }
+        const isRepeat = ev.repeat;
+
+        switch (ev.code) {
+            case 'Digit1':
+            case 'F1':
+                if (isRepeat) break;
+                this.toggleNoteNames();
+                this.updateUi();
+                break;
+            case 'Digit2':
+            case 'F2':
+                if (isRepeat) break;
+                this.setSharpMode(!this.isSharpMode);
+                this.updateUi();
+                break;
+            case 'Digit3':
+            case 'F3':
+                if (isRepeat) break;
+                this.setShowingOctaveLines(!this.isShowingOctaveLines);
+                this.updateUi();
+                break;
+            case 'Digit4':
+            case 'F4':
+                if (isRepeat) break;
+                this.rotateScrollSpeed();
+                this.updateUi();
+                break;
+
+            case 'Digit5':
+            case 'F5':
+                if (isRepeat) break;
+                this.toggleNoteOffLines();
+                this.updateUi();
+                break;
+
+            case 'Digit6':
+            case 'F6':
+                if (isRepeat) break;
+                this.toggleVideoMute();
+                break;
+
+            case 'Digit7':
+            case 'Enter':
+            case 'F7':
+                if (isRepeat) break;
+                this.toggleRollFrozen();
+                break;
+
+            case 'Digit9':
+            case 'F9':
+                if (isRepeat) break;
+                this.#efps.toggle();
+                this.updateUi();
+                break;
+
+            case 'KeyF':
+                if (isRepeat) break;
+                this.toggleFullScreen();
+                break;
+
+            case 'KeyM':
+                if (isRepeat) break;
+                this.toggleMetronome();
+                break;
+
+            case 'KeyR':
+                if (isRepeat) break;
+                this.toggleRecording();
+                break;
+            case 'KeyS':
+                if (isRepeat) break;
+                this.downloadRequested();
+                break;
+            case 'KeyL':
+                if (isRepeat) break;
+                this.uploadRequested();
+                break;
+            case 'KeyZ':
+                if (isRepeat) break;
+                this.stop();
+                break;
+            case 'KeyB':
+                if (isRepeat) break;
+                this.replayFromAlwaysRecordingBuffer();
+                break;
+            case 'KeyP':
+                if (isRepeat) break;
+                this.#recorder.jumpToPreviousSection();
+                this.updateUi();
+                break;
+            case 'KeyN':
+                if (isRepeat) break;
+                this.#recorder.jumpToNextSection();
+                this.updateUi();
+                break;
+            case 'KeyT':
+                if (isRepeat) break;
+                this.moveToStart();
+                break;
+            case 'Space':
+                if (isRepeat) break;
+                this.togglePlayback();
+                break;
+            case 'KeyA':
+            case 'Home':
+                if (isRepeat) break;
+                this.moveToStart();
+                break;
+            case 'ArrowLeft':
+                this.#onRewindPressed(isRepeat);
+                break;
+            case 'ArrowRight':
+                this.#onFastForwardPressed(isRepeat);
+                break;
+            case 'ArrowUp':
+                this.shiftPlaySpeed(1);
+                break;
+            case 'ArrowDown':
+                this.shiftPlaySpeed(-1);
+                break;
+            case 'Digit0':
+                this.resetPlaySpeed();
+                break;
+            case 'KeyV':
+                toggleDebug();
+                break;
+            case 'KeyC':
+                this.#alwaysRecorder.clear();
+                this.updateUi();
+                info("Always recording buffer cleared");
+                break;
+            case 'KeyX':
+                if (isRepeat) break;
+                this.trimBefore();
+                break;
+            case 'KeyD':
+                if (isRepeat) break;
+                this.showOutputSelector();
+                break;
+            case 'KeyI':
+                if (isRepeat) break;
+                this.#audioProcessor.toggle();
+                break;
+            case 'Equal':
+            case 'NumpadAdd':
+                this.#metronome.adjustTempo(5);
+                break;
+            case 'Minus':
+            case 'NumpadMinus':
+                this.#metronome.adjustTempo(-5);
+                break;
+            default:
+                return;
+        }
+        ev.preventDefault();
+    }
+
+    showOutputSelector(): void {
+        this.#midiOutputBox?.open();
+    }
+
+    toggleMetronome(): void {
+        if (this.#metronome.isPlaying) {
+            this.#metronome.stop();
+        } else {
+            this.#metronomeBox?.show(this.#metronomeOptions, (opts) => {
+                this.#metronomeOptions = opts;
+                this.#storage?.setItem(Coordinator.STORAGE_KEY_METRONOME_OPTIONS, JSON.stringify(opts));
+                this.#metronome.start(opts);
+
+                this.updateUi();
+            });
+        }
+        this.updateUi();
+    }
+
+    get isSharpMode(): boolean {
+        return this.#useSharp;
+    }
+
+    setSharpMode(useSharp: boolean): void {
+        info("Mode changed to " + (useSharp ? "sharp" : "flat"));
+        this.#useSharp = useSharp;
+        this.#storage?.setItem(Coordinator.STORAGE_KEY_USE_SHARP, String(useSharp));
+    }
+
+    get isShowingOctaveLines(): boolean {
+        return this.#showOctaveLines;
+    }
+
+    setShowingOctaveLines(show: boolean): void {
+        this.#showOctaveLines = show;
+        this.#storage?.setItem(Coordinator.STORAGE_KEY_SHOW_VLINES, String(show));
+        this.startAnimationLoop();
+    }
+
+    get isShowingNoteNames(): boolean {
+        return this.#showNoteNames;
+    }
+
+    toggleNoteNames(): void {
+        this.#showNoteNames = !this.#showNoteNames;
+        this.#storage?.setItem(Coordinator.STORAGE_KEY_SHOW_NOTE_NAMES, String(this.#showNoteNames));
+        this.startAnimationLoop();
+    }
+
+    get scrollSpeedPx(): number {
+        return getScrollSpeedPx(this.scrollSpeedIndex, this.#scale);
+    }
+
+    get scrollSpeedFactor(): number {
+        const base = getScrollSpeedPx(0, this.#scale);
+        return base > 0 ? this.scrollSpeedPx / base : 1;
+    }
+
+    get scrollSpeedIndex(): number {
+        return this.#scrollSpeedIndex;
+    }
+
+    setScrollSpeedIndex(index: number): void {
+        this.#scrollSpeedIndex = index;
+        this.#storage?.setItem(Coordinator.STORAGE_KEY_SCROLL_SPEED, String(index));
+    }
+
+    rotateScrollSpeed(): void {
+        this.setScrollSpeedIndex(getNextScrollSpeedIndex(this.scrollSpeedIndex));
+    }
+
+    get playSpeedIndex(): number {
+        return this.#playSpeedIndex;
+    }
+
+    get playSpeedFactor(): number {
+        return getPlaySpeedFactor(this.playSpeedIndex);
+    }
+
+    #setPlaySpeedIndex(index: number): void {
+        this.#playSpeedIndex = index;
+        this.#storage?.setItem(Coordinator.STORAGE_KEY_PLAY_SPEED, String(index));
+        this.updateUi();
+        console.log("Speed changed", index, this.playSpeedFactor);
+    }
+
+    rotatePlaySpeed(): void {
+        this.#setPlaySpeedIndex(getNextPlaySpeedIndex(this.playSpeedIndex));
+    }
+
+    resetPlaySpeed(): void {
+        this.#setPlaySpeedIndex(DEFAULT_PLAY_SPEED_INDEX);
+    }
+
+    shiftPlaySpeed(increment: number): void {
+        this.#setPlaySpeedIndex(getCappedPlayIndex(this.playSpeedIndex + increment));
+    }
+
+    toggleHelpScreen(): void {
+        this.#isHelpVisible = !this.#isHelpVisible;
+        if (this.#isHelpVisible) {
+            $('#help_overlay').fadeIn('fast');
+            $('#help_box').fadeIn('fast');
+        } else {
+            $('#help_overlay').fadeOut('fast');
+            $('#help_box').fadeOut('fast');
+        }
+    }
+
+    get isShowingNoteOffLines(): boolean {
+        return this.#showNoteOffLines;
+    }
+
+    toggleNoteOffLines(): void {
+        info("Toggle note-off lines");
+        this.#showNoteOffLines = !this.#showNoteOffLines;
+        this.#storage?.setItem(Coordinator.STORAGE_KEY_NOTE_OFF_LINES, String(this.#showNoteOffLines));
+        this.updateUi();
+    }
+
+    toggleVideoMute(): void {
+        info("Toggle video mute");
+        this.#renderer.toggleMute();
+        this.updateUi();
+    }
+
+    toggleRollFrozen(): void {
+        this.#renderer.toggleRollFrozen();
+        if (this.#renderer.isRollFrozen) {
+            info("Roll frozen");
+        }
+        this.updateUi();
+    }
+
+    toggleRecording(): void {
+        if (this.#recorder.isRecording) {
+            this.#recorder.stopRecording();
+        } else {
+            this.startRecording();
+        }
+        this.updateUi();
+    }
+
+    startRecording(): void {
+        if (!this.#recorder.isRecording) {
+            this.withOverwriteConfirm("Start new recording.", () => this.#recorder.startRecording());
+        }
+        this.updateUi();
+    }
+
+    #ensureOutputDevice(): boolean {
+        if (!this.#midiOutputManager.anyDeviceSelected) {
+            info("No MIDI output device selected");
+            return false;
+        }
+        return true;
+    }
+
+    togglePlayback(): void {
+        if (!this.#ensureOutputDevice()) {
+            return;
+        }
+        if (this.#recorder.isPausing) {
+            this.#recorder.unpause();
+        } else if (this.#recorder.isPlaying) {
+            this.#recorder.pause();
+        } else if (this.#recorder.isIdle) {
+            this.startPlayback();
+        }
+        this.updateUi();
+    }
+
+    startPlayback(): void {
+        if (!this.#ensureOutputDevice()) {
+            return;
+        }
+        if (this.#recorder.isIdle) {
+            this.#recorder.startPlaying();
+        } else if (this.#recorder.isPausing) {
+            this.#recorder.unpause();
+        }
+        this.updateUi();
+    }
+
+    pause(): void {
+        if (this.#recorder.isPlaying) {
+            this.#recorder.pause();
+        } else if (this.#recorder.isPausing) {
+            this.#recorder.unpause();
+        }
+        this.updateUi();
+    }
+
+    trimBefore(): void {
+        if (this.#recorder.isRecording || !this.#recorder.isAnythingRecorded || this.#recorder.isBeginning) {
+            return;
+        }
+        // Always confirm before discarding events.
+        this.#confirmBox?.show("Trim recording before current position?", () => {
+            this.#recorder.trimBefore();
+            this.updateUi();
+        });
+    }
+
+    stop(): void {
+        if (this.#recorder.isRecording) {
+            this.#recorder.stopRecording();
+        } else if (this.#recorder.isPlaying || this.#recorder.isPausing) {
+            this.#recorder.stopPlaying();
+        }
+        this.updateUi();
+    }
+
+    moveToStart(): void {
+        if (this.#recorder.isRecording) {
+            return;
+        }
+        this.#recorder.moveToStart();
+        this.updateUi();
+    }
+
+    moveToPercent(percent: number): void {
+        if (this.#recorder.isRecording) {
+            return;
+        }
+        const newTime = this.#recorder.lastEventTimestamp * percent;
+        this.moveToTime(newTime);
+    }
+
+    moveToTime(newTime: number): void {
+        if (this.#recorder.isRecording) {
+            return;
+        }
+        const delta = newTime - this.#recorder.currentPlaybackTimestamp;
+        this.#recorder.adjustPlaybackPosition(delta);
+        this.updateUi();
+    }
+
+    toggleFullScreen(): void {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    onRecorderStatusChanged(newState: RecorderState): void {
+        const lastState = this.#knownRecorderState;
+        this.#knownRecorderState = newState;
+
+        this.updateUi();
+
+        if (lastState != RecorderState.Playing && newState == RecorderState.Playing) {
+            this.#playbackTimerLastNow = this.#now();
+        }
+    }
+
+    replayFromAlwaysRecordingBuffer(): void {
+        this.withOverwriteConfirm("Restoring recent play as recording.", () => {
+            this.#recorder.copyFromAlwaysRecorder(this.#alwaysRecorder);
+            this.updateUi();
+        });
+    }
+
+    get isReplayAvailable(): boolean {
+        return this.#alwaysRecorder.isAvailable;
+    }
+
+    updateUi(): void {
+        this.#controls?.update();
+        this.#updateFps();
+        this.updateNoteInformation();
+    }
+
+    #ignoreRepeatedRewindKey = false;
+
+    #onRewindPressed(isRepeat: boolean): void {
+        if (this.#recorder.isRecording) {
+            return;
+        }
+        if (isRepeat && this.#ignoreRepeatedRewindKey) {
+            return;
+        }
+        if (!isRepeat) {
+            this.#ignoreRepeatedRewindKey = false;
+        }
+        this.#recorder.adjustPlaybackPosition(-1000);
+        if (this.#recorder.isBeginning) {
+            // Stop accepting repeated rewind keys once we hit the beginning.
+            this.#ignoreRepeatedRewindKey = true;
+        }
+        this.updateUi();
+    }
+
+    #onFastForwardPressed(_isRepeat: boolean): void {
+        if (this.#recorder.isRecording || this.#recorder.isAfterLast) {
+            return;
+        }
+        this.#recorder.adjustPlaybackPosition(1000);
+        this.updateUi();
+    }
+
+    #normalizeMidiEvent(ev: MidiEvent): void {
+        // Allow V25's leftmost knobs to act as damper and sostenuto pedals.
+        if (ev.device.startsWith("V25")) {
+            if (ev.data0 === 176 && ev.data1 === 20) {
+                ev.replaceData(1, 64);
+            } else if (ev.data0 === 176 && ev.data1 === 21) {
+                ev.replaceData(1, 66);
+            }
+        }
+    }
+
+    onMidiMessage(ev: MidiEvent): void {
+        if (DEBUG) {
+            debug("onMidiMessage: " + ev.toString());
+        }
+
+        // Ignore Active Sensing (0xFE) and Timing Clock (0xF8).
+        if (ev.data0 == 254 || ev.data0 == 248) {
+            return;
+        }
+
+        this.extendWakelock();
+
+        this.#normalizeMidiEvent(ev);
+
+        this.#midiRenderingStatus.onMidiMessage(ev);
+
+        if (this.#recorder.isRecording) {
+            this.#recorder.recordEvent(ev);
+        }
+        if (ev.isNoteOn || ev.isNoteOff) {
+            this.updateNoteInformation();
+        }
+
+        // Always record it. If it's the first recorded event, update UI to enable replay.
+        const ar = this.#alwaysRecorder.isAvailable;
+        this.#alwaysRecorder.recordEvent(ev);
+        if (this.#alwaysRecorder.isAvailable != ar) {
+            this.updateUi();
+        }
+
+        // Optionally simulate zero-length drum-style triggers for debugging.
+        if (this.#simulateZeroLengthNotes && ev.isNoteOn) {
+            const clone = ev.clone();
+            clone.replaceData(0, 0x80 + ev.channel);
+            clone.replaceData(2, 0);
+            this.onMidiMessage(clone);
+        }
+    }
+
+    reset(): void {
+        this.#recorder.stopPlaying();
+        this.#recorder.stopRecording();
+        this.updateUi();
+        this.resetMidi();
+    }
+
+    resetMidi(): void {
+        this.#midiRenderingStatus.reset();
+        this.#midiOutputManager.reset();
+    }
+
+    #updateFps(): void {
+        if (!this.isAnimating) {
+            this.#efps.text("Animation stopped");
+            this.#nextFpsMeasureSecond = 0;
+            return;
+        }
+        const now = this.#now();
+        if (now >= this.#nextFpsMeasureSecond) {
+            this.#efps.text(`${this.#flips}/${this.#frames} - ${this.#playbackTicks}`);
+            this.#flips = 0;
+            this.#frames = 0;
+            this.#playbackTicks = 0;
+            this.#nextFpsMeasureSecond += 1000;
+            if (this.#nextFpsMeasureSecond < now) {
+                this.#nextFpsMeasureSecond = now + 1000;
+            }
+        }
+    }
+
+    onDraw(time: number): void {
+        this.#renderer.onDraw(time);
+        this.#midiRenderingStatus.afterDraw(time);
+
+        this.#updateFps();
+    }
+
+    #updateNoteInformationNoteNamesShown = false;
+    #updateNoteInformationLastNotes: number[] = [];
+
+    #arraySame(a1: number[], a2: number[]): boolean {
+        if (a1.length !== a2.length) {
+            return false;
+        }
+        for (let i = 0; i < a1.length; i++) {
+            if (a1[i] !== a2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    updateNoteInformation(): void {
+        const time = this.#now();
+        if (!this.isShowingNoteNames) {
+            if (this.#updateNoteInformationNoteNamesShown) {
+                this.#notes.fadeOut(800);
+                this.#chords.fadeOut(800);
+                this.#updateNoteInformationNoteNamesShown = false;
+            }
+            return;
+        }
+        this.#updateNoteInformationNoteNamesShown = true;
+
+        const notes = this.#midiRenderingStatus.getPressedNotes();
+
+        const nowNotes = notes.map((n) => n.note);
+        if (this.#arraySame(nowNotes, this.#updateNoteInformationLastNotes)) {
+            return;
+        }
+        this.#updateNoteInformationLastNotes = nowNotes;
+
+        let lastOctave = -1;
+        const noteSpans = notes.map((n) => {
+            const noteName = getNoteFullName(n.note, this.#useSharp);
+
+            // Add extra space between octaves.
+            const octave = int(n.note / 12);
+            const spacing = (lastOctave < 0 || octave === lastOctave) ? "" : "&nbsp;&nbsp;";
+            lastOctave = octave;
+
+            const isRecent = (time - n.onTime) <= 50; // 50 ms
+
+            if (isRecent) {
+                return `${spacing}<span class="notes_highlight">${noteName}</span>`;
+            } else {
+                return `${spacing}<span>${noteName}</span>`;
+            }
+        });
+        const noteNamesHtml = noteSpans.join(' ');
+
+        const pressedNoteNumbers = notes.map(n => n.note);
+        let index = -1;
+        const chordNamesHtml = analyzeChord(pressedNoteNumbers, this.#useSharp).map((chord) => {
+            index++;
+            if (index == 0) {
+                return `<span class="notes_highlight">${chord}</span>`;
+            } else {
+                return `<span>${chord}</span>`;
+            }
+        }).join(", ");
+
+        if (noteNamesHtml.length > 0) {
+            this.#notes.html(noteNamesHtml);
+            this.#notes.stop(true, true).show();
+        } else {
+            this.#notes.fadeOut(800);
+        }
+        if (chordNamesHtml) {
+            this.#chords.html(chordNamesHtml);
+            this.#chords.stop(true, true).show();
+        } else {
+            this.#chords.fadeOut(800);
+        }
+    }
+
+    #animationFrameId: number | null = null;
+
+    get isAnimating(): boolean {
+        return this.#animationFrameId !== null;
+    }
+
+    /**
+     * Starts the main animation loop, synchronized with the browser's vsync cycle.
+     */
+    startAnimationLoop(): void {
+        if (this.isAnimating) {
+            return;
+        }
+        console.log("Animation started");
+        this.#updateFps();
+
+        let nextFlip = -1;
+
+        const loop = (time: number, forceRequest: boolean) => {
+            this.#frames++;
+
+            let requestNext = false;
+            if (time < nextFlip) {
+                requestNext = true;
+            } else {
+                nextFlip = time + FPS_TO_MILLIS;
+
+                this.#flips++;
+
+                this.onDraw(time);
+                this.#renderer.flip();
+
+                // Update note info every frame because SHORTEST_NOTE_LENGTH compensation
+                // can expire on a later draw tick; internal caching keeps steady frames cheap.
+                this.updateNoteInformation();
+
+                const needsAnimation = this.#renderer.needsAnimation() ||
+                    this.#recorder.isPlaying || this.#midiRenderingStatus.needsAnimation();
+                if (forceRequest || needsAnimation) {
+                    requestNext = true;
+                }
+            }
+            if (requestNext) {
+                this.#animationFrameId = requestAnimationFrame((t) => loop(t, false));
+            } else {
+                this.stopAnimationLoop();
+            }
+        };
+
+        loop(this.#now(), true);
+    }
+
+    stopAnimationLoop(): void {
+        if (this.isAnimating) {
+            cancelAnimationFrame(this.#animationFrameId!);
+            this.#animationFrameId = null;
+            console.log("Animation stopped");
+            this.#updateFps();
+        }
+    }
+
+    onPlaybackTimer(): void {
+        this.#playbackTicks++;
+        if (this.#recorder.isPlaying) {
+            const now = this.#now();
+            this.#recorder.playbackUpToNow((now - this.#playbackTimerLastNow) * this.playSpeedFactor);
+
+            this.#playbackTimerLastNow = now;
+
+            this.#controls?.updateTimestamp();
+        }
+    }
+
+    downloadRequested(): void {
+        this.#saveAsBox?.open();
+    }
+
+    uploadRequested(): void {
+        this.withOverwriteConfirm("Uploading a MIDI file.", () => {
+            $('#open_file').trigger('click');
+        });
+    }
+
+    withOverwriteConfirm(message: string, callback: () => void): void {
+        if (this.#recorder.isDirty) {
+            this.#confirmBox?.show(message + " Discard current recording?", () => callback());
+        } else {
+            callback();
+        }
+    }
+
+    async extendWakelock(): Promise<void> {
+        if (this.#wakelock === null && typeof navigator !== 'undefined' && navigator.wakeLock) {
+            try {
+                this.#wakelock = await navigator.wakeLock.request('screen');
+                this.#wakelock.addEventListener('release', () => {
+                    this.#wakelock = null;
+                    console.log("Wake lock released by system");
+                });
+                console.log("Wake lock acquired");
+            } catch (err) {
+                console.log("Failed to acquire wake lock", err);
+            }
+        }
+        if (this.#wakelockTimer !== null) {
+            clearTimeout(this.#wakelockTimer);
+        }
+        this.#wakelockTimer = setTimeout(() => {
+            if (this.#wakelock !== null) {
+                this.#wakelock.release();
+                this.#wakelock = null;
+                console.log("Wake lock released");
+            }
+        }, WAKE_LOCK_MILLIS);
+    }
+
+    close(): void {
+        this.stopAnimationLoop();
+        this.#recorder.stopPlaying();
+        this.resetMidi();
+    }
+}

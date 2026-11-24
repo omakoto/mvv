@@ -212,4 +212,13 @@ function analyzeChord(notes: number[], sharp: boolean): string[] {
     return fallbackChord ? [fallbackChord] : [];
 }
 
-export { getNoteFullName, analyzeChord };
+export {
+    getNoteName,
+    getNoteFullName,
+    getCombinations,
+    findChordInDictionary,
+    analyzeChordFallback,
+    analyzeChordTonal,
+    analyzeChordTonalInner,
+    analyzeChord,
+};

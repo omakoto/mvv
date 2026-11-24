@@ -2,3 +2,4 @@ src/*.js
 nohup.out
 *~
 out/
+node_modules/

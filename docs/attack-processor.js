@@ -17,12 +17,12 @@
  *
  * Lifespan & UI Toggle:
  * - Disabled by default (it is not always running).
- * - Managed and controlled by the `AudioProcessor` class in `mvv.ts`.
+ * - Managed and controlled by the `AudioProcessor` class in `audio-processor.ts`.
  * - Toggled on/off in the host application via the 'I' key shortcut.
  * - Activating it prompts the user for microphone permissions and loads this worklet module.
  * - Deactivating it closes the AudioContext, disconnects the audio stream, and shuts down this processor.
  */
-class AttackProcessor extends AudioWorkletProcessor {
+export class AttackProcessor extends AudioWorkletProcessor {
     constructor() {
         super(...arguments);
         this.lastMaxVolume = 0;
@@ -67,10 +67,12 @@ class AttackProcessor extends AudioWorkletProcessor {
         return true; // Keep processor alive
     }
 }
-try {
-    registerProcessor('attack-processor', AttackProcessor);
-}
-catch (e) {
-    console.error(e);
+if (typeof registerProcessor === 'function') {
+    try {
+        registerProcessor('attack-processor', AttackProcessor);
+    }
+    catch (e) {
+        console.error(e);
+    }
 }
 //# sourceMappingURL=attack-processor.js.map

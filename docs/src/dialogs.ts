@@ -6,7 +6,7 @@
 
 'use strict';
 
-import { recorder, midiOutputDeviceSelector, midiOutputManager, MetronomeOptions } from './mvv.js';
+import { MetronomeOptions } from './metronome.js';
 import { info, getCurrentTime } from './util.js';
 
 function refocusBody(): void {
@@ -15,12 +15,23 @@ function refocusBody(): void {
 
 declare const Popbox: any;
 
-class DialogBase {
-    protected _box: any | null = null;
-    protected _id: string;
+export interface PopboxInstance {
+    open(tag: string): void;
+    clear(): void;
+}
 
-    constructor(id: string) {
+export type PopboxFactory = (options: { blur: boolean; overlay: boolean }) => PopboxInstance;
+
+const defaultPopboxFactory: PopboxFactory = (options) => new Popbox(options);
+
+export class DialogBase {
+    protected _box: PopboxInstance | null = null;
+    protected _id: string;
+    protected _createPopbox: PopboxFactory;
+
+    constructor(id: string, createPopbox: PopboxFactory = defaultPopboxFactory) {
         this._id = id;
+        this._createPopbox = createPopbox;
         $(`#${id}`).on('popbox_closing', (_ev) => {
             refocusBody();
         });
@@ -38,9 +49,24 @@ class DialogBase {
     }
 }
 
-class SaveAsBox extends DialogBase {
-    constructor() {
-        super('save_as_box');
+export interface SaveAsRecorder {
+    readonly isAnythingRecorded: boolean;
+    download(filename: string): void;
+}
+
+export class SaveAsBox extends DialogBase {
+    #recorder: SaveAsRecorder;
+    #getCurrentTime: () => string;
+
+    constructor(
+        recorder: SaveAsRecorder,
+        createPopbox: PopboxFactory = defaultPopboxFactory,
+        getTime: () => string = getCurrentTime
+    ) {
+        super('save_as_box', createPopbox);
+        this.#recorder = recorder;
+        this.#getCurrentTime = getTime;
+
         $("#save_as_filename").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'save', 'save_as_cancel');
         });
@@ -62,13 +88,13 @@ class SaveAsBox extends DialogBase {
     }
 
     open(): void {
-        if (!recorder.isAnythingRecorded) {
+        if (!this.#recorder.isAnythingRecorded) {
             info("Nothing is recorded");
             return;
         }
-        const filename = "mvv-" + getCurrentTime();
+        const filename = "mvv-" + this.#getCurrentTime();
         $('#save_as_filename').val(filename);
-        this._box = new Popbox({
+        this._box = this._createPopbox({
             blur: true,
             overlay: true,
         });
@@ -84,16 +110,14 @@ class SaveAsBox extends DialogBase {
             return;
         }
         filename += ".mid";
-        recorder.download(filename);
+        this.#recorder.download(filename);
         info("Saved as " + filename);
     }
 }
 
-export const saveAsBox = new SaveAsBox();
-
-class ConfirmBox extends DialogBase {
-    constructor() {
-        super('confirm_box');
+export class ConfirmBox extends DialogBase {
+    constructor(createPopbox: PopboxFactory = defaultPopboxFactory) {
+        super('confirm_box', createPopbox);
         $("#confirm_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'confirm_ok', 'confirm_cancel');
         });
@@ -119,7 +143,7 @@ class ConfirmBox extends DialogBase {
             ev.preventDefault();
         });
 
-        this._box = new Popbox({
+        this._box = this._createPopbox({
             blur: true,
             overlay: true,
         });
@@ -128,14 +152,18 @@ class ConfirmBox extends DialogBase {
     }
 }
 
-export const confirmBox = new ConfirmBox();
-
-class MetronomeBox extends DialogBase {
+export class MetronomeBox extends DialogBase {
     private focusedInput: JQuery<HTMLElement> | null = null;
     private metronomeTapLastTime = 0;
+    #now: () => number;
 
-    constructor() {
-        super('metronome_box');
+    constructor(
+        createPopbox: PopboxFactory = defaultPopboxFactory,
+        now: () => number = () => performance.now()
+    ) {
+        super('metronome_box', createPopbox);
+        this.#now = now;
+
         const handleKeyDown = (ev: JQuery.KeyDownEvent) => {
             if (!this.focusedInput) {
                 return;
@@ -243,7 +271,7 @@ class MetronomeBox extends DialogBase {
 
         $("#metronome_tap").on('click', (ev) => {
             ev.preventDefault();
-            const now = performance.now();
+            const now = this.#now();
             if (this.metronomeTapLastTime > 0) {
                 const delta = now - this.metronomeTapLastTime;
                 if (delta > 50) { // debounce
@@ -388,11 +416,11 @@ class MetronomeBox extends DialogBase {
                 const dtBpm = check($('#decrease_tempo_bpm'), -1);
                 if (dtBpm === null) return;
 
-                const dtMax = check($('#decrease_tempo_min'), -1);
-                if (dtMax === null) return;
+                const dtMin = check($('#decrease_tempo_min'), -1);
+                if (dtMin === null) return;
 
                 opts.decreaseBpm = dtBpm;
-                opts.decreaseMinBpm = dtMax;
+                opts.decreaseMinBpm = dtMin;
 
                 opts.decreaseAfterBars = 0;
                 opts.decreaseAfterSeconds = 0;
@@ -418,7 +446,7 @@ class MetronomeBox extends DialogBase {
             ev.preventDefault();
         });
 
-        this._box = new Popbox({
+        this._box = this._createPopbox({
             blur: true,
             overlay: true,
         });
@@ -427,18 +455,35 @@ class MetronomeBox extends DialogBase {
     }
 }
 
-export const metronomeBox = new MetronomeBox();
+export interface MidiOutputDialogSelector {
+    getDevices(): WebMidi.MIDIOutput[];
+    selectDevice(deviceName: string): void;
+}
 
-class MidiOutputBox extends DialogBase {
-    constructor() {
-        super('midi_output_box');
+export interface MidiOutputDialogManager {
+    getMidiOut(): WebMidi.MIDIOutput | null;
+}
+
+export class MidiOutputBox extends DialogBase {
+    #selector: MidiOutputDialogSelector;
+    #outputManager: MidiOutputDialogManager;
+
+    constructor(
+        selector: MidiOutputDialogSelector,
+        outputManager: MidiOutputDialogManager,
+        createPopbox: PopboxFactory = defaultPopboxFactory
+    ) {
+        super('midi_output_box', createPopbox);
+        this.#selector = selector;
+        this.#outputManager = outputManager;
+
         $("#midi_output_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'midi_output_ok', 'midi_output_cancel');
         });
 
         $("#midi_output_ok").on('click', (ev) => {
             const selectedDevice = $('#midi_output_select').val() as string;
-            midiOutputDeviceSelector.selectDevice(selectedDevice);
+            this.#selector.selectDevice(selectedDevice);
             if (this._box) {
                 this._box.clear();
             }
@@ -454,19 +499,19 @@ class MidiOutputBox extends DialogBase {
     }
 
     open(): void {
-        const devices = midiOutputDeviceSelector.getDevices();
+        const devices = this.#selector.getDevices();
         const select = $('#midi_output_select');
         select.empty();
-        const currentDevice = midiOutputManager.getMidiOut();
+        const currentDevice = this.#outputManager.getMidiOut();
         for (const device of devices) {
-            const option = $('<option></option>').val(device.name).text(device.name);
+            const option = $('<option></option>').val(device.name ?? "").text(device.name ?? "");
             if (currentDevice && device.name === currentDevice.name) {
                 option.attr('selected', 'selected');
             }
             select.append(option);
         }
 
-        this._box = new Popbox({
+        this._box = this._createPopbox({
             blur: true,
             overlay: true,
         });
@@ -475,5 +520,3 @@ class MidiOutputBox extends DialogBase {
         select.focus();
     }
 }
-
-export const midiOutputBox = new MidiOutputBox();

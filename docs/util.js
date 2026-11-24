@@ -5,8 +5,15 @@
  */
 'use strict';
 var _a;
-let DEBUG = parseInt((_a = (new URLSearchParams(window.location.search)).get("debug")) !== null && _a !== void 0 ? _a : "0", 10) ? true : false;
-const elStatus = $("#status");
+let DEBUG = typeof window !== 'undefined' && window.location
+    ? parseInt((_a = (new URLSearchParams(window.location.search)).get("debug")) !== null && _a !== void 0 ? _a : "0", 10) !== 0
+    : false;
+function getStatusElement() {
+    if (typeof $ === 'undefined') {
+        return null;
+    }
+    return $("#status");
+}
 /**
  * Log on console if DEBUG is true.
  */
@@ -16,17 +23,22 @@ function debug(...args) {
     console.log(...args);
 }
 /**
- * Show a message in the status area, and also log on console.
+ * Show a message in the status area and fade it out after a short delay.
  */
 function info(...args) {
+    var _a;
     infoRaw(...args);
-    elStatus.delay(3000).fadeOut(1000);
+    (_a = getStatusElement()) === null || _a === void 0 ? void 0 : _a.delay(3000).fadeOut(1000);
 }
 /**
- * Same as info(), without debug log, only update the status message.
+ * Show a message in the status area immediately without scheduling a fade-out.
  */
 function infoRaw(...args) {
     const message = args.join(" ");
+    const elStatus = getStatusElement();
+    if (!elStatus) {
+        return;
+    }
     elStatus.stop(true, true);
     elStatus.show();
     elStatus.text(message);
@@ -35,11 +47,13 @@ function infoRaw(...args) {
  * Return the current time in "yyyy-mm-dd-hh-mm-ss" format, which is used for
  * midi filenames.
  */
-function getCurrentTime() {
-    const nowUtc = new Date();
+function getCurrentTime(nowUtc = new Date()) {
     const nowLocal = new Date(nowUtc.getTime() - (nowUtc.getTimezoneOffset() * 60 * 1000));
     const ret = nowLocal.toISOString();
     return ret.replace("Z", "").replace(/[:T]/g, "-").replace(/\..*$/, "");
+}
+export function setDebug(enabled) {
+    DEBUG = enabled;
 }
 export function toggleDebug() {
     DEBUG = !DEBUG;

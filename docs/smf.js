@@ -220,8 +220,8 @@ export class MidiEvent {
     }
 }
 _MidiEvent_timestamp = new WeakMap(), _MidiEvent_data = new WeakMap(), _MidiEvent_device = new WeakMap();
-const TICKS_PER_SECOND = 1000;
-class BytesWriter {
+export const TICKS_PER_SECOND = 1000;
+export class BytesWriter {
     constructor(initialCapacity = 4096) {
         _BytesWriter_instances.add(this);
         _BytesWriter_cap.set(this, void 0);
@@ -294,8 +294,11 @@ class BytesWriter {
     getSize() {
         return __classPrivateFieldGet(this, _BytesWriter_size, "f");
     }
+    getBytes() {
+        return __classPrivateFieldGet(this, _BytesWriter_buf, "f").subarray(0, __classPrivateFieldGet(this, _BytesWriter_size, "f"));
+    }
     getBlob(contentType) {
-        return new Blob([__classPrivateFieldGet(this, _BytesWriter_buf, "f").subarray(0, __classPrivateFieldGet(this, _BytesWriter_size, "f"))], { type: contentType });
+        return new Blob([this.getBytes()], { type: contentType });
     }
 }
 _BytesWriter_cap = new WeakMap(), _BytesWriter_size = new WeakMap(), _BytesWriter_buf = new WeakMap(), _BytesWriter_instances = new WeakSet(), _BytesWriter_ensureCap = function _BytesWriter_ensureCap(requiredCap) {
@@ -311,7 +314,7 @@ _BytesWriter_cap = new WeakMap(), _BytesWriter_size = new WeakMap(), _BytesWrite
     newBuf.set(__classPrivateFieldGet(this, _BytesWriter_buf, "f"));
     __classPrivateFieldSet(this, _BytesWriter_buf, newBuf, "f");
 };
-class BytesReader {
+export class BytesReader {
     constructor(ar) {
         _BytesReader_buffer.set(this, void 0);
         _BytesReader_pos.set(this, 0);
@@ -353,7 +356,7 @@ class BytesReader {
     }
 }
 _BytesReader_buffer = new WeakMap(), _BytesReader_pos = new WeakMap();
-class TempoEvent {
+export class TempoEvent {
     constructor(ticks, mspb, timeOffset) {
         this.ticks = ticks;
         this.mspb = mspb;
@@ -363,7 +366,7 @@ class TempoEvent {
 /**
  * Converts "ticks" (absolute ticks from the start of the MIDI file) to milliseconds.
  */
-class TickConverter {
+export class TickConverter {
     constructor(ticksPerBeat) {
         _TickConverter_instances.add(this);
         _TickConverter_ticksPerBeat.set(this, void 0);
@@ -402,7 +405,7 @@ class TickConverter {
 _TickConverter_ticksPerBeat = new WeakMap(), _TickConverter_tempos = new WeakMap(), _TickConverter_lastTempoEvent = new WeakMap(), _TickConverter_instances = new WeakSet(), _TickConverter_ticksToMilliseconds = function _TickConverter_ticksToMilliseconds(ticks, mspb) {
     return ((ticks / __classPrivateFieldGet(this, _TickConverter_ticksPerBeat, "f")) * mspb) / 1000;
 };
-class SmfReader {
+export class SmfReader {
     constructor(ar) {
         _SmfReader_instances.add(this);
         _SmfReader_reader.set(this, void 0);
@@ -580,6 +583,10 @@ export class SmfWriter {
         const pos = w.getSize();
         w.setU32(__classPrivateFieldGet(this, _SmfWriter_trackLengthPos, "f"), pos - __classPrivateFieldGet(this, _SmfWriter_trackLengthPos, "f") - 4);
     }
+    getBytes() {
+        this.close();
+        return __classPrivateFieldGet(this, _SmfWriter_writer, "f").getBytes();
+    }
     getBlob() {
         this.close();
         return __classPrivateFieldGet(this, _SmfWriter_writer, "f").getBlob("audio/mid");
@@ -612,7 +619,7 @@ _SmfWriter_writer = new WeakMap(), _SmfWriter_trackLengthPos = new WeakMap(), _S
     w.writeU8(7);
     w.writeU8(127);
 };
-function downloadMidi(blob, filename = "unnamed.mid") {
+export function downloadMidi(blob, filename = "unnamed.mid") {
     const url = URL.createObjectURL(blob);
     const element = document.createElement('a');
     element.href = url;
