@@ -6,9 +6,10 @@ import { setupMvvDom } from './helpers/dom-setup.js';
 describe('AudioProcessor', () => {
     let onAttack: Mock<() => void>;
     let addModule: Mock<(url: string) => Promise<void>>;
-    let createMediaStreamSource: Mock<(stream: MediaStream) => { connect: Mock<() => void> }>;
+    let createMediaStreamSource: Mock<(stream: MediaStream) => { connect: Mock<() => void>; disconnect: Mock<() => void> }>;
     let close: Mock<() => Promise<void>>;
     let sourceConnect: Mock<() => void>;
+    let sourceDisconnect: Mock<() => void>;
     let workletConnect: Mock<() => void>;
     let workletDisconnect: Mock<() => void>;
     let trackStop: Mock<() => void>;
@@ -23,7 +24,11 @@ describe('AudioProcessor', () => {
         onAttack = vi.fn<() => void>();
         addModule = vi.fn<(url: string) => Promise<void>>().mockResolvedValue(undefined);
         sourceConnect = vi.fn<() => void>();
-        createMediaStreamSource = vi.fn<(stream: MediaStream) => { connect: Mock<() => void> }>().mockReturnValue({ connect: sourceConnect });
+        sourceDisconnect = vi.fn<() => void>();
+        createMediaStreamSource = vi.fn<(stream: MediaStream) => { connect: Mock<() => void>; disconnect: Mock<() => void> }>().mockReturnValue({
+            connect: sourceConnect,
+            disconnect: sourceDisconnect,
+        });
         close = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
         workletConnect = vi.fn<() => void>();
         workletDisconnect = vi.fn<() => void>();
@@ -82,13 +87,54 @@ describe('AudioProcessor', () => {
         capturedWorkletPort.onmessage?.({ data: { type: 'attack' } });
         expect(onAttack).toHaveBeenCalledTimes(1);
 
-        // Stop disconnects worklet, stops mic tracks, and closes AudioContext
+        // Stop disconnects source & worklet, stops mic tracks, and closes AudioContext
         proc.stop();
+        expect(sourceDisconnect).toHaveBeenCalledTimes(1);
         expect(workletDisconnect).toHaveBeenCalledTimes(1);
         expect(trackStop).toHaveBeenCalledTimes(1);
         expect(capturedWorkletPort.onmessage).toBeNull();
         expect(close).toHaveBeenCalledTimes(1);
         expect(proc.isRunning).toBe(false);
+    });
+
+    it('prevents concurrent start() races and cleans up if stop() is called mid-startup', async () => {
+        let resolveStream!: (stream: any) => void;
+        (navigator as any).mediaDevices.getUserMedia = vi.fn(() => new Promise((res) => { resolveStream = res; }));
+
+        const proc = new AudioProcessor({ onAttack });
+        const p1 = proc.start();
+        // Second start while first is still awaiting getUserMedia is ignored
+        const p2 = proc.start();
+        expect((navigator as any).mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+
+        // Toggle off before getUserMedia resolves -> aborts startup and stops tracks once resolved
+        proc.toggle();
+        resolveStream({ id: 'late-stream', getTracks: () => [{ stop: trackStop }] });
+        await Promise.all([p1, p2]);
+
+        expect(proc.isRunning).toBe(false);
+        expect(trackStop).toHaveBeenCalledTimes(1);
+        expect(addModule).not.toHaveBeenCalled();
+
+        // Also test aborting while addModule() is pending -> closes AudioContext and stops tracks
+        let resolveAddModule!: () => void;
+        (navigator as any).mediaDevices.getUserMedia = vi.fn().mockResolvedValue({
+            id: 'stream-2',
+            getTracks: () => [{ stop: trackStop }],
+        });
+        addModule.mockImplementationOnce(() => new Promise<void>((res) => { resolveAddModule = res; }));
+        trackStop.mockClear();
+        close.mockClear();
+
+        const p3 = proc.start();
+        await vi.waitFor(() => expect(addModule).toHaveBeenCalledTimes(1));
+        proc.stop();
+        resolveAddModule();
+        await p3;
+
+        expect(proc.isRunning).toBe(false);
+        expect(trackStop).toHaveBeenCalledTimes(1);
+        expect(close).toHaveBeenCalledTimes(1);
     });
 
     it('cleans up AudioContext and mic tracks if addModule fails so retry succeeds', async () => {

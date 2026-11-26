@@ -67,10 +67,22 @@ try {
     }
   }
 
-  // Copy source .ts files to docs/src/ (for source maps and reference)
+  // Copy source .ts files to docs/src/ and rewrite source maps to resolve under docs/ web root
   for (const file of srcFiles) {
     if (file.endsWith('.ts')) {
       fs.cpSync(fromRoot('src', file), fromRoot('docs', 'src', file), { force: true });
+    }
+  }
+
+  const docsFiles = fs.readdirSync(docsDir);
+  for (const file of docsFiles) {
+    if (file.endsWith('.js.map')) {
+      const mapPath = fromRoot('docs', file);
+      const mapData = JSON.parse(fs.readFileSync(mapPath, 'utf-8'));
+      if (Array.isArray(mapData.sources)) {
+        mapData.sources = mapData.sources.map((src) => src.replace(/^\.\.\/src\//, 'src/'));
+        fs.writeFileSync(mapPath, JSON.stringify(mapData));
+      }
     }
   }
 

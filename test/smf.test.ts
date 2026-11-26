@@ -137,9 +137,14 @@ describe('smf', () => {
             expect(reader.getPos()).toBe(0);
             reader.skip(3);
             expect(reader.getPos()).toBe(3);
+
+            // High-bit unsigned 32-bit values stay positive
+            const u32Writer = new BytesWriter();
+            u32Writer.writeU32(0x80000001);
+            expect(new BytesReader(u32Writer.getBytes()).readU32()).toBe(0x80000001);
         });
 
-        it('round-trips MIDI Variable Length Quantities across 1..4 byte boundaries', () => {
+        it('round-trips MIDI Variable Length Quantities across 1..4 byte boundaries and rejects >4-byte VLQ', () => {
             const values = [0, 1, 127, 128, 255, 16383, 16384, 2097151, 2097152, 0x0FFFFFFF];
             const writer = new BytesWriter();
             for (const v of values) {
@@ -152,6 +157,8 @@ describe('smf', () => {
             }
 
             expect(() => writer.writeVar(-1)).toThrow(RangeError);
+            expect(() => new BytesReader(new Uint8Array([0x81, 0x81, 0x81, 0x81, 0x00])).readVar())
+                .toThrow('Variable-length quantity exceeds 4 bytes');
         });
     });
 
@@ -175,6 +182,17 @@ describe('smf', () => {
             expect(tc.getTime(240)).toBe(250);
             expect(tc.getTime(480)).toBe(500);
             expect(tc.getTime(720)).toBe(1000);
+            expect(tc.getTime(960)).toBe(1500);
+            expect(tc.getTime(1440)).toBe(1750);
+        });
+
+        it('recomputes offsets accurately when tempo changes arrive out of tick order', () => {
+            const tc = new TickConverter(480);
+            // Insert later tempo first, then earlier tempo (Format 1 multi-track order)
+            tc.setTempo(960, 250_000);
+            tc.setTempo(480, 1_000_000);
+
+            expect(tc.getTime(480)).toBe(500);
             expect(tc.getTime(960)).toBe(1500);
             expect(tc.getTime(1440)).toBe(1750);
         });
@@ -247,7 +265,7 @@ describe('smf', () => {
             expect(reader.getEvents()).toBe(events);
 
             // First Note On was at 500ms -> shifted to 0ms
-            // Channel pressure at 600ms -> shifted to 100ms
+            // Channel pressure at 600ms -> shifted to 100ms (2-byte MIDI message!)
             // Second Note On at 700ms -> shifted to 200ms
             // Note Off at 900ms -> shifted to 400ms
             expect(events.map(e => [e.timestamp, e.status, e.data1, e.data2])).toEqual([
@@ -255,6 +273,53 @@ describe('smf', () => {
                 [100, 0xD0, 77, 0],
                 [200, 0x90, 64, 85],
                 [400, 0x90, 60, 0],
+            ]);
+            const channelPressure = events[1]!;
+            expect(channelPressure.getDataAsArray()).toEqual([0xD0, 77]);
+
+            // Re-exporting 2-byte Channel Pressure via SmfWriter round-trips cleanly without corruption
+            const reWriter = new SmfWriter();
+            let prev = 0;
+            for (const ev of events) {
+                reWriter.writeMessage(ev.timestamp - prev, ev.getDataAsArray());
+                prev = ev.timestamp;
+            }
+            const reparsed = new SmfReader(reWriter.getBytes()).getEvents()
+                .filter(e => e.status === 0x90 || e.status === 0xD0);
+            expect(reparsed.map(e => [e.timestamp, Array.from(e.getDataAsArray())])).toEqual([
+                [0, [0x90, 60, 90]],
+                [100, [0xD0, 77]],
+                [200, [0x90, 64, 85]],
+                [400, [0x90, 60, 0]],
+            ]);
+        });
+
+        it('bounds tracks missing End-of-Track meta event and preserves running status across system messages', () => {
+            const w = new BytesWriter();
+            w.writeU32(0x4D546864).writeU32(6).writeU16(1).writeU16(2).writeU16(500);
+
+            // Track 1: Note On + Timing Clock (0xF8) + Song Position (0xF2, 2 bytes) + Song Select (0xF3, 1 byte) + running-status Note Off, NO 0xFF 0x2F end marker
+            const t1 = new BytesWriter();
+            t1.writeVar(0).writeU8(0x90).writeU8(60).writeU8(100);
+            t1.writeVar(25).writeU8(0xF8);
+            t1.writeVar(25).writeU8(0xF2).writeU8(0x01).writeU8(0x02);
+            t1.writeVar(25).writeU8(0xF3).writeU8(0x05);
+            t1.writeVar(25).writeU8(60).writeU8(0); // running status still 0x90
+            w.writeU32(0x4D54726B).writeU32(t1.getSize());
+            for (const b of t1.getBytes()) w.writeU8(b);
+
+            // Track 2: Note On at tick 200 with normal End of Track
+            const t2 = new BytesWriter();
+            t2.writeVar(200).writeU8(0x90).writeU8(64).writeU8(80);
+            t2.writeVar(0).writeU8(0xFF).writeU8(0x2F).writeU8(0x00);
+            w.writeU32(0x4D54726B).writeU32(t2.getSize());
+            for (const b of t2.getBytes()) w.writeU8(b);
+
+            const events = new SmfReader(w.getBytes()).getEvents();
+            expect(events.map(e => [e.timestamp, e.data1, e.data2])).toEqual([
+                [0, 60, 100],
+                [100, 60, 0],
+                [200, 64, 80],
             ]);
         });
 

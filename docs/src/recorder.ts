@@ -442,13 +442,17 @@ export class Recorder {
         if (this.#events.length === 0) {
             return wr;
         }
-        let lastTimestamp = this.#events[0]!.timestamp;
+        // Sort by timestamp and track rounded integer milliseconds to avoid cumulative
+        // float truncation drift or negative deltas from multi-device timestamps.
+        const sorted = [...this.#events].sort((a, b) => a.timestamp - b.timestamp);
+        let prevMs = Math.max(0, Math.round(sorted[0]!.timestamp));
 
-        this.#events.forEach((ev) => {
+        sorted.forEach((ev) => {
             debug(ev.timestamp, ev.getDataAsArray());
-            const delta = ev.timestamp - lastTimestamp;
+            const targetMs = Math.max(prevMs, Math.round(ev.timestamp));
+            const delta = targetMs - prevMs;
             wr.writeMessage(delta, ev.getDataAsArray());
-            lastTimestamp = ev.timestamp;
+            prevMs = targetMs;
         });
         return wr;
     }

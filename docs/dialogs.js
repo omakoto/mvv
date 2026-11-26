@@ -4,31 +4,30 @@
  * the "Save As" file box, metronome settings (BPM/beats/tempo change), and MIDI output selector.
  */
 'use strict';
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _SaveAsBox_recorder, _SaveAsBox_getCurrentTime, _MetronomeBox_instances, _MetronomeBox_now, _MetronomeBox_updateEnablement, _MidiOutputBox_selector, _MidiOutputBox_outputManager;
 import { info, getCurrentTime } from './util.js';
 function refocusBody() {
     setTimeout(() => $('body').focus(), 0);
 }
 const defaultPopboxFactory = (options) => new Popbox(options);
 export class DialogBase {
+    _box = null;
+    _id;
+    _createPopbox;
     constructor(id, createPopbox = defaultPopboxFactory) {
-        this._box = null;
         this._id = id;
         this._createPopbox = createPopbox;
         $(`#${id}`).on('popbox_closing', (_ev) => {
             refocusBody();
         });
+    }
+    _getOrCreatePopbox() {
+        if (!this._box) {
+            this._box = this._createPopbox({
+                blur: true,
+                overlay: true,
+            });
+        }
+        return this._box;
     }
     _handleKeyDown(ev, okId, cancelId) {
         ev.stopPropagation();
@@ -43,13 +42,13 @@ export class DialogBase {
     }
 }
 export class SaveAsBox extends DialogBase {
+    #recorder;
+    #getCurrentTime;
     constructor(recorder, createPopbox = defaultPopboxFactory, getTime = getCurrentTime) {
         super('save_as_box', createPopbox);
-        _SaveAsBox_recorder.set(this, void 0);
-        _SaveAsBox_getCurrentTime.set(this, void 0);
-        __classPrivateFieldSet(this, _SaveAsBox_recorder, recorder, "f");
-        __classPrivateFieldSet(this, _SaveAsBox_getCurrentTime, getTime, "f");
-        $("#save_as_filename").on('keydown', (ev) => {
+        this.#recorder = recorder;
+        this.#getCurrentTime = getTime;
+        $("#save_as_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'save', 'save_as_cancel');
         });
         $("#save").on('click', (ev) => {
@@ -67,17 +66,13 @@ export class SaveAsBox extends DialogBase {
         });
     }
     open() {
-        if (!__classPrivateFieldGet(this, _SaveAsBox_recorder, "f").isAnythingRecorded) {
+        if (!this.#recorder.isAnythingRecorded) {
             info("Nothing is recorded");
             return;
         }
-        const filename = "mvv-" + __classPrivateFieldGet(this, _SaveAsBox_getCurrentTime, "f").call(this);
+        const filename = "mvv-" + this.#getCurrentTime();
         $('#save_as_filename').val(filename);
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-        this._box.open('save_as_box');
+        this._getOrCreatePopbox().open('save_as_box');
         $('#save_as_filename').focus();
     }
     doDownload() {
@@ -87,11 +82,10 @@ export class SaveAsBox extends DialogBase {
             return;
         }
         filename += ".mid";
-        __classPrivateFieldGet(this, _SaveAsBox_recorder, "f").download(filename);
+        this.#recorder.download(filename);
         info("Saved as " + filename);
     }
 }
-_SaveAsBox_recorder = new WeakMap(), _SaveAsBox_getCurrentTime = new WeakMap();
 export class ConfirmBox extends DialogBase {
     constructor(createPopbox = defaultPopboxFactory) {
         super('confirm_box', createPopbox);
@@ -118,22 +112,17 @@ export class ConfirmBox extends DialogBase {
             }
             ev.preventDefault();
         });
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-        this._box.open('confirm_box');
+        this._getOrCreatePopbox().open('confirm_box');
         $('#confirm_box').attr('tabindex', -1).focus();
     }
 }
 export class MetronomeBox extends DialogBase {
+    focusedInput = null;
+    metronomeTapLastTime = 0;
+    #now;
     constructor(createPopbox = defaultPopboxFactory, now = () => performance.now()) {
         super('metronome_box', createPopbox);
-        _MetronomeBox_instances.add(this);
-        this.focusedInput = null;
-        this.metronomeTapLastTime = 0;
-        _MetronomeBox_now.set(this, void 0);
-        __classPrivateFieldSet(this, _MetronomeBox_now, now, "f");
+        this.#now = now;
         const handleKeyDown = (ev) => {
             if (!this.focusedInput) {
                 return;
@@ -168,7 +157,7 @@ export class MetronomeBox extends DialogBase {
         $('#metronome_bpm').on('keydown', handleKeyDown);
         $('#metronome_main_beats').on('keydown', handleKeyDown);
         $('#metronome_sub_beats').on('keydown', handleKeyDown);
-        $("#metronome_box input").on('focus', (ev) => {
+        $("#metronome_box input[type='text']").on('focus', (ev) => {
             this.focusedInput = $(ev.target);
             $(ev.target).select();
         });
@@ -200,7 +189,9 @@ export class MetronomeBox extends DialogBase {
             }
             inputEl.value = val;
             const newCursorPos = val.length;
-            inputEl.setSelectionRange(newCursorPos, newCursorPos);
+            if (typeof inputEl.setSelectionRange === 'function') {
+                inputEl.setSelectionRange(newCursorPos, newCursorPos);
+            }
         });
         $("#metronome_adj_keys .adj_key").on('click', (ev) => {
             if (!this.focusedInput) {
@@ -235,7 +226,7 @@ export class MetronomeBox extends DialogBase {
         });
         $("#metronome_tap").on('click', (ev) => {
             ev.preventDefault();
-            const now = __classPrivateFieldGet(this, _MetronomeBox_now, "f").call(this);
+            const now = this.#now();
             if (this.metronomeTapLastTime > 0) {
                 const delta = now - this.metronomeTapLastTime;
                 if (delta > 50) { // debounce
@@ -261,22 +252,38 @@ export class MetronomeBox extends DialogBase {
             ev.stopPropagation();
         });
     }
+    #updateEnablement() {
+        const setupTempoChangeSection = (type) => {
+            const enabledCheckbox = $(`#${type}_tempo_enabled`);
+            const fieldset = enabledCheckbox.closest('fieldset');
+            const updateState = () => {
+                const isEnabled = enabledCheckbox.is(':checked');
+                fieldset.find('input').not(enabledCheckbox).prop('disabled', !isEnabled);
+            };
+            enabledCheckbox.off('change').on('change', updateState);
+            updateState();
+        };
+        setupTempoChangeSection('increase');
+        setupTempoChangeSection('decrease');
+    }
     show(options, okayCallback) {
         this.metronomeTapLastTime = 0;
         $('#metronome_bpm').val(options.bpm);
         $('#metronome_main_beats').val(options.beats);
         $('#metronome_sub_beats').val(options.subBeats);
         $('#increase_tempo_enabled').prop('checked', options.automaticIncrease);
-        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars);
-        $(`input[name="increase_tempo_unit"][value="${options.increaseAfterBars > 0 ? "bars" : "seconds"}"]`).prop('checked', true);
-        $('#increase_tempo_bpm').val(options.increaseBpm);
-        $('#increase_tempo_max').val(options.increaseMaxBpm);
+        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars || 1);
+        const increaseUnit = (options.increaseAfterSeconds > 0 && options.increaseAfterBars === 0) ? "seconds" : "bars";
+        $(`input[name="increase_tempo_unit"][value="${increaseUnit}"]`).prop('checked', true);
+        $('#increase_tempo_bpm').val(options.increaseBpm || 1);
+        $('#increase_tempo_max').val(options.increaseMaxBpm || 120);
         $('#decrease_tempo_enabled').prop('checked', options.automaticDecrease);
-        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars);
-        $(`input[name="decrease_tempo_unit"][value="${options.decreaseAfterBars > 0 ? "bars" : "seconds"}"]`).prop('checked', true);
-        $('#decrease_tempo_bpm').val(options.decreaseBpm);
-        $('#decrease_tempo_min').val(options.decreaseMinBpm);
-        __classPrivateFieldGet(this, _MetronomeBox_instances, "m", _MetronomeBox_updateEnablement).call(this);
+        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars || 1);
+        const decreaseUnit = (options.decreaseAfterSeconds > 0 && options.decreaseAfterBars === 0) ? "seconds" : "bars";
+        $(`input[name="decrease_tempo_unit"][value="${decreaseUnit}"]`).prop('checked', true);
+        $('#decrease_tempo_bpm').val(options.decreaseBpm || 1);
+        $('#decrease_tempo_min').val(options.decreaseMinBpm || 60);
+        this.#updateEnablement();
         const initialOptions = options.copy();
         $("#metronome_ok").off('click').on('click', (ev) => {
             ev.preventDefault();
@@ -376,41 +383,23 @@ export class MetronomeBox extends DialogBase {
             }
             ev.preventDefault();
         });
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-        this._box.open('metronome_box');
+        this._getOrCreatePopbox().open('metronome_box');
         $('#metronome_bpm').focus();
     }
 }
-_MetronomeBox_now = new WeakMap(), _MetronomeBox_instances = new WeakSet(), _MetronomeBox_updateEnablement = function _MetronomeBox_updateEnablement() {
-    const setupTempoChangeSection = (type) => {
-        const enabledCheckbox = $(`#${type}_tempo_enabled`);
-        const fieldset = enabledCheckbox.closest('fieldset');
-        const updateState = () => {
-            const isEnabled = enabledCheckbox.is(':checked');
-            fieldset.find('input').not(enabledCheckbox).prop('disabled', !isEnabled);
-        };
-        enabledCheckbox.off('change').on('change', updateState);
-        updateState();
-    };
-    setupTempoChangeSection('increase');
-    setupTempoChangeSection('decrease');
-};
 export class MidiOutputBox extends DialogBase {
+    #selector;
+    #outputManager;
     constructor(selector, outputManager, createPopbox = defaultPopboxFactory) {
         super('midi_output_box', createPopbox);
-        _MidiOutputBox_selector.set(this, void 0);
-        _MidiOutputBox_outputManager.set(this, void 0);
-        __classPrivateFieldSet(this, _MidiOutputBox_selector, selector, "f");
-        __classPrivateFieldSet(this, _MidiOutputBox_outputManager, outputManager, "f");
+        this.#selector = selector;
+        this.#outputManager = outputManager;
         $("#midi_output_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'midi_output_ok', 'midi_output_cancel');
         });
         $("#midi_output_ok").on('click', (ev) => {
             const selectedDevice = $('#midi_output_select').val();
-            __classPrivateFieldGet(this, _MidiOutputBox_selector, "f").selectDevice(selectedDevice);
+            this.#selector.selectDevice(selectedDevice);
             if (this._box) {
                 this._box.clear();
             }
@@ -424,25 +413,19 @@ export class MidiOutputBox extends DialogBase {
         });
     }
     open() {
-        var _a, _b;
-        const devices = __classPrivateFieldGet(this, _MidiOutputBox_selector, "f").getDevices();
+        const devices = this.#selector.getDevices();
         const select = $('#midi_output_select');
         select.empty();
-        const currentDevice = __classPrivateFieldGet(this, _MidiOutputBox_outputManager, "f").getMidiOut();
+        const currentDevice = this.#outputManager.getMidiOut();
         for (const device of devices) {
-            const option = $('<option></option>').val((_a = device.name) !== null && _a !== void 0 ? _a : "").text((_b = device.name) !== null && _b !== void 0 ? _b : "");
+            const option = $('<option></option>').val(device.name ?? "").text(device.name ?? "");
             if (currentDevice && device.name === currentDevice.name) {
                 option.attr('selected', 'selected');
             }
             select.append(option);
         }
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-        this._box.open('midi_output_box');
+        this._getOrCreatePopbox().open('midi_output_box');
         select.focus();
     }
 }
-_MidiOutputBox_selector = new WeakMap(), _MidiOutputBox_outputManager = new WeakMap();
 //# sourceMappingURL=dialogs.js.map

@@ -84,7 +84,6 @@ export class Renderer {
     #drewOffLine = false;
 
     #currentFrame = -1;
-    #lastDrawFrame = 0;
     #subpixelScroll = 0;
     #lastDrawY = 0;
 
@@ -174,33 +173,13 @@ export class Renderer {
         this.#onRequestAnimation = callback;
     }
 
-    getBarColor(velocity: number): RGB {
-        return getBarColor(velocity);
-    }
-
-    getOnColor(count: number): RGB {
-        return getOnColor(count);
-    }
-
-    getPedalColor(value: number): RGB {
-        return getPedalColor(value);
-    }
-
-    getSostenutoPedalColor(value: number): RGB {
-        return getSostenutoPedalColor(value);
-    }
-
-    mixRgb(rgb1: RGB, rgb2: RGB): RGB {
-        return mixRgb(rgb1, rgb2);
-    }
-
     drawSubLine(percent: number): void {
-        this.#bar.fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
+        this.#bar.fillStyle = rgbToStr(getBarColor(127 * (1 - percent)));
         this.#bar.fillRect(0, this.#BAR_H * percent, this.#W, this.#BAR_SUB_LINE_WIDTH);
     }
 
     // Draws vertical lines between octaves (between B and C).
-    drawOctaveLines(drawHeight: number): void {
+    drawOctaveLines(rollDrawHeight: number): void {
         this.#roll.fillStyle = rgbToStr(RGB_OCTAVE_LINES);
         this.#bar.fillStyle = this.#roll.fillStyle;
         const OCTAVE_LINE_WIDTH = 2;
@@ -209,8 +188,8 @@ export class Renderer {
             if (i % 12 === 0 && i > this.#MIN_NOTE) {
                 const x = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
 
-                if (!this.#rollFrozen) {
-                    this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
+                if (!this.#rollFrozen && rollDrawHeight > 0) {
+                    this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, rollDrawHeight);
                 }
 
                 this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
@@ -219,7 +198,6 @@ export class Renderer {
     }
 
     #barAreaChanged(): void {
-        this.#lastDrawFrame = this.#currentFrame;
         this.#lastDrawY = 0;
     }
 
@@ -247,32 +225,34 @@ export class Renderer {
         // Individual bar width
         const bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
 
+        let scrollAmount = 0;
         let drawHeight = 0;
         const scrollPx = settings.scrollSpeedPx;
         const scrollFactor = settings.scrollSpeedFactor;
 
         if (!this.#rollFrozen) {
             this.#subpixelScroll += scrollPx;
-            const scrollAmount = int(this.#subpixelScroll);
+            scrollAmount = int(this.#subpixelScroll);
             this.#subpixelScroll -= scrollAmount;
 
             const hlineHeight = scaleValue(2, this.#scale);
             drawHeight = Math.max(scrollAmount, hlineHeight);
 
-            if (scrollAmount >= 1) {
-                this.#roll.drawImage(this.#croll, 0, scrollAmount);
-            }
-
-            this.#lastDrawY += scrollAmount;
-
-            // Draw the pedals.
-            const sustainColor = this.getPedalColor(this.#status.damperPedal);
-            const sostenutoColor = this.getSostenutoPedalColor(this.#status.sostenuto);
-            const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+            const sustainColor = getPedalColor(this.#status.damperPedal);
+            const sostenutoColor = getSostenutoPedalColor(this.#status.sostenuto);
+            const pedalColor = mixRgb(sustainColor, sostenutoColor);
             const pedalColorInt = rgbToInt(pedalColor);
 
-            this.#roll.fillStyle = rgbToStr(pedalColor);
-            this.#roll.fillRect(0, 0, this.#W, drawHeight);
+            // Shift the roll and paint only the newly exposed strip so lines drawn on
+            // zero-scroll frames (e.g. 0.25px slowest mode) are never overwritten.
+            if (scrollAmount >= 1) {
+                this.#roll.drawImage(this.#croll, 0, scrollAmount);
+                this.#lastDrawY += scrollAmount;
+
+                this.#roll.fillStyle = rgbToStr(pedalColor);
+                this.#roll.fillRect(0, 0, this.#W, scrollAmount);
+            }
+
             if (pedalColorInt !== this.#lastPedalColorInt) {
                 this.#barAreaChanged();
                 this.#lastPedalColorInt = pedalColorInt;
@@ -297,7 +277,7 @@ export class Renderer {
             if (this.#status.onNoteCountInTick > 0) {
                 this.#barAreaChanged();
 
-                this.#roll.fillStyle = rgbToStr(this.getOnColor(this.#status.onNoteCountInTick));
+                this.#roll.fillStyle = rgbToStr(getOnColor(this.#status.onNoteCountInTick));
                 this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
             }
 
@@ -312,6 +292,7 @@ export class Renderer {
                 this.#roll.beginPath();
                 this.#roll.rect(0, 0, this.#W, drawHeight);
                 this.#roll.stroke();
+                this.#roll.setLineDash([]);
 
                 this.#extraLineType = -1;
             }
@@ -324,7 +305,7 @@ export class Renderer {
             const on = n.noteOn;
             const velocity = n.velocity;
 
-            const color = this.getBarColor(velocity);
+            const color = getBarColor(velocity);
             const alpha = on ? 255 :
                 (255 - (255 * (((time - n.offTime) / 1000.0) / ALPHA_DECAY_SEC)));
 
@@ -377,7 +358,7 @@ export class Renderer {
         }
 
         if (settings.isShowingOctaveLines) {
-            this.drawOctaveLines(drawHeight);
+            this.drawOctaveLines(scrollAmount);
         }
         if (this.#lastVlinesOn !== settings.isShowingOctaveLines) {
             this.#barAreaChanged();

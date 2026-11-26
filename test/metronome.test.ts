@@ -225,6 +225,11 @@ describe('Metronome', () => {
         expect(tone.Transport.stop).toHaveBeenCalledTimes(1);
         expect(tone.Transport.cancel).toHaveBeenCalledTimes(2);
 
+        // Queued lookahead Draw callbacks do not fire after stop()
+        const countAfterStop = beatLines.length;
+        drawCallbacks.forEach(fn => fn());
+        expect(beatLines).toHaveLength(countAfterStop);
+
         // Calling stop when already stopped is a no-op
         metronome.stop();
         expect(tone.Transport.stop).toHaveBeenCalledTimes(1);

@@ -44,10 +44,11 @@ describe('dialogs', () => {
             expect(recorder.download).toHaveBeenCalledTimes(1);
             expect($('#status').text()).toBe('Empty filename');
 
-            // Escape cancels and clears popbox
+            // Escape cancels and clears reused popbox without leaking extra instances
             box.open();
-            $('#save_as_filename').trigger($.Event('keydown', { code: 'Escape' }));
-            expect(instances[2]!.clear).toHaveBeenCalledTimes(1);
+            expect(instances).toHaveLength(1);
+            $('#save').trigger($.Event('keydown', { code: 'Escape' }));
+            expect(instances[0]!.clear).toHaveBeenCalledTimes(3);
         });
     });
 
@@ -67,8 +68,9 @@ describe('dialogs', () => {
 
             const onCancelTest = vi.fn();
             confirmBox.show('Second confirm?', onCancelTest);
+            expect(instances).toHaveLength(1);
             $('#confirm_box').trigger($.Event('keydown', { code: 'Escape' }));
-            expect(instances[1]!.clear).toHaveBeenCalledTimes(1);
+            expect(instances[0]!.clear).toHaveBeenCalledTimes(2);
             expect(onCancelTest).not.toHaveBeenCalled();
         });
     });
@@ -153,12 +155,35 @@ describe('dialogs', () => {
             expect(result.decreaseBpm).toBe(4);
             expect(result.decreaseMinBpm).toBe(90);
 
-            // Cancel button clears popbox without invoking callback
+            // Cancel button clears reused popbox without invoking callback
             const onCancel = vi.fn();
             box.show(defaultOpts(), onCancel);
+            expect(instances).toHaveLength(1);
             $('#metronome_cancel').trigger('click');
-            expect(instances[1]!.clear).toHaveBeenCalledTimes(1);
+            expect(instances[0]!.clear).toHaveBeenCalledTimes(2);
             expect(onCancel).not.toHaveBeenCalled();
+        });
+
+        it('keeps sensible UI defaults for fresh MetronomeOptions and ignores checkbox focus for keypad', () => {
+            const { factory } = createMockPopboxFactory();
+            const box = new MetronomeBox(factory);
+            box.show(new MetronomeOptions(), vi.fn());
+
+            expect($('#increase_tempo_after').val()).toBe('1');
+            expect($('input[name="increase_tempo_unit"]:checked').val()).toBe('bars');
+            expect($('#increase_tempo_bpm').val()).toBe('1');
+            expect($('#increase_tempo_max').val()).toBe('120');
+            expect($('#decrease_tempo_min').val()).toBe('60');
+
+            // Focusing a checkbox does not overwrite focusedInput, so keypad still edits #metronome_bpm
+            const bpmEl = $('#metronome_bpm')[0] as HTMLInputElement;
+            $('#metronome_bpm').trigger('focus');
+            bpmEl.setSelectionRange(bpmEl.value.length, bpmEl.value.length);
+            $('#increase_tempo_enabled').trigger('focus');
+            expect(() => {
+                $('#metronome_keypad .keypad_key').filter((_, el) => $(el).text() === '5').trigger('click');
+            }).not.toThrow();
+            expect(bpmEl.value).toBe('1205');
         });
 
         it('supports keypad, adjustment keys, keyboard arrows, PageDown, and tap tempo', () => {

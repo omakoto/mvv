@@ -132,7 +132,8 @@ canvas#roll2 {
 }
 
 @media (max-width: 800px) {
-    #bottom_mask {
+    #bottom_mask,
+    #bottom_mask_opaque {
         height: calc(var(--icon-size) * 3 + var(--control-margin) * 2);
     }
     #controls {
@@ -187,9 +188,6 @@ canvas#roll2 {
 #top {
     background-image: url("res/top.png");
 }
-#rewind {
-    background-image: url("res/rewind.png");
-}
 #play {
     background-image: url("res/play.png");
 }
@@ -198,9 +196,6 @@ canvas#roll2 {
 }
 #stop {
     background-image: url("res/stop.png");
-}
-#ff {
-    background-image: url("res/ff.png");
 }
 #record {
     background-image: url("res/record.png");

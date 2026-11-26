@@ -4,9 +4,8 @@
  * message overlays, and current local time generator.
  */
 'use strict';
-var _a;
 let DEBUG = typeof window !== 'undefined' && window.location
-    ? parseInt((_a = (new URLSearchParams(window.location.search)).get("debug")) !== null && _a !== void 0 ? _a : "0", 10) !== 0
+    ? parseInt((new URLSearchParams(window.location.search)).get("debug") ?? "0", 10) !== 0
     : false;
 function getStatusElement() {
     if (typeof $ === 'undefined') {
@@ -26,9 +25,8 @@ function debug(...args) {
  * Show a message in the status area and fade it out after a short delay.
  */
 function info(...args) {
-    var _a;
     infoRaw(...args);
-    (_a = getStatusElement()) === null || _a === void 0 ? void 0 : _a.delay(3000).fadeOut(1000);
+    getStatusElement()?.delay(3000).fadeOut(1000);
 }
 /**
  * Show a message in the status area immediately without scheduling a fade-out.

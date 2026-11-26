@@ -4,18 +4,6 @@
  * (clicks/dragging) to the core playback coordinator and updating UI indicators in real-time.
  */
 'use strict';
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var _TimeKeeper_second, _TimeKeeper_text, _Controls_instances, _Controls_coordinator, _Controls_renderer, _Controls_recorder, _Controls_metronome, _Controls_top, _Controls_rewind, _Controls_play, _Controls_pause, _Controls_ff, _Controls_stop, _Controls_playSpeed, _Controls_record, _Controls_replay, _Controls_up, _Controls_down, _Controls_position, _Controls_positionOuter, _Controls_positionBar, _Controls_sectionMarkersContainer, _Controls_freeze, _Controls_videoMute, _Controls_sharp, _Controls_flat, _Controls_vlines, _Controls_rollSpeed, _Controls_notenames, _Controls_noteOffLines, _Controls_metronomeBtn, _Controls_midiOutput, _Controls_timestamp, _Controls_cachedTimestamp, _Controls_currentTime, _Controls_totalTime, _Controls_cachedPercent, _Controls_isPositionDragging, _Controls_wasPlayingBeforeDrag, _Controls_setTimestamp, _Controls_setTimePercent;
 import { DEFAULT_PLAY_SPEED_INDEX } from './config.js';
 const rollSpeedClasses = ["roll-speed-normal", "roll-speed-fast", "roll-speed-slowest", "roll-speed-slow"];
 const playSpeedClasses = [
@@ -28,209 +16,200 @@ const playSpeedClasses = [
     "play-speed-800"
 ];
 export class TimeKeeper {
-    constructor() {
-        _TimeKeeper_second.set(this, null);
-        _TimeKeeper_text.set(this, null);
-    }
+    #second = null;
+    #text = null;
     get second() {
-        return __classPrivateFieldGet(this, _TimeKeeper_second, "f");
+        return this.#second;
     }
     setSecond(second) {
         const n = Math.floor(second);
-        if (n === __classPrivateFieldGet(this, _TimeKeeper_second, "f")) {
+        if (n === this.#second) {
             return false;
         }
-        __classPrivateFieldSet(this, _TimeKeeper_text, null, "f");
-        __classPrivateFieldSet(this, _TimeKeeper_second, n, "f");
+        this.#text = null;
+        this.#second = n;
         return true;
     }
     getHumanReadable() {
-        if (__classPrivateFieldGet(this, _TimeKeeper_text, "f") === null) {
-            if (__classPrivateFieldGet(this, _TimeKeeper_second, "f") === null) {
-                __classPrivateFieldSet(this, _TimeKeeper_text, "0:00", "f");
+        if (this.#text === null) {
+            if (this.#second === null) {
+                this.#text = "0:00";
             }
             else {
-                const s = __classPrivateFieldGet(this, _TimeKeeper_second, "f");
+                const s = this.#second;
                 const minutes = Math.floor(s / 60);
                 const seconds = s % 60;
-                __classPrivateFieldSet(this, _TimeKeeper_text, minutes + ":" + (seconds < 10 ? "0" + seconds : seconds), "f");
+                this.#text = minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
             }
         }
-        return __classPrivateFieldGet(this, _TimeKeeper_text, "f");
+        return this.#text;
     }
 }
-_TimeKeeper_second = new WeakMap(), _TimeKeeper_text = new WeakMap();
 export class Controls {
+    #coordinator;
+    #renderer;
+    #recorder;
+    #metronome;
+    #top;
+    #play;
+    #pause;
+    #stop;
+    #playSpeed;
+    #record;
+    #replay;
+    #up;
+    #down;
+    #position;
+    #positionOuter;
+    #positionBar;
+    #sectionMarkersContainer;
+    #freeze;
+    #videoMute;
+    #sharp;
+    #flat;
+    #vlines;
+    #rollSpeed;
+    #notenames;
+    #noteOffLines;
+    #metronomeBtn;
+    #midiOutput;
+    #timestamp;
+    #cachedTimestamp = "";
+    #currentTime = new TimeKeeper();
+    #totalTime = new TimeKeeper();
+    #cachedPercent = 0;
+    #wasPlayingBeforeDrag = false;
     constructor(deps) {
-        _Controls_instances.add(this);
-        _Controls_coordinator.set(this, void 0);
-        _Controls_renderer.set(this, void 0);
-        _Controls_recorder.set(this, void 0);
-        _Controls_metronome.set(this, void 0);
-        _Controls_top.set(this, void 0);
-        _Controls_rewind.set(this, void 0);
-        _Controls_play.set(this, void 0);
-        _Controls_pause.set(this, void 0);
-        _Controls_ff.set(this, void 0);
-        _Controls_stop.set(this, void 0);
-        _Controls_playSpeed.set(this, void 0);
-        _Controls_record.set(this, void 0);
-        _Controls_replay.set(this, void 0);
-        _Controls_up.set(this, void 0);
-        _Controls_down.set(this, void 0);
-        _Controls_position.set(this, void 0);
-        _Controls_positionOuter.set(this, void 0);
-        _Controls_positionBar.set(this, void 0);
-        _Controls_sectionMarkersContainer.set(this, void 0);
-        _Controls_freeze.set(this, void 0);
-        _Controls_videoMute.set(this, void 0);
-        _Controls_sharp.set(this, void 0);
-        _Controls_flat.set(this, void 0);
-        _Controls_vlines.set(this, void 0);
-        _Controls_rollSpeed.set(this, void 0);
-        _Controls_notenames.set(this, void 0);
-        _Controls_noteOffLines.set(this, void 0);
-        _Controls_metronomeBtn.set(this, void 0);
-        _Controls_midiOutput.set(this, void 0);
-        _Controls_timestamp.set(this, void 0);
-        _Controls_cachedTimestamp.set(this, "");
-        _Controls_currentTime.set(this, new TimeKeeper());
-        _Controls_totalTime.set(this, new TimeKeeper());
-        _Controls_cachedPercent.set(this, 0);
-        _Controls_isPositionDragging.set(this, false);
-        _Controls_wasPlayingBeforeDrag.set(this, false);
-        __classPrivateFieldSet(this, _Controls_coordinator, deps.coordinator, "f");
-        __classPrivateFieldSet(this, _Controls_renderer, deps.renderer, "f");
-        __classPrivateFieldSet(this, _Controls_recorder, deps.recorder, "f");
-        __classPrivateFieldSet(this, _Controls_metronome, deps.metronome, "f");
-        __classPrivateFieldSet(this, _Controls_top, $("#top"), "f");
-        __classPrivateFieldSet(this, _Controls_play, $("#play"), "f");
-        __classPrivateFieldSet(this, _Controls_pause, $("#pause"), "f");
-        __classPrivateFieldSet(this, _Controls_stop, $("#stop"), "f");
-        __classPrivateFieldSet(this, _Controls_playSpeed, $("#play-speed"), "f");
-        __classPrivateFieldSet(this, _Controls_record, $("#record"), "f");
-        __classPrivateFieldSet(this, _Controls_replay, $("#replay"), "f");
-        __classPrivateFieldSet(this, _Controls_rewind, $("#rewind"), "f");
-        __classPrivateFieldSet(this, _Controls_ff, $("#ff"), "f");
-        __classPrivateFieldSet(this, _Controls_up, $("#up"), "f");
-        __classPrivateFieldSet(this, _Controls_down, $("#down"), "f");
-        __classPrivateFieldSet(this, _Controls_position, $("#position"), "f");
-        __classPrivateFieldSet(this, _Controls_positionOuter, $("#position_outer"), "f");
-        __classPrivateFieldSet(this, _Controls_positionBar, $("#position_bar"), "f");
-        __classPrivateFieldSet(this, _Controls_sectionMarkersContainer, $("#section-markers-container"), "f");
-        __classPrivateFieldSet(this, _Controls_freeze, $("#freeze"), "f");
-        __classPrivateFieldSet(this, _Controls_videoMute, $("#video-mute"), "f");
-        __classPrivateFieldSet(this, _Controls_sharp, $("#sharp"), "f");
-        __classPrivateFieldSet(this, _Controls_flat, $("#flat"), "f");
-        __classPrivateFieldSet(this, _Controls_vlines, $("#vlines"), "f");
-        __classPrivateFieldSet(this, _Controls_rollSpeed, $("#roll-speed"), "f");
-        __classPrivateFieldSet(this, _Controls_notenames, $("#notenames"), "f");
-        __classPrivateFieldSet(this, _Controls_noteOffLines, $("#off-lines"), "f");
-        __classPrivateFieldSet(this, _Controls_metronomeBtn, $("#metronome"), "f");
-        __classPrivateFieldSet(this, _Controls_midiOutput, $("#midi-output"), "f");
-        __classPrivateFieldSet(this, _Controls_timestamp, $("#timestamp"), "f");
-        __classPrivateFieldGet(this, _Controls_top, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").moveToStart();
+        this.#coordinator = deps.coordinator;
+        this.#renderer = deps.renderer;
+        this.#recorder = deps.recorder;
+        this.#metronome = deps.metronome;
+        this.#top = $("#top");
+        this.#play = $("#play");
+        this.#pause = $("#pause");
+        this.#stop = $("#stop");
+        this.#playSpeed = $("#play-speed");
+        this.#record = $("#record");
+        this.#replay = $("#replay");
+        this.#up = $("#up");
+        this.#down = $("#down");
+        this.#position = $("#position");
+        this.#positionOuter = $("#position_outer");
+        this.#positionBar = $("#position_bar");
+        this.#sectionMarkersContainer = $("#section-markers-container");
+        this.#freeze = $("#freeze");
+        this.#videoMute = $("#video-mute");
+        this.#sharp = $("#sharp");
+        this.#flat = $("#flat");
+        this.#vlines = $("#vlines");
+        this.#rollSpeed = $("#roll-speed");
+        this.#notenames = $("#notenames");
+        this.#noteOffLines = $("#off-lines");
+        this.#metronomeBtn = $("#metronome");
+        this.#midiOutput = $("#midi-output");
+        this.#timestamp = $("#timestamp");
+        this.#top.on('click', (ev) => {
+            this.#coordinator.moveToStart();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_play, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").togglePlayback();
+        this.#play.on('click', (ev) => {
+            this.#coordinator.togglePlayback();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_pause, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").pause();
+        this.#pause.on('click', (ev) => {
+            this.#coordinator.pause();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_stop, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").stop();
+        this.#stop.on('click', (ev) => {
+            this.#coordinator.stop();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_playSpeed, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").rotatePlaySpeed();
+        this.#playSpeed.on('click', (ev) => {
+            this.#coordinator.rotatePlaySpeed();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_playSpeed, "f").on('dblclick', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").resetPlaySpeed();
+        this.#playSpeed.on('dblclick', (ev) => {
+            this.#coordinator.resetPlaySpeed();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_record, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").startRecording();
+        this.#record.on('click', (ev) => {
+            this.#coordinator.startRecording();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_replay, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").replayFromAlwaysRecordingBuffer();
+        this.#replay.on('click', (ev) => {
+            this.#coordinator.replayFromAlwaysRecordingBuffer();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_up, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").uploadRequested();
+        this.#up.on('click', (ev) => {
+            this.#coordinator.uploadRequested();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_down, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").downloadRequested();
+        this.#down.on('click', (ev) => {
+            this.#coordinator.downloadRequested();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_freeze, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").toggleRollFrozen();
+        this.#freeze.on('click', (ev) => {
+            this.#coordinator.toggleRollFrozen();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_videoMute, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").toggleVideoMute();
+        this.#videoMute.on('click', (ev) => {
+            this.#coordinator.toggleVideoMute();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_sharp, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").setSharpMode(true);
+        this.#sharp.on('click', (ev) => {
+            this.#coordinator.setSharpMode(true);
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_flat, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").setSharpMode(false);
+        this.#flat.on('click', (ev) => {
+            this.#coordinator.setSharpMode(false);
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_vlines, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").setShowingOctaveLines(!__classPrivateFieldGet(this, _Controls_coordinator, "f").isShowingOctaveLines);
+        this.#vlines.on('click', (ev) => {
+            this.#coordinator.setShowingOctaveLines(!this.#coordinator.isShowingOctaveLines);
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_rollSpeed, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").rotateScrollSpeed();
+        this.#rollSpeed.on('click', (ev) => {
+            this.#coordinator.rotateScrollSpeed();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_notenames, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").toggleNoteNames();
+        this.#notenames.on('click', (ev) => {
+            this.#coordinator.toggleNoteNames();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_noteOffLines, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").toggleNoteOffLines();
+        this.#noteOffLines.on('click', (ev) => {
+            this.#coordinator.toggleNoteOffLines();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_metronomeBtn, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").toggleMetronome();
+        this.#metronomeBtn.on('click', (ev) => {
+            this.#coordinator.toggleMetronome();
             this.update();
             ev.stopPropagation();
         });
-        __classPrivateFieldGet(this, _Controls_midiOutput, "f").on('click', (ev) => {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").showOutputSelector();
+        this.#midiOutput.on('click', (ev) => {
+            this.#coordinator.showOutputSelector();
             ev.stopPropagation();
         });
         // Initialize drag-drop positioning when jQuery UI draggable is loaded.
-        if (typeof __classPrivateFieldGet(this, _Controls_position, "f").draggable === 'function') {
-            __classPrivateFieldGet(this, _Controls_position, "f").draggable({
+        if (typeof this.#position.draggable === 'function') {
+            this.#position.draggable({
                 addClasses: false,
                 axis: "x"
             });
         }
-        __classPrivateFieldGet(this, _Controls_position, "f").on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
-        __classPrivateFieldGet(this, _Controls_position, "f").on('drag', (ev, ui) => this.positionDrag(ev, ui));
-        __classPrivateFieldGet(this, _Controls_position, "f").on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
-        __classPrivateFieldGet(this, _Controls_positionBar, "f").on('mousedown', (ev) => this.directJump(ev));
+        this.#position.on('dragstart', (ev, ui) => this.positionDragStart(ev, ui));
+        this.#position.on('drag', (ev, ui) => this.positionDrag(ev, ui));
+        this.#position.on('dragstop', (ev, ui) => this.positionDragStop(ev, ui));
+        this.#positionBar.on('mousedown', (ev) => this.directJump(ev));
     }
     removeClasses(control) {
         control.removeClass('button-disabled button-activated button-activated-unclickable');
@@ -255,156 +234,159 @@ export class Controls {
     update() {
         this.updateTimestamp();
         // Update section markers on the progress bar
-        __classPrivateFieldGet(this, _Controls_sectionMarkersContainer, "f").empty();
-        const sections = __classPrivateFieldGet(this, _Controls_recorder, "f").sections;
-        const totalTime = __classPrivateFieldGet(this, _Controls_recorder, "f").lastEventTimestamp;
+        this.#sectionMarkersContainer.empty();
+        const sections = this.#recorder.sections;
+        const totalTime = this.#recorder.lastEventTimestamp;
         if (totalTime > 0) {
             for (const sectionTime of sections) {
                 const percent = (sectionTime / totalTime) * 100;
                 const marker = $('<div class="section-marker"></div>');
                 marker.css('left', percent + '%');
-                __classPrivateFieldGet(this, _Controls_sectionMarkersContainer, "f").append(marker);
+                this.#sectionMarkersContainer.append(marker);
             }
         }
         // Update control panel button states based on current settings
-        __classPrivateFieldGet(this, _Controls_rollSpeed, "f").removeClass(rollSpeedClasses.join(' '));
-        __classPrivateFieldGet(this, _Controls_rollSpeed, "f").addClass(rollSpeedClasses[__classPrivateFieldGet(this, _Controls_coordinator, "f").scrollSpeedIndex]);
-        this.activate(__classPrivateFieldGet(this, _Controls_rollSpeed, "f"), __classPrivateFieldGet(this, _Controls_coordinator, "f").scrollSpeedIndex > 0);
-        __classPrivateFieldGet(this, _Controls_playSpeed, "f").removeClass(playSpeedClasses.join(' '));
-        __classPrivateFieldGet(this, _Controls_playSpeed, "f").addClass(playSpeedClasses[__classPrivateFieldGet(this, _Controls_coordinator, "f").playSpeedIndex]);
-        this.activate(__classPrivateFieldGet(this, _Controls_playSpeed, "f"), __classPrivateFieldGet(this, _Controls_coordinator, "f").playSpeedIndex !== DEFAULT_PLAY_SPEED_INDEX);
-        this.activate(__classPrivateFieldGet(this, _Controls_freeze, "f"), __classPrivateFieldGet(this, _Controls_renderer, "f").isRollFrozen);
-        this.activate(__classPrivateFieldGet(this, _Controls_videoMute, "f"), __classPrivateFieldGet(this, _Controls_renderer, "f").isVideoMuted);
-        this.activate(__classPrivateFieldGet(this, _Controls_sharp, "f"), __classPrivateFieldGet(this, _Controls_coordinator, "f").isSharpMode);
-        this.activate(__classPrivateFieldGet(this, _Controls_flat, "f"), !__classPrivateFieldGet(this, _Controls_coordinator, "f").isSharpMode);
-        this.activate(__classPrivateFieldGet(this, _Controls_vlines, "f"), __classPrivateFieldGet(this, _Controls_coordinator, "f").isShowingOctaveLines);
-        this.activate(__classPrivateFieldGet(this, _Controls_notenames, "f"), __classPrivateFieldGet(this, _Controls_coordinator, "f").isShowingNoteNames);
-        this.activate(__classPrivateFieldGet(this, _Controls_noteOffLines, "f"), __classPrivateFieldGet(this, _Controls_coordinator, "f").isShowingNoteOffLines);
-        this.activate(__classPrivateFieldGet(this, _Controls_metronomeBtn, "f"), __classPrivateFieldGet(this, _Controls_metronome, "f").isPlaying);
+        this.#rollSpeed.removeClass(rollSpeedClasses.join(' '));
+        this.#rollSpeed.addClass(rollSpeedClasses[this.#coordinator.scrollSpeedIndex]);
+        this.activate(this.#rollSpeed, this.#coordinator.scrollSpeedIndex > 0);
+        this.#playSpeed.removeClass(playSpeedClasses.join(' '));
+        this.#playSpeed.addClass(playSpeedClasses[this.#coordinator.playSpeedIndex]);
+        this.activate(this.#playSpeed, this.#coordinator.playSpeedIndex !== DEFAULT_PLAY_SPEED_INDEX);
+        this.activate(this.#freeze, this.#renderer.isRollFrozen);
+        this.activate(this.#videoMute, this.#renderer.isVideoMuted);
+        this.activate(this.#sharp, this.#coordinator.isSharpMode);
+        this.activate(this.#flat, !this.#coordinator.isSharpMode);
+        this.activate(this.#vlines, this.#coordinator.isShowingOctaveLines);
+        this.activate(this.#notenames, this.#coordinator.isShowingNoteNames);
+        this.activate(this.#noteOffLines, this.#coordinator.isShowingNoteOffLines);
+        this.activate(this.#metronomeBtn, this.#metronome.isPlaying);
         // Adjust availability of playback controls based on state (playing, paused, recording, etc.)
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isRecording) {
-            this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_play, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_pause, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
-            this.activateUnclickable(__classPrivateFieldGet(this, _Controls_record, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+        if (this.#recorder.isRecording) {
+            this.disable(this.#top);
+            this.disable(this.#play);
+            this.disable(this.#pause);
+            this.enable(this.#stop);
+            this.activateUnclickable(this.#record);
+            this.disable(this.#position);
+            this.disable(this.#replay);
             return;
         }
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isPlaying) {
-            this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
-            this.activateUnclickable(__classPrivateFieldGet(this, _Controls_play, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+        if (this.#recorder.isPlaying) {
+            this.enable(this.#top);
+            this.activateUnclickable(this.#play);
+            this.enable(this.#pause);
+            this.enable(this.#stop);
+            this.enable(this.#record);
+            this.enable(this.#position);
+            this.disable(this.#replay);
             return;
         }
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isPausing) {
-            this.enable(__classPrivateFieldGet(this, _Controls_top, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_pause, "f"));
-            this.activate(__classPrivateFieldGet(this, _Controls_pause, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_stop, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_ff, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
-            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+        if (this.#recorder.isPausing) {
+            this.enable(this.#top);
+            this.enable(this.#play);
+            this.enable(this.#pause);
+            this.activate(this.#pause);
+            this.enable(this.#stop);
+            this.enable(this.#record);
+            this.enable(this.#position);
+            this.disable(this.#replay);
             return;
         }
-        this.disable(__classPrivateFieldGet(this, _Controls_top, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_play, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_pause, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_stop, "f"));
-        this.enable(__classPrivateFieldGet(this, _Controls_record, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_rewind, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_ff, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_down, "f"));
-        this.disable(__classPrivateFieldGet(this, _Controls_position, "f"));
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isAnythingRecorded) {
-            this.enable(__classPrivateFieldGet(this, _Controls_play, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_down, "f"));
-            this.enable(__classPrivateFieldGet(this, _Controls_position, "f"));
+        this.disable(this.#top);
+        this.disable(this.#play);
+        this.disable(this.#pause);
+        this.disable(this.#stop);
+        this.enable(this.#record);
+        this.disable(this.#down);
+        this.disable(this.#position);
+        if (this.#recorder.isAnythingRecorded) {
+            this.enable(this.#play);
+            this.enable(this.#down);
+            this.enable(this.#position);
         }
-        if (__classPrivateFieldGet(this, _Controls_coordinator, "f").isReplayAvailable) {
-            this.enable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+        if (this.#coordinator.isReplayAvailable) {
+            this.enable(this.#replay);
         }
         else {
-            this.disable(__classPrivateFieldGet(this, _Controls_replay, "f"));
+            this.disable(this.#replay);
+        }
+    }
+    #setTimestamp(text) {
+        if (this.#cachedTimestamp === text) {
+            return;
+        }
+        this.#cachedTimestamp = text;
+        this.#timestamp.text(text);
+    }
+    #setTimePercent(percent) {
+        if (this.#cachedPercent !== percent) {
+            this.#position.css('left', percent + '%');
+            this.#cachedPercent = percent;
         }
     }
     updateTimestamp() {
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isRecording) {
-            __classPrivateFieldGet(this, _Controls_instances, "m", _Controls_setTimestamp).call(this, "-");
-            __classPrivateFieldGet(this, _Controls_instances, "m", _Controls_setTimePercent).call(this, 0);
+        if (this.#recorder.isRecording) {
+            this.#setTimestamp("-");
+            this.#setTimePercent(0);
             return;
         }
-        const totalTime = __classPrivateFieldGet(this, _Controls_recorder, "f").lastEventTimestamp;
-        const currentTime = __classPrivateFieldGet(this, _Controls_recorder, "f").currentPlaybackTimestamp;
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isAnythingRecorded) {
+        const totalTime = this.#recorder.lastEventTimestamp;
+        const currentTime = this.#recorder.currentPlaybackTimestamp;
+        if (this.#recorder.isAnythingRecorded) {
             // Evaluate both time keepers to ensure both update even when the first changes.
-            const totalTimeChanged = __classPrivateFieldGet(this, _Controls_totalTime, "f").setSecond(totalTime / 1000);
-            const currentTimeChanged = __classPrivateFieldGet(this, _Controls_currentTime, "f").setSecond(currentTime / 1000);
+            const totalTimeChanged = this.#totalTime.setSecond(totalTime / 1000);
+            const currentTimeChanged = this.#currentTime.setSecond(currentTime / 1000);
             if (totalTimeChanged || currentTimeChanged) {
-                __classPrivateFieldGet(this, _Controls_instances, "m", _Controls_setTimestamp).call(this, __classPrivateFieldGet(this, _Controls_currentTime, "f").getHumanReadable() + "/" + __classPrivateFieldGet(this, _Controls_totalTime, "f").getHumanReadable());
+                this.#setTimestamp(this.#currentTime.getHumanReadable() + "/" + this.#totalTime.getHumanReadable());
             }
         }
         else {
-            __classPrivateFieldGet(this, _Controls_instances, "m", _Controls_setTimestamp).call(this, "-");
+            this.#setTimestamp("-");
         }
         let percent = 0;
         if (totalTime > 0) {
             percent = Math.min(100, (currentTime / totalTime) * 100);
         }
-        __classPrivateFieldGet(this, _Controls_instances, "m", _Controls_setTimePercent).call(this, percent);
+        this.#setTimePercent(percent);
     }
     positionDragStart(_ev, _ui) {
         console.log("Drag start");
-        __classPrivateFieldSet(this, _Controls_isPositionDragging, true, "f");
-        __classPrivateFieldSet(this, _Controls_wasPlayingBeforeDrag, false, "f");
-        if (__classPrivateFieldGet(this, _Controls_recorder, "f").isPlaying) {
-            __classPrivateFieldSet(this, _Controls_wasPlayingBeforeDrag, true, "f");
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").pause();
+        this.#wasPlayingBeforeDrag = false;
+        if (this.#recorder.isPlaying) {
+            this.#wasPlayingBeforeDrag = true;
+            this.#coordinator.pause();
         }
     }
     positionDrag(_ev, ui) {
         if (ui.position.left < 0) {
             ui.position.left = 0;
         }
-        const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
+        const max = this.#positionOuter.innerWidth();
         if (max !== undefined && max > 0) {
             if (ui.position.left > max) {
                 ui.position.left = max;
             }
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").moveToPercent(ui.position.left / max);
+            this.#coordinator.moveToPercent(ui.position.left / max);
         }
     }
     positionDragStop(_ev, ui) {
         console.log("Drag stop: " + ui.position.left);
-        __classPrivateFieldSet(this, _Controls_isPositionDragging, false, "f");
-        const max = __classPrivateFieldGet(this, _Controls_positionOuter, "f").innerWidth();
+        const max = this.#positionOuter.innerWidth();
         if (max !== undefined && max > 0) {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").moveToPercent(ui.position.left / max);
+            this.#coordinator.moveToPercent(ui.position.left / max);
         }
-        if (__classPrivateFieldGet(this, _Controls_wasPlayingBeforeDrag, "f")) {
-            __classPrivateFieldGet(this, _Controls_coordinator, "f").startPlayback();
+        if (this.#wasPlayingBeforeDrag) {
+            this.#coordinator.startPlayback();
         }
     }
     directJump(ev) {
-        const max = __classPrivateFieldGet(this, _Controls_positionBar, "f").innerWidth();
+        const max = this.#positionBar.innerWidth();
         if (max === undefined || max <= 0) {
             return;
         }
         const clickX = ev.offsetX;
-        const sections = __classPrivateFieldGet(this, _Controls_recorder, "f").sections;
-        const totalTime = __classPrivateFieldGet(this, _Controls_recorder, "f").lastEventTimestamp;
+        const sections = this.#recorder.sections;
+        const totalTime = this.#recorder.lastEventTimestamp;
         if (totalTime > 0 && sections.length > 0) {
             const snapThreshold = 16; // 16px range
             let closestSectionTime = null;
@@ -419,24 +401,12 @@ export class Controls {
             }
             if (closestSectionTime !== null && minDistance <= snapThreshold) {
                 console.log("Snapping to section at " + closestSectionTime);
-                __classPrivateFieldGet(this, _Controls_coordinator, "f").moveToTime(closestSectionTime - 10);
+                this.#coordinator.moveToTime(closestSectionTime - 10);
                 return;
             }
         }
         console.log("jump to: " + clickX + " / " + max);
-        __classPrivateFieldGet(this, _Controls_coordinator, "f").moveToPercent(clickX / max);
+        this.#coordinator.moveToPercent(clickX / max);
     }
 }
-_Controls_coordinator = new WeakMap(), _Controls_renderer = new WeakMap(), _Controls_recorder = new WeakMap(), _Controls_metronome = new WeakMap(), _Controls_top = new WeakMap(), _Controls_rewind = new WeakMap(), _Controls_play = new WeakMap(), _Controls_pause = new WeakMap(), _Controls_ff = new WeakMap(), _Controls_stop = new WeakMap(), _Controls_playSpeed = new WeakMap(), _Controls_record = new WeakMap(), _Controls_replay = new WeakMap(), _Controls_up = new WeakMap(), _Controls_down = new WeakMap(), _Controls_position = new WeakMap(), _Controls_positionOuter = new WeakMap(), _Controls_positionBar = new WeakMap(), _Controls_sectionMarkersContainer = new WeakMap(), _Controls_freeze = new WeakMap(), _Controls_videoMute = new WeakMap(), _Controls_sharp = new WeakMap(), _Controls_flat = new WeakMap(), _Controls_vlines = new WeakMap(), _Controls_rollSpeed = new WeakMap(), _Controls_notenames = new WeakMap(), _Controls_noteOffLines = new WeakMap(), _Controls_metronomeBtn = new WeakMap(), _Controls_midiOutput = new WeakMap(), _Controls_timestamp = new WeakMap(), _Controls_cachedTimestamp = new WeakMap(), _Controls_currentTime = new WeakMap(), _Controls_totalTime = new WeakMap(), _Controls_cachedPercent = new WeakMap(), _Controls_isPositionDragging = new WeakMap(), _Controls_wasPlayingBeforeDrag = new WeakMap(), _Controls_instances = new WeakSet(), _Controls_setTimestamp = function _Controls_setTimestamp(text) {
-    if (__classPrivateFieldGet(this, _Controls_cachedTimestamp, "f") === text) {
-        return;
-    }
-    __classPrivateFieldSet(this, _Controls_cachedTimestamp, text, "f");
-    __classPrivateFieldGet(this, _Controls_timestamp, "f").text(text);
-}, _Controls_setTimePercent = function _Controls_setTimePercent(percent) {
-    if (__classPrivateFieldGet(this, _Controls_cachedPercent, "f") !== percent) {
-        __classPrivateFieldGet(this, _Controls_position, "f").css('left', percent + '%');
-        __classPrivateFieldSet(this, _Controls_cachedPercent, percent, "f");
-    }
-};
 //# sourceMappingURL=controls.js.map

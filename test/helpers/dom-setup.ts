@@ -6,11 +6,18 @@ import type { PopboxFactory, PopboxInstance } from '../../src/dialogs.js';
 
 const indexHtmlPath = path.resolve(process.cwd(), 'src', 'index.html');
 const rawHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
-const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-const bodyInnerHtml = (bodyMatch ? bodyMatch[1]! : '').replace(/<script[\s\S]*?<\/script>/gi, '');
+const bodyTagMatch = rawHtml.match(/<body([^>]*)>([\s\S]*?)<\/body>/i);
+const bodyAttrs = bodyTagMatch ? bodyTagMatch[1]! : '';
+const bodyTabIndexMatch = bodyAttrs.match(/tabindex\s*=\s*["']([^"']+)["']/i);
+const bodyInnerHtml = (bodyTagMatch ? bodyTagMatch[2]! : '').replace(/<script[\s\S]*?<\/script>/gi, '');
 
 export function setupMvvDom(): void {
     document.body.innerHTML = bodyInnerHtml;
+    if (bodyTabIndexMatch) {
+        document.body.setAttribute('tabindex', bodyTabIndexMatch[1]!);
+    } else {
+        document.body.removeAttribute('tabindex');
+    }
     (globalThis as any).$ = $;
     (globalThis as any).jQuery = $;
 }

@@ -370,4 +370,24 @@ describe('Recorder', () => {
         expect(notes[0]!.data1).toBe(60);
         expect(notes[1]!.timestamp).toBe(400);
     });
+
+    it('buildSmf() avoids float truncation drift and handles slightly out-of-order timestamps without throwing', () => {
+        vi.spyOn(console, 'log').mockImplementation(() => {});
+        const rec = new Recorder();
+
+        // Events spaced by 0.6ms across 10 steps (total 6ms) plus an out-of-order multi-device event
+        const events: MidiEvent[] = [];
+        for (let i = 0; i <= 10; i++) {
+            events.push(noteOn(i * 0.6, 60 + i, 100));
+        }
+        // Slightly earlier timestamp arriving late
+        events.push(noteOff(5.4, 60));
+
+        rec.setEvents(events);
+        const parsed = new SmfReader(rec.buildSmf().getBytes()).getEvents()
+            .filter(e => e.isNoteOn || e.isNoteOff);
+        expect(parsed).toHaveLength(12);
+        // Final timestamp preserves rounded 6ms instead of drifting to 0ms via floor truncation
+        expect(parsed[parsed.length - 1]!.timestamp).toBe(6);
+    });
 });

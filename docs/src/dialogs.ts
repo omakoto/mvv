@@ -37,6 +37,16 @@ export class DialogBase {
         });
     }
 
+    protected _getOrCreatePopbox(): PopboxInstance {
+        if (!this._box) {
+            this._box = this._createPopbox({
+                blur: true,
+                overlay: true,
+            });
+        }
+        return this._box;
+    }
+
     protected _handleKeyDown(ev: JQuery.KeyDownEvent, okId: string, cancelId: string): void {
         ev.stopPropagation();
         if (ev.code === 'Enter') {
@@ -67,7 +77,7 @@ export class SaveAsBox extends DialogBase {
         this.#recorder = recorder;
         this.#getCurrentTime = getTime;
 
-        $("#save_as_filename").on('keydown', (ev) => {
+        $("#save_as_box").on('keydown', (ev) => {
             this._handleKeyDown(ev, 'save', 'save_as_cancel');
         });
 
@@ -94,12 +104,7 @@ export class SaveAsBox extends DialogBase {
         }
         const filename = "mvv-" + this.#getCurrentTime();
         $('#save_as_filename').val(filename);
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-
-        this._box.open('save_as_box');
+        this._getOrCreatePopbox().open('save_as_box');
         $('#save_as_filename').focus();
     }
 
@@ -143,11 +148,7 @@ export class ConfirmBox extends DialogBase {
             ev.preventDefault();
         });
 
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-        this._box.open('confirm_box');
+        this._getOrCreatePopbox().open('confirm_box');
         $('#confirm_box').attr('tabindex', -1).focus();
     }
 }
@@ -200,7 +201,7 @@ export class MetronomeBox extends DialogBase {
         $('#metronome_main_beats').on('keydown', handleKeyDown);
         $('#metronome_sub_beats').on('keydown', handleKeyDown);
 
-        $("#metronome_box input").on('focus', (ev) => {
+        $("#metronome_box input[type='text']").on('focus', (ev) => {
             this.focusedInput = $(ev.target);
             $(ev.target).select();
         });
@@ -232,7 +233,9 @@ export class MetronomeBox extends DialogBase {
             }
             inputEl.value = val;
             const newCursorPos = val.length;
-            inputEl.setSelectionRange(newCursorPos, newCursorPos);
+            if (typeof inputEl.setSelectionRange === 'function') {
+                inputEl.setSelectionRange(newCursorPos, newCursorPos);
+            }
         });
 
         $("#metronome_adj_keys .adj_key").on('click', (ev) => {
@@ -324,16 +327,18 @@ export class MetronomeBox extends DialogBase {
         $('#metronome_sub_beats').val(options.subBeats);
 
         $('#increase_tempo_enabled').prop('checked', options.automaticIncrease);
-        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars);
-        $(`input[name="increase_tempo_unit"][value="${options.increaseAfterBars > 0 ? "bars" : "seconds"}"]`).prop('checked', true);
-        $('#increase_tempo_bpm').val(options.increaseBpm);
-        $('#increase_tempo_max').val(options.increaseMaxBpm);
+        $('#increase_tempo_after').val(options.increaseAfterSeconds || options.increaseAfterBars || 1);
+        const increaseUnit = (options.increaseAfterSeconds > 0 && options.increaseAfterBars === 0) ? "seconds" : "bars";
+        $(`input[name="increase_tempo_unit"][value="${increaseUnit}"]`).prop('checked', true);
+        $('#increase_tempo_bpm').val(options.increaseBpm || 1);
+        $('#increase_tempo_max').val(options.increaseMaxBpm || 120);
 
         $('#decrease_tempo_enabled').prop('checked', options.automaticDecrease);
-        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars);
-        $(`input[name="decrease_tempo_unit"][value="${options.decreaseAfterBars > 0 ? "bars" : "seconds"}"]`).prop('checked', true);
-        $('#decrease_tempo_bpm').val(options.decreaseBpm);
-        $('#decrease_tempo_min').val(options.decreaseMinBpm);
+        $('#decrease_tempo_after').val(options.decreaseAfterSeconds || options.decreaseAfterBars || 1);
+        const decreaseUnit = (options.decreaseAfterSeconds > 0 && options.decreaseAfterBars === 0) ? "seconds" : "bars";
+        $(`input[name="decrease_tempo_unit"][value="${decreaseUnit}"]`).prop('checked', true);
+        $('#decrease_tempo_bpm').val(options.decreaseBpm || 1);
+        $('#decrease_tempo_min').val(options.decreaseMinBpm || 60);
 
         this.#updateEnablement();
 
@@ -446,11 +451,7 @@ export class MetronomeBox extends DialogBase {
             ev.preventDefault();
         });
 
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-        this._box.open('metronome_box');
+        this._getOrCreatePopbox().open('metronome_box');
         $('#metronome_bpm').focus();
     }
 }
@@ -511,12 +512,7 @@ export class MidiOutputBox extends DialogBase {
             select.append(option);
         }
 
-        this._box = this._createPopbox({
-            blur: true,
-            overlay: true,
-        });
-
-        this._box.open('midi_output_box');
+        this._getOrCreatePopbox().open('midi_output_box');
         select.focus();
     }
 }

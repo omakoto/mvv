@@ -2,12 +2,14 @@
     "compilerOptions": {
         "rootDir": "./src",
         "outDir": "./docs",
-        "target": "es6",
+        "target": "es2022",
         "module": "esnext",
         "moduleResolution": "bundler",
+        "strict": true,
+        "noUnusedLocals": true,
         "sourceMap": true,
         "lib": [
-            "es6",
+            "es2022",
             "dom"
         ],
         "types": [

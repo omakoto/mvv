@@ -202,13 +202,55 @@ describe('Coordinator', () => {
 
         const adjustTempoSpy = vi.spyOn(metronome, 'adjustTempo');
         coordinator.onKeyDown(key('Equal'));
+        coordinator.onKeyDown(key('Equal', { key: '+', shiftKey: true }));
         coordinator.onKeyDown(key('Minus'));
-        expect(adjustTempoSpy).toHaveBeenCalledWith(5);
-        expect(adjustTempoSpy).toHaveBeenCalledWith(-5);
+        expect(adjustTempoSpy).toHaveBeenNthCalledWith(1, 5);
+        expect(adjustTempoSpy).toHaveBeenNthCalledWith(2, 5);
+        expect(adjustTempoSpy).toHaveBeenNthCalledWith(3, -5);
 
         const audioToggleSpy = vi.spyOn(audioProcessor, 'toggle').mockImplementation(() => {});
         coordinator.onKeyDown(key('KeyI'));
         expect(audioToggleSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back safely when localStorage contains corrupt JSON or out-of-range indices', () => {
+        const badStorage = createMemoryStorage({
+            [Coordinator.STORAGE_KEY_SCROLL_SPEED]: '999',
+            [Coordinator.STORAGE_KEY_PLAY_SPEED]: 'not-a-number',
+            [Coordinator.STORAGE_KEY_METRONOME_OPTIONS]: '{corrupt-json',
+        });
+
+        const c = new Coordinator({
+            renderer,
+            midiRenderingStatus: status,
+            midiOutputManager: outputManager,
+            metronome,
+            alwaysRecorder,
+            recorder,
+            audioProcessor,
+            storage: badStorage,
+            scale: 1,
+        });
+
+        expect(c.scrollSpeedIndex).toBe(0);
+        expect(c.playSpeedIndex).toBe(DEFAULT_PLAY_SPEED_INDEX);
+        c.close();
+    });
+
+    it('refreshes held note names when sharp/flat mode changes or 50ms highlight expires', () => {
+        coordinator.onMidiMessage(new MidiEvent(100, [0x90, 61, 100])); // C#4
+        expect($('#notes').html()).toContain('C#4');
+        expect($('#notes').html()).toContain('notes_highlight');
+
+        // Switch to flat while C#4 is still held -> updates immediately to Db4
+        coordinator.setSharpMode(false);
+        coordinator.updateUi();
+        expect($('#notes').html()).toContain('Db4');
+
+        // Advance past 50ms highlight window -> highlight class clears on next update
+        nowMs += 100;
+        coordinator.updateNoteInformation();
+        expect($('#notes').html()).not.toContain('notes_highlight');
     });
 
     it('filters active sensing/clock, normalizes V25 knobs, records, and renders note & chord HTML', () => {
@@ -274,6 +316,16 @@ describe('Coordinator', () => {
         expect(mockSend).toHaveBeenCalledWith([0x80, 60, 0], 0);
         expect(controlsMock.updateTimestamp).toHaveBeenCalled();
 
+        // Even if MIDI output disconnects mid-playback, Space / togglePlayback can still pause,
+        // while unpausing stays blocked until an output device is selected again.
+        outputManager.clearMidiOut();
+        coordinator.togglePlayback();
+        expect(recorder.isPausing).toBe(true);
+        coordinator.togglePlayback();
+        expect(recorder.isPausing).toBe(true);
+        coordinator.pause();
+        expect(recorder.isPausing).toBe(true);
+
         coordinator.stop();
         expect(recorder.isIdle).toBe(true);
     });
@@ -296,26 +348,40 @@ describe('Coordinator', () => {
         expect(callback2).toHaveBeenCalledTimes(1);
     });
 
-    it('manages animation loop start/stop and acquires/releases screen wake lock', async () => {
+    it('manages animation loop start/stop without first-frame FPS flash and deduplicates wake lock requests', async () => {
         coordinator.startAnimationLoop();
         expect(coordinator.isAnimating).toBe(true);
         expect(rafCallbacks.length).toBeGreaterThan(0);
+        expect($('#fps').text()).not.toBe('Animation stopped');
 
         coordinator.stopAnimationLoop();
         expect(coordinator.isAnimating).toBe(false);
         expect($('#fps').text()).toBe('Animation stopped');
 
         vi.useFakeTimers();
-        const release = vi.fn();
+        const release = vi.fn().mockResolvedValue(undefined);
         const addEventListener = vi.fn();
+        let resolveLock!: (sentinel: any) => void;
         (navigator as any).wakeLock = {
-            request: vi.fn().mockResolvedValue({ release, addEventListener }),
+            request: vi.fn(() => new Promise((res) => { resolveLock = res; })),
         };
 
-        await coordinator.extendWakelock();
-        expect((navigator as any).wakeLock.request).toHaveBeenCalledWith('screen');
+        // Concurrent extendWakelock calls only acquire a single WakeLockSentinel
+        const p1 = coordinator.extendWakelock();
+        const p2 = coordinator.extendWakelock();
+        expect((navigator as any).wakeLock.request).toHaveBeenCalledTimes(1);
+        resolveLock({ release, addEventListener });
+        await Promise.all([p1, p2]);
+
         vi.advanceTimersByTime(WAKE_LOCK_MILLIS);
         expect(release).toHaveBeenCalledTimes(1);
+
+        // close() releases active wake lock
+        const p3 = coordinator.extendWakelock();
+        resolveLock({ release, addEventListener });
+        await p3;
+        coordinator.close();
+        expect(release).toHaveBeenCalledTimes(2);
     });
 
     it('steps RAF loop, auto-stops when idle, and handles repeat/rewind/trim/replay shortcuts', () => {

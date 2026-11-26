@@ -169,7 +169,7 @@ describe('Controls', () => {
         expect($('#play-speed').hasClass('play-speed-200')).toBe(true);
         expect($('#play-speed').hasClass('button-activated')).toBe(true);
         expect($('#timestamp').text()).toBe('0:02/0:10');
-        expect($('#position').css('left')).toBe('25%');
+        expect(document.getElementById('position')!.style.left).toBe('25%');
         expect($('#section-markers-container .section-marker')).toHaveLength(2);
 
         // Recording state
@@ -179,7 +179,7 @@ describe('Controls', () => {
         expect($('#stop').hasClass('button-disabled')).toBe(false);
         expect($('#play').hasClass('button-disabled')).toBe(true);
         expect($('#timestamp').text()).toBe('-');
-        expect($('#position').css('left')).toBe('0%');
+        expect(document.getElementById('position')!.style.left).toBe('0%');
 
         // Playing state
         recorder.isRecording = false;

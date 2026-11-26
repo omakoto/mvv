@@ -246,11 +246,12 @@ export class BytesWriter {
         if (value < 0) {
             throw new RangeError("Value must be non-negative.");
         }
+        let v = Math.floor(value);
         const buffer: number[] = [];
         do {
-            buffer.push(value & 0x7F);
-            value >>= 7;
-        } while (value > 0);
+            buffer.push(v & 0x7F);
+            v >>>= 7;
+        } while (v > 0);
 
         while (buffer.length > 1) {
             this.writeU8(buffer.pop()! | 0x80);
@@ -364,7 +365,7 @@ export class BytesReader {
     }
 
     readU32(): number {
-        return (this.readU16() << 16) + this.readU16();
+        return (((this.readU16() << 16) | this.readU16()) >>> 0);
     }
 
     getPos(): number {
@@ -373,12 +374,14 @@ export class BytesReader {
 
     readVar(): number {
         let value = 0;
-        let byte: number;
-        do {
-            byte = this.readU8();
+        for (let count = 0; count < 4; count++) {
+            const byte = this.readU8();
             value = (value << 7) | (byte & 0x7F);
-        } while ((byte & 0x80) !== 0);
-        return value;
+            if ((byte & 0x80) === 0) {
+                return value;
+            }
+        }
+        throw new Error("Variable-length quantity exceeds 4 bytes");
     }
 
     skip(nbytes: number): void {
@@ -419,13 +422,35 @@ export class TickConverter {
     }
 
     setTempo(ticks: number, microsecondsPerBeat: number): void {
-        const last = this.#lastTempoEvent;
-        const deltaTicks = ticks - last.ticks;
-        const deltaTimeOffset = this.#ticksToMilliseconds(deltaTicks, last.mspb);
-        const timeOffset = last.timeOffset + deltaTimeOffset;
+        if (ticks >= this.#lastTempoEvent.ticks) {
+            const last = this.#lastTempoEvent;
+            const deltaTicks = ticks - last.ticks;
+            const deltaTimeOffset = this.#ticksToMilliseconds(deltaTicks, last.mspb);
+            const timeOffset = last.timeOffset + deltaTimeOffset;
 
-        this.#lastTempoEvent = new TempoEvent(ticks, microsecondsPerBeat, timeOffset);
-        this.#tempos.push(this.#lastTempoEvent);
+            this.#lastTempoEvent = new TempoEvent(ticks, microsecondsPerBeat, timeOffset);
+            this.#tempos.push(this.#lastTempoEvent);
+            return;
+        }
+
+        // Handle out-of-order tempo events (e.g. multi-track Format 1 files) by inserting
+        // in tick order and recomputing cumulative time offsets.
+        let insertIdx = this.#tempos.length;
+        for (let i = 0; i < this.#tempos.length; i++) {
+            if (this.#tempos[i]!.ticks > ticks) {
+                insertIdx = i;
+                break;
+            }
+        }
+        this.#tempos.splice(insertIdx, 0, new TempoEvent(ticks, microsecondsPerBeat, 0));
+
+        for (let i = 1; i < this.#tempos.length; i++) {
+            const prev = this.#tempos[i - 1]!;
+            const curr = this.#tempos[i]!;
+            const offset = prev.timeOffset + this.#ticksToMilliseconds(curr.ticks - prev.ticks, prev.mspb);
+            this.#tempos[i] = new TempoEvent(curr.ticks, curr.mspb, offset);
+        }
+        this.#lastTempoEvent = this.#tempos[this.#tempos.length - 1]!;
     }
 
     /**
@@ -525,10 +550,11 @@ export class SmfReader {
             debug("Track #", track + 1, "len", trackLen);
 
             const trackStart = rd.getPos();
+            const trackEnd = trackStart + trackLen;
             let lastStatus = 0;
             let tick = 0;
 
-            for (;;) {
+            while (rd.getPos() < trackEnd) {
                 const delta = rd.readVar();
                 let status = rd.readU8();
 
@@ -541,9 +567,12 @@ export class SmfReader {
 
                     if (metaType === 0x2F) {
                         // End of track
+                        if (len > 0) {
+                            rd.skip(len);
+                        }
                         break;
                     }
-                    if (metaType === 0x51) {
+                    if (metaType === 0x51 && len === 3) {
                         // Tempo change
                         const tempo = rd.readU24();
                         debug(`  @${tick} Tempo=${tempo}`);
@@ -553,11 +582,21 @@ export class SmfReader {
                     rd.skip(len);
                     continue;
                 }
-                
+
                 // SysEx message?
                 if (status === 0xF0 || status === 0xF7) {
                     const len = rd.readVar();
                     rd.skip(len);
+                    continue;
+                }
+
+                // Other system common / realtime messages do not affect channel running status.
+                if (status >= 0xF0) {
+                    if (status === 0xF1 || status === 0xF3) {
+                        rd.skip(1);
+                    } else if (status === 0xF2) {
+                        rd.skip(2);
+                    }
                     continue;
                 }
 
@@ -578,8 +617,13 @@ export class SmfReader {
                 const statusType = status & 0xF0;
 
                 // Program changes (0xC0) are ignored in this application.
-                // Channel Pressure (0xD0) is 1-byte, others (0x80, 0x90, 0xA0, 0xB0, 0xE0) are 2-bytes.
                 if (statusType === 0xC0) {
+                    continue;
+                }
+
+                // Channel Pressure (0xD0) is a 2-byte MIDI message ([status, pressure]).
+                if (statusType === 0xD0) {
+                    this.#events.push(new MidiEvent(tc.getTime(tick), [status, data1]));
                     continue;
                 }
 
@@ -593,11 +637,11 @@ export class SmfReader {
                         data2 = rd.readU8();
                         break;
                 }
-                
+
                 const ev = new MidiEvent(tc.getTime(tick), [status, data1, data2]);
                 this.#events.push(ev);
             }
-            
+
             const bytesRead = rd.getPos() - trackStart;
             if (bytesRead < trackLen) {
                 rd.skip(trackLen - bytesRead);
@@ -686,7 +730,7 @@ export class SmfWriter {
         w.setU32(this.#trackLengthPos, pos - this.#trackLengthPos - 4);
     }
 
-    getBytes(): Uint8Array {
+    getBytes(): Uint8Array<ArrayBuffer> {
         this.close();
         return this.#writer.getBytes();
     }

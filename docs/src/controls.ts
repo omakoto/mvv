@@ -117,10 +117,8 @@ export class Controls {
     #metronome: ControlsMetronome;
 
     #top: JQuery<HTMLElement>;
-    #rewind: JQuery<HTMLElement>;
     #play: JQuery<HTMLElement>;
     #pause: JQuery<HTMLElement>;
-    #ff: JQuery<HTMLElement>;
     #stop: JQuery<HTMLElement>;
     #playSpeed: JQuery<HTMLElement>;
     #record: JQuery<HTMLElement>;
@@ -150,7 +148,6 @@ export class Controls {
 
     #cachedPercent = 0;
 
-    #isPositionDragging = false;
     #wasPlayingBeforeDrag = false;
 
     constructor(deps: ControlsDeps) {
@@ -166,8 +163,6 @@ export class Controls {
         this.#playSpeed = $("#play-speed");
         this.#record = $("#record");
         this.#replay = $("#replay");
-        this.#rewind = $("#rewind");
-        this.#ff = $("#ff");
 
         this.#up = $("#up");
         this.#down = $("#down");
@@ -370,8 +365,6 @@ export class Controls {
             this.disable(this.#pause);
             this.enable(this.#stop);
             this.activateUnclickable(this.#record);
-            this.disable(this.#rewind);
-            this.disable(this.#ff);
             this.disable(this.#position);
             this.disable(this.#replay);
             return;
@@ -383,8 +376,6 @@ export class Controls {
             this.enable(this.#pause);
             this.enable(this.#stop);
             this.enable(this.#record);
-            this.enable(this.#rewind);
-            this.enable(this.#ff);
             this.enable(this.#position);
             this.disable(this.#replay);
             return;
@@ -397,8 +388,6 @@ export class Controls {
             this.activate(this.#pause);
             this.enable(this.#stop);
             this.enable(this.#record);
-            this.enable(this.#rewind);
-            this.enable(this.#ff);
             this.enable(this.#position);
             this.disable(this.#replay);
             return;
@@ -409,8 +398,6 @@ export class Controls {
         this.disable(this.#pause);
         this.disable(this.#stop);
         this.enable(this.#record);
-        this.disable(this.#rewind);
-        this.disable(this.#ff);
 
         this.disable(this.#down);
         this.disable(this.#position);
@@ -474,7 +461,6 @@ export class Controls {
 
     private positionDragStart(_ev: any, _ui: any): void {
         console.log("Drag start");
-        this.#isPositionDragging = true;
 
         this.#wasPlayingBeforeDrag = false;
         if (this.#recorder.isPlaying) {
@@ -498,7 +484,6 @@ export class Controls {
 
     private positionDragStop(_ev: any, ui: any): void {
         console.log("Drag stop: " + ui.position.left);
-        this.#isPositionDragging = false;
 
         const max = this.#positionOuter.innerWidth();
         if (max !== undefined && max > 0) {

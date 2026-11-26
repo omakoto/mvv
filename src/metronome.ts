@@ -211,6 +211,7 @@ export interface MetronomeDeps {
 
 export class Metronome {
     #playing = false;
+    #session = 0;
     #bpmm: BpmManager | null = null;
     #nextTime = 0;
     #synth: any = null;
@@ -258,17 +259,20 @@ export class Metronome {
         this.#bpmm = new BpmManager(opts, this.#now);
 
         this.#nextTime = 0;
+        const session = ++this.#session;
+        this.#playing = true;
 
         tone.start();
         tone.Transport.cancel();
         tone.Transport.seconds = 0;
         tone.Transport.start();
-        tone.Transport.scheduleOnce((time: any) => this.#beat(time), "+0");
-
-        this.#playing = true;
+        tone.Transport.scheduleOnce((time: any) => this.#beat(time, session), "+0");
     }
 
-    #beat(time: any): void {
+    #beat(time: any, session: number): void {
+        if (!this.#playing || session !== this.#session) {
+            return;
+        }
         const tone = this.#getTone();
         const bpmm = this.#bpmm!;
         const pos = bpmm.posInCycle;
@@ -296,6 +300,9 @@ export class Metronome {
         if (lineType >= 0) {
             const scheduledLineType = lineType;
             tone.Draw.schedule(() => {
+                if (!this.#playing || session !== this.#session) {
+                    return;
+                }
                 this.#onBeatLine?.(scheduledLineType);
             }, time);
         }
@@ -303,7 +310,7 @@ export class Metronome {
         // Schedule the next beat tick.
         bpmm.advance();
         this.#nextTime += bpmm.intervalSec;
-        tone.Transport.scheduleOnce((nextTime: any) => this.#beat(nextTime), this.#nextTime);
+        tone.Transport.scheduleOnce((nextTime: any) => this.#beat(nextTime, session), this.#nextTime);
     }
 
     stop(): void {
@@ -311,6 +318,7 @@ export class Metronome {
             return;
         }
         this.#playing = false;
+        this.#session++;
 
         const tone = this.#getTone();
         tone.Transport.stop();

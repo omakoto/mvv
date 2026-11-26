@@ -3,3 +3,4 @@ nohup.out
 *~
 out/
 node_modules/
+coverage/

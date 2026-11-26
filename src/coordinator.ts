@@ -9,6 +9,7 @@
 import {
     DEFAULT_PLAY_SPEED_INDEX,
     FPS_TO_MILLIS,
+    ROLL_SCROLL_SPEED_COUNT,
     WAKE_LOCK_MILLIS,
     getCappedPlayIndex,
     getNextPlaySpeedIndex,
@@ -49,6 +50,14 @@ export interface CoordinatorDeps extends CoordinatorUiComponents {
     simulateZeroLengthNotes?: boolean;
 }
 
+function createDefaultMetronomeOptions(): MetronomeOptions {
+    const opts = new MetronomeOptions();
+    opts.bpm = 120;
+    opts.beats = 4;
+    opts.subBeats = 1;
+    return opts;
+}
+
 export class Coordinator {
     #renderer: Renderer;
     #midiRenderingStatus: MidiRenderingStatus;
@@ -75,7 +84,9 @@ export class Coordinator {
     #playbackTicks = 0;
     #efps: JQuery<HTMLElement>;
     #wakelock: WakeLockSentinel | null = null;
+    #wakelockRequesting = false;
     #wakelockTimer: ReturnType<typeof setTimeout> | null = null;
+    #closed = false;
     #notes: JQuery<HTMLElement>;
     #chords: JQuery<HTMLElement>;
     #useSharp: boolean;
@@ -128,34 +139,56 @@ export class Coordinator {
         this.#notes = $('#notes');
         this.#chords = $('#chords');
 
-        // Load settings from storage
-        const storedSharp = this.#storage?.getItem(Coordinator.STORAGE_KEY_USE_SHARP) ?? null;
+        // Load and validate persisted settings from storage
+        const storedSharp = this.#getStorageItem(Coordinator.STORAGE_KEY_USE_SHARP);
         this.#useSharp = storedSharp === null ? true : storedSharp === 'true';
 
-        const storedVlines = this.#storage?.getItem(Coordinator.STORAGE_KEY_SHOW_VLINES) ?? null;
+        const storedVlines = this.#getStorageItem(Coordinator.STORAGE_KEY_SHOW_VLINES);
         this.#showOctaveLines = storedVlines === null ? true : storedVlines === 'true';
 
-        const storedNoteNames = this.#storage?.getItem(Coordinator.STORAGE_KEY_SHOW_NOTE_NAMES) ?? null;
+        const storedNoteNames = this.#getStorageItem(Coordinator.STORAGE_KEY_SHOW_NOTE_NAMES);
         this.#showNoteNames = storedNoteNames === null ? true : storedNoteNames === 'true';
 
-        const storedSpeed = this.#storage?.getItem(Coordinator.STORAGE_KEY_SCROLL_SPEED) ?? null;
-        this.#scrollSpeedIndex = storedSpeed ? parseInt(storedSpeed, 10) : 0;
+        const storedSpeed = this.#getStorageItem(Coordinator.STORAGE_KEY_SCROLL_SPEED);
+        const parsedSpeed = storedSpeed !== null ? parseInt(storedSpeed, 10) : NaN;
+        this.#scrollSpeedIndex = Number.isInteger(parsedSpeed) && parsedSpeed >= 0 && parsedSpeed < ROLL_SCROLL_SPEED_COUNT
+            ? parsedSpeed
+            : 0;
 
-        const storedPlaySpeed = this.#storage?.getItem(Coordinator.STORAGE_KEY_PLAY_SPEED) ?? null;
-        this.#playSpeedIndex = storedPlaySpeed ? parseInt(storedPlaySpeed, 10) : DEFAULT_PLAY_SPEED_INDEX;
+        const storedPlaySpeed = this.#getStorageItem(Coordinator.STORAGE_KEY_PLAY_SPEED);
+        const parsedPlaySpeed = storedPlaySpeed !== null ? parseInt(storedPlaySpeed, 10) : NaN;
+        this.#playSpeedIndex = Number.isInteger(parsedPlaySpeed)
+            ? getCappedPlayIndex(parsedPlaySpeed)
+            : DEFAULT_PLAY_SPEED_INDEX;
 
-        const noteOffLines = this.#storage?.getItem(Coordinator.STORAGE_KEY_NOTE_OFF_LINES) ?? null;
+        const noteOffLines = this.#getStorageItem(Coordinator.STORAGE_KEY_NOTE_OFF_LINES);
         this.#showNoteOffLines = noteOffLines === null ? true : noteOffLines === 'true';
 
-        const storedMetronomeOptions = this.#storage?.getItem(Coordinator.STORAGE_KEY_METRONOME_OPTIONS) ?? null;
+        const storedMetronomeOptions = this.#getStorageItem(Coordinator.STORAGE_KEY_METRONOME_OPTIONS);
         if (storedMetronomeOptions) {
-            this.#metronomeOptions = MetronomeOptions.fromJson(storedMetronomeOptions);
+            try {
+                this.#metronomeOptions = MetronomeOptions.fromJson(storedMetronomeOptions);
+            } catch {
+                this.#metronomeOptions = createDefaultMetronomeOptions();
+            }
         } else {
-            const opts = new MetronomeOptions();
-            opts.bpm = 120;
-            opts.beats = 4;
-            opts.subBeats = 1;
-            this.#metronomeOptions = opts;
+            this.#metronomeOptions = createDefaultMetronomeOptions();
+        }
+    }
+
+    #getStorageItem(key: string): string | null {
+        try {
+            return this.#storage?.getItem(key) ?? null;
+        } catch {
+            return null;
+        }
+    }
+
+    #setStorageItem(key: string, value: string): void {
+        try {
+            this.#storage?.setItem(key, value);
+        } catch {
+            // Ignore storage security/quota errors.
         }
     }
 
@@ -199,6 +232,13 @@ export class Coordinator {
         }
 
         this.extendWakelock();
+
+        // Allow '+' (which requires Shift on standard keyboards) before rejecting Shift-modified keys.
+        if (ev.key === '+' && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
+            this.#metronome.adjustTempo(5);
+            ev.preventDefault();
+            return;
+        }
 
         if (ev.ctrlKey || ev.shiftKey || ev.altKey || ev.metaKey) {
             return;
@@ -370,7 +410,7 @@ export class Coordinator {
         } else {
             this.#metronomeBox?.show(this.#metronomeOptions, (opts) => {
                 this.#metronomeOptions = opts;
-                this.#storage?.setItem(Coordinator.STORAGE_KEY_METRONOME_OPTIONS, JSON.stringify(opts));
+                this.#setStorageItem(Coordinator.STORAGE_KEY_METRONOME_OPTIONS, JSON.stringify(opts));
                 this.#metronome.start(opts);
 
                 this.updateUi();
@@ -386,7 +426,7 @@ export class Coordinator {
     setSharpMode(useSharp: boolean): void {
         info("Mode changed to " + (useSharp ? "sharp" : "flat"));
         this.#useSharp = useSharp;
-        this.#storage?.setItem(Coordinator.STORAGE_KEY_USE_SHARP, String(useSharp));
+        this.#setStorageItem(Coordinator.STORAGE_KEY_USE_SHARP, String(useSharp));
     }
 
     get isShowingOctaveLines(): boolean {
@@ -395,7 +435,7 @@ export class Coordinator {
 
     setShowingOctaveLines(show: boolean): void {
         this.#showOctaveLines = show;
-        this.#storage?.setItem(Coordinator.STORAGE_KEY_SHOW_VLINES, String(show));
+        this.#setStorageItem(Coordinator.STORAGE_KEY_SHOW_VLINES, String(show));
         this.startAnimationLoop();
     }
 
@@ -405,7 +445,7 @@ export class Coordinator {
 
     toggleNoteNames(): void {
         this.#showNoteNames = !this.#showNoteNames;
-        this.#storage?.setItem(Coordinator.STORAGE_KEY_SHOW_NOTE_NAMES, String(this.#showNoteNames));
+        this.#setStorageItem(Coordinator.STORAGE_KEY_SHOW_NOTE_NAMES, String(this.#showNoteNames));
         this.startAnimationLoop();
     }
 
@@ -424,7 +464,7 @@ export class Coordinator {
 
     setScrollSpeedIndex(index: number): void {
         this.#scrollSpeedIndex = index;
-        this.#storage?.setItem(Coordinator.STORAGE_KEY_SCROLL_SPEED, String(index));
+        this.#setStorageItem(Coordinator.STORAGE_KEY_SCROLL_SPEED, String(index));
     }
 
     rotateScrollSpeed(): void {
@@ -441,7 +481,7 @@ export class Coordinator {
 
     #setPlaySpeedIndex(index: number): void {
         this.#playSpeedIndex = index;
-        this.#storage?.setItem(Coordinator.STORAGE_KEY_PLAY_SPEED, String(index));
+        this.#setStorageItem(Coordinator.STORAGE_KEY_PLAY_SPEED, String(index));
         this.updateUi();
         console.log("Speed changed", index, this.playSpeedFactor);
     }
@@ -476,7 +516,7 @@ export class Coordinator {
     toggleNoteOffLines(): void {
         info("Toggle note-off lines");
         this.#showNoteOffLines = !this.#showNoteOffLines;
-        this.#storage?.setItem(Coordinator.STORAGE_KEY_NOTE_OFF_LINES, String(this.#showNoteOffLines));
+        this.#setStorageItem(Coordinator.STORAGE_KEY_NOTE_OFF_LINES, String(this.#showNoteOffLines));
         this.updateUi();
     }
 
@@ -519,13 +559,16 @@ export class Coordinator {
     }
 
     togglePlayback(): void {
+        if (this.#recorder.isPlaying) {
+            this.#recorder.pause();
+            this.updateUi();
+            return;
+        }
         if (!this.#ensureOutputDevice()) {
             return;
         }
         if (this.#recorder.isPausing) {
             this.#recorder.unpause();
-        } else if (this.#recorder.isPlaying) {
-            this.#recorder.pause();
         } else if (this.#recorder.isIdle) {
             this.startPlayback();
         }
@@ -548,6 +591,9 @@ export class Coordinator {
         if (this.#recorder.isPlaying) {
             this.#recorder.pause();
         } else if (this.#recorder.isPausing) {
+            if (!this.#ensureOutputDevice()) {
+                return;
+            }
             this.#recorder.unpause();
         }
         this.updateUi();
@@ -600,9 +646,9 @@ export class Coordinator {
 
     toggleFullScreen(): void {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+            Promise.resolve(document.documentElement.requestFullscreen()).catch(() => {});
         } else {
-            document.exitFullscreen();
+            Promise.resolve(document.exitFullscreen()).catch(() => {});
         }
     }
 
@@ -751,19 +797,7 @@ export class Coordinator {
     }
 
     #updateNoteInformationNoteNamesShown = false;
-    #updateNoteInformationLastNotes: number[] = [];
-
-    #arraySame(a1: number[], a2: number[]): boolean {
-        if (a1.length !== a2.length) {
-            return false;
-        }
-        for (let i = 0; i < a1.length; i++) {
-            if (a1[i] !== a2[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
+    #updateNoteInformationCacheKey: string | null = null;
 
     updateNoteInformation(): void {
         const time = this.#now();
@@ -772,6 +806,7 @@ export class Coordinator {
                 this.#notes.fadeOut(800);
                 this.#chords.fadeOut(800);
                 this.#updateNoteInformationNoteNamesShown = false;
+                this.#updateNoteInformationCacheKey = null;
             }
             return;
         }
@@ -779,11 +814,15 @@ export class Coordinator {
 
         const notes = this.#midiRenderingStatus.getPressedNotes();
 
-        const nowNotes = notes.map((n) => n.note);
-        if (this.#arraySame(nowNotes, this.#updateNoteInformationLastNotes)) {
+        // Include sharp/flat mode and recent-highlight state in the cache key so toggling
+        // notation or expiring the 50ms highlight refreshes held notes immediately.
+        const cacheKey = `${this.#useSharp ? 1 : 0}|` + notes
+            .map((n) => `${n.note}:${(time - n.onTime) <= 50 ? 1 : 0}`)
+            .join(',');
+        if (cacheKey === this.#updateNoteInformationCacheKey) {
             return;
         }
-        this.#updateNoteInformationLastNotes = nowNotes;
+        this.#updateNoteInformationCacheKey = cacheKey;
 
         let lastOctave = -1;
         const noteSpans = notes.map((n) => {
@@ -829,10 +868,11 @@ export class Coordinator {
         }
     }
 
+    #animating = false;
     #animationFrameId: number | null = null;
 
     get isAnimating(): boolean {
-        return this.#animationFrameId !== null;
+        return this.#animating;
     }
 
     /**
@@ -843,6 +883,8 @@ export class Coordinator {
             return;
         }
         console.log("Animation started");
+        this.#animating = true;
+        this.#nextFpsMeasureSecond = this.#now() + 1000;
         this.#updateFps();
 
         let nextFlip = -1;
@@ -882,9 +924,12 @@ export class Coordinator {
     }
 
     stopAnimationLoop(): void {
-        if (this.isAnimating) {
-            cancelAnimationFrame(this.#animationFrameId!);
-            this.#animationFrameId = null;
+        if (this.#animating) {
+            if (this.#animationFrameId !== null) {
+                cancelAnimationFrame(this.#animationFrameId);
+                this.#animationFrameId = null;
+            }
+            this.#animating = false;
             console.log("Animation stopped");
             this.#updateFps();
         }
@@ -920,34 +965,68 @@ export class Coordinator {
         }
     }
 
-    async extendWakelock(): Promise<void> {
-        if (this.#wakelock === null && typeof navigator !== 'undefined' && navigator.wakeLock) {
-            try {
-                this.#wakelock = await navigator.wakeLock.request('screen');
-                this.#wakelock.addEventListener('release', () => {
-                    this.#wakelock = null;
-                    console.log("Wake lock released by system");
-                });
-                console.log("Wake lock acquired");
-            } catch (err) {
-                console.log("Failed to acquire wake lock", err);
-            }
-        }
+    #scheduleWakelockRelease(): void {
         if (this.#wakelockTimer !== null) {
             clearTimeout(this.#wakelockTimer);
         }
         this.#wakelockTimer = setTimeout(() => {
+            this.#wakelockTimer = null;
             if (this.#wakelock !== null) {
-                this.#wakelock.release();
+                Promise.resolve(this.#wakelock.release()).catch(() => {});
                 this.#wakelock = null;
                 console.log("Wake lock released");
             }
         }, WAKE_LOCK_MILLIS);
     }
 
+    async extendWakelock(): Promise<void> {
+        if (this.#closed) {
+            return;
+        }
+        this.#scheduleWakelockRelease();
+
+        if (this.#wakelock === null && !this.#wakelockRequesting && typeof navigator !== 'undefined' && navigator.wakeLock) {
+            this.#wakelockRequesting = true;
+            try {
+                const sentinel = await navigator.wakeLock.request('screen');
+                if (this.#closed) {
+                    Promise.resolve(sentinel.release()).catch(() => {});
+                    return;
+                }
+                this.#wakelock = sentinel;
+                sentinel.addEventListener('release', () => {
+                    if (this.#wakelock === sentinel) {
+                        this.#wakelock = null;
+                    }
+                    console.log("Wake lock released by system");
+                });
+                if (this.#wakelockTimer === null) {
+                    this.#scheduleWakelockRelease();
+                }
+                console.log("Wake lock acquired");
+            } catch (err) {
+                console.log("Failed to acquire wake lock", err);
+            } finally {
+                this.#wakelockRequesting = false;
+            }
+        }
+    }
+
     close(): void {
+        this.#closed = true;
         this.stopAnimationLoop();
+        this.#metronome.stop();
+        this.#audioProcessor.stop();
         this.#recorder.stopPlaying();
+        this.#recorder.stopRecording();
         this.resetMidi();
+        if (this.#wakelockTimer !== null) {
+            clearTimeout(this.#wakelockTimer);
+            this.#wakelockTimer = null;
+        }
+        if (this.#wakelock !== null) {
+            Promise.resolve(this.#wakelock.release()).catch(() => {});
+            this.#wakelock = null;
+        }
     }
 }

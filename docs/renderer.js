@@ -4,18 +4,6 @@
  * and scrolling piano roll, including pedals, octave lines, note-off markers, and note names.
  */
 'use strict';
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _Renderer_instances, _Renderer_scale, _Renderer_BAR_SUB_LINE_WIDTH, _Renderer_BAR_BASE_LINE_COLOR, _Renderer_W, _Renderer_H, _Renderer_BAR_H, _Renderer_ROLL_H, _Renderer_MIN_NOTE, _Renderer_MAX_NOTE, _Renderer_cbar, _Renderer_bar, _Renderer_croll, _Renderer_roll, _Renderer_cbar2, _Renderer_bar2, _Renderer_croll2, _Renderer_roll2, _Renderer_rollFrozen, _Renderer_drewOffLine, _Renderer_currentFrame, _Renderer_lastDrawFrame, _Renderer_subpixelScroll, _Renderer_lastDrawY, _Renderer_lastPedalColorInt, _Renderer_lastVlinesOn, _Renderer_lastNoteNameDrawFrame, _Renderer_needsAnimation, _Renderer_extraLineType, _Renderer_EXTRA_LINE_COLORS, _Renderer_EXTRA_LINE_HEIGHT, _Renderer_EXTRA_LINE_DASH, _Renderer_status, _Renderer_getSettings, _Renderer_onRequestAnimation, _Renderer_tonalOverride, _Renderer_barAreaChanged;
 import { ALPHA_DECAY_SEC, BAR_RATIO, NOTES_COUNT, NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD, NOTE_NAME_FRAME_THRESHOLD, int, scaleValue, } from './config.js';
 import { RGB_OCTAVE_LINES, getBarColor, getOnColor, getPedalColor, getSostenutoPedalColor, mixRgb, rgbToInt, rgbToStr, } from './color.js';
 const DEFAULT_SETTINGS = {
@@ -27,268 +15,253 @@ const DEFAULT_SETTINGS = {
     isSharpMode: true,
 };
 export class Renderer {
+    #scale;
+    #BAR_SUB_LINE_WIDTH;
+    #BAR_BASE_LINE_COLOR = [200, 255, 200];
+    #W;
+    #H;
+    #BAR_H;
+    #ROLL_H;
+    #MIN_NOTE = 21;
+    #MAX_NOTE = 108;
+    #cbar;
+    #bar;
+    #croll;
+    #roll;
+    #cbar2;
+    #bar2;
+    #croll2;
+    #roll2;
+    #rollFrozen = false;
+    #drewOffLine = false;
+    #currentFrame = -1;
+    #subpixelScroll = 0;
+    #lastDrawY = 0;
+    #lastPedalColorInt = -1;
+    #lastVlinesOn = false;
+    #lastNoteNameDrawFrame = [];
+    #needsAnimation = false;
+    #extraLineType = -1;
+    #EXTRA_LINE_COLORS = [
+        "#FF9090",
+        "#FFC0FF",
+        "#C0C0FF",
+        "#FFFFC0",
+        "#C0FFFF",
+    ];
+    #EXTRA_LINE_HEIGHT;
+    #EXTRA_LINE_DASH;
+    #status;
+    #getSettings;
+    #onRequestAnimation;
+    #tonalOverride;
     static getCanvas(name) {
         const canvas = document.getElementById(name);
         const context = canvas.getContext("2d");
         return [canvas, context];
     }
     constructor(deps) {
-        var _a, _b, _c, _d;
-        var _e, _f, _g, _h, _j, _k, _l, _m;
-        _Renderer_instances.add(this);
-        _Renderer_scale.set(this, void 0);
-        _Renderer_BAR_SUB_LINE_WIDTH.set(this, void 0);
-        _Renderer_BAR_BASE_LINE_COLOR.set(this, [200, 255, 200]);
-        _Renderer_W.set(this, void 0);
-        _Renderer_H.set(this, void 0);
-        _Renderer_BAR_H.set(this, void 0);
-        _Renderer_ROLL_H.set(this, void 0);
-        _Renderer_MIN_NOTE.set(this, 21);
-        _Renderer_MAX_NOTE.set(this, 108);
-        _Renderer_cbar.set(this, void 0);
-        _Renderer_bar.set(this, void 0);
-        _Renderer_croll.set(this, void 0);
-        _Renderer_roll.set(this, void 0);
-        _Renderer_cbar2.set(this, void 0);
-        _Renderer_bar2.set(this, void 0);
-        _Renderer_croll2.set(this, void 0);
-        _Renderer_roll2.set(this, void 0);
-        _Renderer_rollFrozen.set(this, false);
-        _Renderer_drewOffLine.set(this, false);
-        _Renderer_currentFrame.set(this, -1);
-        _Renderer_lastDrawFrame.set(this, 0);
-        _Renderer_subpixelScroll.set(this, 0);
-        _Renderer_lastDrawY.set(this, 0);
-        _Renderer_lastPedalColorInt.set(this, -1);
-        _Renderer_lastVlinesOn.set(this, false);
-        _Renderer_lastNoteNameDrawFrame.set(this, []);
-        _Renderer_needsAnimation.set(this, false);
-        _Renderer_extraLineType.set(this, -1);
-        _Renderer_EXTRA_LINE_COLORS.set(this, [
-            "#FF9090",
-            "#FFC0FF",
-            "#C0C0FF",
-            "#FFFFC0",
-            "#C0FFFF",
-        ]);
-        _Renderer_EXTRA_LINE_HEIGHT.set(this, void 0);
-        _Renderer_EXTRA_LINE_DASH.set(this, void 0);
-        _Renderer_status.set(this, void 0);
-        _Renderer_getSettings.set(this, void 0);
-        _Renderer_onRequestAnimation.set(this, void 0);
-        _Renderer_tonalOverride.set(this, void 0);
-        __classPrivateFieldSet(this, _Renderer_status, deps.status, "f");
-        __classPrivateFieldSet(this, _Renderer_getSettings, (_a = deps.getSettings) !== null && _a !== void 0 ? _a : (() => DEFAULT_SETTINGS), "f");
-        __classPrivateFieldSet(this, _Renderer_onRequestAnimation, deps.onRequestAnimation, "f");
-        __classPrivateFieldSet(this, _Renderer_tonalOverride, deps.tonal, "f");
-        __classPrivateFieldSet(this, _Renderer_scale, (_b = deps.scale) !== null && _b !== void 0 ? _b : 1, "f");
-        __classPrivateFieldSet(this, _Renderer_BAR_SUB_LINE_WIDTH, scaleValue(2, __classPrivateFieldGet(this, _Renderer_scale, "f")), "f");
-        __classPrivateFieldSet(this, _Renderer_EXTRA_LINE_HEIGHT, scaleValue(3, __classPrivateFieldGet(this, _Renderer_scale, "f")), "f");
-        __classPrivateFieldSet(this, _Renderer_EXTRA_LINE_DASH, [__classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 4, __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f") * 8], "f");
+        this.#status = deps.status;
+        this.#getSettings = deps.getSettings ?? (() => DEFAULT_SETTINGS);
+        this.#onRequestAnimation = deps.onRequestAnimation;
+        this.#tonalOverride = deps.tonal;
+        this.#scale = deps.scale ?? 1;
+        this.#BAR_SUB_LINE_WIDTH = scaleValue(2, this.#scale);
+        this.#EXTRA_LINE_HEIGHT = scaleValue(3, this.#scale);
+        this.#EXTRA_LINE_DASH = [this.#EXTRA_LINE_HEIGHT * 4, this.#EXTRA_LINE_HEIGHT * 8];
         // Adjust canvas container heights to match BAR_RATIO.
         $("#bar2").css("height", (BAR_RATIO * 100) + "%");
         $("#roll2").css("height", (100 - BAR_RATIO * 100) + "%");
-        const screenW = (_c = deps.screenWidth) !== null && _c !== void 0 ? _c : screen.width;
-        const screenH = (_d = deps.screenHeight) !== null && _d !== void 0 ? _d : screen.height;
-        __classPrivateFieldSet(this, _Renderer_W, scaleValue(screenW, __classPrivateFieldGet(this, _Renderer_scale, "f")), "f");
-        __classPrivateFieldSet(this, _Renderer_H, scaleValue(screenH, __classPrivateFieldGet(this, _Renderer_scale, "f")), "f");
-        __classPrivateFieldSet(this, _Renderer_BAR_H, int(__classPrivateFieldGet(this, _Renderer_H, "f") * BAR_RATIO), "f");
-        __classPrivateFieldSet(this, _Renderer_ROLL_H, __classPrivateFieldGet(this, _Renderer_H, "f") - __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), "f");
-        _e = this, _f = this, [({ set value(_a) { __classPrivateFieldSet(_e, _Renderer_cbar, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_f, _Renderer_bar, _a, "f"); } }).value] = Renderer.getCanvas("bar");
-        _g = this, _h = this, [({ set value(_a) { __classPrivateFieldSet(_g, _Renderer_cbar2, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_h, _Renderer_bar2, _a, "f"); } }).value] = Renderer.getCanvas("bar2");
-        _j = this, _k = this, [({ set value(_a) { __classPrivateFieldSet(_j, _Renderer_croll, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_k, _Renderer_roll, _a, "f"); } }).value] = Renderer.getCanvas("roll");
-        _l = this, _m = this, [({ set value(_a) { __classPrivateFieldSet(_l, _Renderer_croll2, _a, "f"); } }).value, ({ set value(_a) { __classPrivateFieldSet(_m, _Renderer_roll2, _a, "f"); } }).value] = Renderer.getCanvas("roll2");
-        __classPrivateFieldGet(this, _Renderer_bar, "f").imageSmoothingEnabled = false;
-        __classPrivateFieldGet(this, _Renderer_bar2, "f").imageSmoothingEnabled = false;
-        __classPrivateFieldGet(this, _Renderer_roll, "f").imageSmoothingEnabled = false;
-        __classPrivateFieldGet(this, _Renderer_roll2, "f").imageSmoothingEnabled = false;
-        __classPrivateFieldGet(this, _Renderer_cbar, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
-        __classPrivateFieldGet(this, _Renderer_cbar, "f").height = __classPrivateFieldGet(this, _Renderer_BAR_H, "f");
-        __classPrivateFieldGet(this, _Renderer_cbar2, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
-        __classPrivateFieldGet(this, _Renderer_cbar2, "f").height = __classPrivateFieldGet(this, _Renderer_BAR_H, "f");
-        __classPrivateFieldGet(this, _Renderer_croll, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
-        __classPrivateFieldGet(this, _Renderer_croll, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
-        __classPrivateFieldGet(this, _Renderer_croll2, "f").width = __classPrivateFieldGet(this, _Renderer_W, "f");
-        __classPrivateFieldGet(this, _Renderer_croll2, "f").height = __classPrivateFieldGet(this, _Renderer_ROLL_H, "f");
+        const screenW = deps.screenWidth ?? screen.width;
+        const screenH = deps.screenHeight ?? screen.height;
+        this.#W = scaleValue(screenW, this.#scale);
+        this.#H = scaleValue(screenH, this.#scale);
+        this.#BAR_H = int(this.#H * BAR_RATIO);
+        this.#ROLL_H = this.#H - this.#BAR_H;
+        [this.#cbar, this.#bar] = Renderer.getCanvas("bar");
+        [this.#cbar2, this.#bar2] = Renderer.getCanvas("bar2");
+        [this.#croll, this.#roll] = Renderer.getCanvas("roll");
+        [this.#croll2, this.#roll2] = Renderer.getCanvas("roll2");
+        this.#bar.imageSmoothingEnabled = false;
+        this.#bar2.imageSmoothingEnabled = false;
+        this.#roll.imageSmoothingEnabled = false;
+        this.#roll2.imageSmoothingEnabled = false;
+        this.#cbar.width = this.#W;
+        this.#cbar.height = this.#BAR_H;
+        this.#cbar2.width = this.#W;
+        this.#cbar2.height = this.#BAR_H;
+        this.#croll.width = this.#W;
+        this.#croll.height = this.#ROLL_H;
+        this.#croll2.width = this.#W;
+        this.#croll2.height = this.#ROLL_H;
         for (let i = 0; i < NOTES_COUNT; i++) {
-            __classPrivateFieldGet(this, _Renderer_lastNoteNameDrawFrame, "f")[i] = -99999;
+            this.#lastNoteNameDrawFrame[i] = -99999;
         }
     }
     setGetSettings(getSettings) {
-        __classPrivateFieldSet(this, _Renderer_getSettings, getSettings, "f");
+        this.#getSettings = getSettings;
     }
     setOnRequestAnimation(callback) {
-        __classPrivateFieldSet(this, _Renderer_onRequestAnimation, callback, "f");
-    }
-    getBarColor(velocity) {
-        return getBarColor(velocity);
-    }
-    getOnColor(count) {
-        return getOnColor(count);
-    }
-    getPedalColor(value) {
-        return getPedalColor(value);
-    }
-    getSostenutoPedalColor(value) {
-        return getSostenutoPedalColor(value);
-    }
-    mixRgb(rgb1, rgb2) {
-        return mixRgb(rgb1, rgb2);
+        this.#onRequestAnimation = callback;
     }
     drawSubLine(percent) {
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(this.getBarColor(127 * (1 - percent)));
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * percent, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));
+        this.#bar.fillStyle = rgbToStr(getBarColor(127 * (1 - percent)));
+        this.#bar.fillRect(0, this.#BAR_H * percent, this.#W, this.#BAR_SUB_LINE_WIDTH);
     }
     // Draws vertical lines between octaves (between B and C).
-    drawOctaveLines(drawHeight) {
-        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(RGB_OCTAVE_LINES);
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle;
+    drawOctaveLines(rollDrawHeight) {
+        this.#roll.fillStyle = rgbToStr(RGB_OCTAVE_LINES);
+        this.#bar.fillStyle = this.#roll.fillStyle;
         const OCTAVE_LINE_WIDTH = 2;
-        for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
-            if (i % 12 === 0 && i > __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) {
-                const x = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
-                if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
-                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, drawHeight);
+        for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
+            if (i % 12 === 0 && i > this.#MIN_NOTE) {
+                const x = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
+                if (!this.#rollFrozen && rollDrawHeight > 0) {
+                    this.#roll.fillRect(x, 0, OCTAVE_LINE_WIDTH, rollDrawHeight);
                 }
-                __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(x, 0, OCTAVE_LINE_WIDTH, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"));
+                this.#bar.fillRect(x, 0, OCTAVE_LINE_WIDTH, this.#BAR_H);
             }
         }
     }
+    #barAreaChanged() {
+        this.#lastDrawY = 0;
+    }
     needsAnimation() {
-        return __classPrivateFieldGet(this, _Renderer_needsAnimation, "f") ||
-            (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f") && __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") <= (__classPrivateFieldGet(this, _Renderer_ROLL_H, "f") + 64));
+        return this.#needsAnimation ||
+            (!this.#rollFrozen && this.#lastDrawY <= (this.#ROLL_H + 64));
     }
     onDraw(time) {
-        var _a, _b, _c;
-        var _d;
-        const settings = __classPrivateFieldGet(this, _Renderer_getSettings, "f").call(this);
-        const tonalLib = (_a = __classPrivateFieldGet(this, _Renderer_tonalOverride, "f")) !== null && _a !== void 0 ? _a : (typeof Tonal !== 'undefined' ? Tonal : null);
-        __classPrivateFieldSet(this, _Renderer_currentFrame, (_d = __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), _d++, _d), "f");
-        __classPrivateFieldSet(this, _Renderer_needsAnimation, false, "f");
+        const settings = this.#getSettings();
+        const tonalLib = this.#tonalOverride ?? (typeof Tonal !== 'undefined' ? Tonal : null);
+        this.#currentFrame++;
+        this.#needsAnimation = false;
         // Clear the bar area.
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = 'black';
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), __classPrivateFieldGet(this, _Renderer_H, "f"));
+        this.#bar.fillStyle = 'black';
+        this.#bar.fillRect(0, 0, this.#W, this.#H);
         // Sub bar lines.
         this.drawSubLine(0.25);
         this.drawSubLine(0.5);
         this.drawSubLine(0.7);
         // Individual bar width
-        const bw = __classPrivateFieldGet(this, _Renderer_W, "f") / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1) - 1;
+        const bw = this.#W / (this.#MAX_NOTE - this.#MIN_NOTE + 1) - 1;
+        let scrollAmount = 0;
         let drawHeight = 0;
         const scrollPx = settings.scrollSpeedPx;
         const scrollFactor = settings.scrollSpeedFactor;
-        if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
-            __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") + scrollPx, "f");
-            const scrollAmount = int(__classPrivateFieldGet(this, _Renderer_subpixelScroll, "f"));
-            __classPrivateFieldSet(this, _Renderer_subpixelScroll, __classPrivateFieldGet(this, _Renderer_subpixelScroll, "f") - scrollAmount, "f");
-            const hlineHeight = scaleValue(2, __classPrivateFieldGet(this, _Renderer_scale, "f"));
+        if (!this.#rollFrozen) {
+            this.#subpixelScroll += scrollPx;
+            scrollAmount = int(this.#subpixelScroll);
+            this.#subpixelScroll -= scrollAmount;
+            const hlineHeight = scaleValue(2, this.#scale);
             drawHeight = Math.max(scrollAmount, hlineHeight);
-            if (scrollAmount >= 1) {
-                __classPrivateFieldGet(this, _Renderer_roll, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, scrollAmount);
-            }
-            __classPrivateFieldSet(this, _Renderer_lastDrawY, __classPrivateFieldGet(this, _Renderer_lastDrawY, "f") + scrollAmount, "f");
-            // Draw the pedals.
-            const sustainColor = this.getPedalColor(__classPrivateFieldGet(this, _Renderer_status, "f").damperPedal);
-            const sostenutoColor = this.getSostenutoPedalColor(__classPrivateFieldGet(this, _Renderer_status, "f").sostenuto);
-            const pedalColor = this.mixRgb(sustainColor, sostenutoColor);
+            const sustainColor = getPedalColor(this.#status.damperPedal);
+            const sostenutoColor = getSostenutoPedalColor(this.#status.sostenuto);
+            const pedalColor = mixRgb(sustainColor, sostenutoColor);
             const pedalColorInt = rgbToInt(pedalColor);
-            __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(pedalColor);
-            __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), drawHeight);
-            if (pedalColorInt !== __classPrivateFieldGet(this, _Renderer_lastPedalColorInt, "f")) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-                __classPrivateFieldSet(this, _Renderer_lastPedalColorInt, pedalColorInt, "f");
+            // Shift the roll and paint only the newly exposed strip so lines drawn on
+            // zero-scroll frames (e.g. 0.25px slowest mode) are never overwritten.
+            if (scrollAmount >= 1) {
+                this.#roll.drawImage(this.#croll, 0, scrollAmount);
+                this.#lastDrawY += scrollAmount;
+                this.#roll.fillStyle = rgbToStr(pedalColor);
+                this.#roll.fillRect(0, 0, this.#W, scrollAmount);
+            }
+            if (pedalColorInt !== this.#lastPedalColorInt) {
+                this.#barAreaChanged();
+                this.#lastPedalColorInt = pedalColorInt;
             }
             // "Off" line
-            if (__classPrivateFieldGet(this, _Renderer_status, "f").offNoteCountInTick > 0 && settings.isShowingNoteOffLines) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
+            if (this.#status.offNoteCountInTick > 0 && settings.isShowingNoteOffLines) {
+                this.#barAreaChanged();
                 // Avoid drawing consecutive off-lines directly adjacent, which looks overly bright.
-                if (!__classPrivateFieldGet(this, _Renderer_drewOffLine, "f")) {
-                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = "#008040";
-                    __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
+                if (!this.#drewOffLine) {
+                    this.#roll.fillStyle = "#008040";
+                    this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
                 }
-                __classPrivateFieldSet(this, _Renderer_drewOffLine, true, "f");
+                this.#drewOffLine = true;
             }
             else {
-                __classPrivateFieldSet(this, _Renderer_drewOffLine, false, "f");
+                this.#drewOffLine = false;
             }
             // "On" line
-            if (__classPrivateFieldGet(this, _Renderer_status, "f").onNoteCountInTick > 0) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = rgbToStr(this.getOnColor(__classPrivateFieldGet(this, _Renderer_status, "f").onNoteCountInTick));
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(0, Math.max(0, drawHeight - hlineHeight), __classPrivateFieldGet(this, _Renderer_W, "f"), hlineHeight);
+            if (this.#status.onNoteCountInTick > 0) {
+                this.#barAreaChanged();
+                this.#roll.fillStyle = rgbToStr(getOnColor(this.#status.onNoteCountInTick));
+                this.#roll.fillRect(0, Math.max(0, drawHeight - hlineHeight), this.#W, hlineHeight);
             }
             // Extra (metronome / audio attack) line
-            if (__classPrivateFieldGet(this, _Renderer_extraLineType, "f") >= 0) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_COLORS, "f")[__classPrivateFieldGet(this, _Renderer_extraLineType, "f")];
-                __classPrivateFieldGet(this, _Renderer_roll, "f").setLineDash(__classPrivateFieldGet(this, _Renderer_EXTRA_LINE_DASH, "f"));
-                __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = __classPrivateFieldGet(this, _Renderer_EXTRA_LINE_HEIGHT, "f");
-                __classPrivateFieldGet(this, _Renderer_roll, "f").beginPath();
-                __classPrivateFieldGet(this, _Renderer_roll, "f").rect(0, 0, __classPrivateFieldGet(this, _Renderer_W, "f"), drawHeight);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").stroke();
-                __classPrivateFieldSet(this, _Renderer_extraLineType, -1, "f");
+            if (this.#extraLineType >= 0) {
+                this.#barAreaChanged();
+                this.#roll.strokeStyle = this.#EXTRA_LINE_COLORS[this.#extraLineType];
+                this.#roll.setLineDash(this.#EXTRA_LINE_DASH);
+                this.#roll.lineWidth = this.#EXTRA_LINE_HEIGHT;
+                this.#roll.beginPath();
+                this.#roll.rect(0, 0, this.#W, drawHeight);
+                this.#roll.stroke();
+                this.#roll.setLineDash([]);
+                this.#extraLineType = -1;
             }
         }
         const fontSize = bw * 0.9;
-        for (let i = __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f"); i <= __classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f"); i++) {
-            const n = __classPrivateFieldGet(this, _Renderer_status, "f").getNote(i);
+        for (let i = this.#MIN_NOTE; i <= this.#MAX_NOTE; i++) {
+            const n = this.#status.getNote(i);
             const on = n.noteOn;
             const velocity = n.velocity;
-            const color = this.getBarColor(velocity);
+            const color = getBarColor(velocity);
             const alpha = on ? 255 :
                 (255 - (255 * (((time - n.offTime) / 1000.0) / ALPHA_DECAY_SEC)));
             if (alpha <= 0) {
                 continue;
             }
             if (!on) {
-                __classPrivateFieldSet(this, _Renderer_needsAnimation, true, "f");
+                this.#needsAnimation = true;
             }
             const colorStr = rgbToStr(color, alpha);
-            const bl = __classPrivateFieldGet(this, _Renderer_W, "f") * (i - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f")) / (__classPrivateFieldGet(this, _Renderer_MAX_NOTE, "f") - __classPrivateFieldGet(this, _Renderer_MIN_NOTE, "f") + 1);
-            const bh = __classPrivateFieldGet(this, _Renderer_BAR_H, "f") * n.velocity / 127;
-            __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = colorStr;
-            __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(bl, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), bw, -bh);
+            const bl = this.#W * (i - this.#MIN_NOTE) / (this.#MAX_NOTE - this.#MIN_NOTE + 1);
+            const bh = this.#BAR_H * n.velocity / 127;
+            this.#bar.fillStyle = colorStr;
+            this.#bar.fillRect(bl, this.#BAR_H, bw, -bh);
             if (!on) {
                 continue;
             }
-            if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
-                __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = colorStr;
-                __classPrivateFieldGet(this, _Renderer_roll, "f").fillRect(bl, 0, bw, drawHeight);
-                if (settings.isShowingNoteNames && __classPrivateFieldGet(this, _Renderer_status, "f").isJustPressed(i) && ((_b = tonalLib === null || tonalLib === void 0 ? void 0 : tonalLib.Midi) === null || _b === void 0 ? void 0 : _b.midiToNoteName)) {
-                    const noteOffAge = __classPrivateFieldGet(this, _Renderer_status, "f").getLastNoteOffAgeTick(i);
-                    const lastDraw = (_c = __classPrivateFieldGet(this, _Renderer_lastNoteNameDrawFrame, "f")[i]) !== null && _c !== void 0 ? _c : -9999;
-                    const sinceLastDraw = __classPrivateFieldGet(this, _Renderer_currentFrame, "f") - lastDraw;
+            if (!this.#rollFrozen) {
+                this.#barAreaChanged();
+                this.#roll.fillStyle = colorStr;
+                this.#roll.fillRect(bl, 0, bw, drawHeight);
+                if (settings.isShowingNoteNames && this.#status.isJustPressed(i) && tonalLib?.Midi?.midiToNoteName) {
+                    const noteOffAge = this.#status.getLastNoteOffAgeTick(i);
+                    const lastDraw = this.#lastNoteNameDrawFrame[i] ?? -9999;
+                    const sinceLastDraw = this.#currentFrame - lastDraw;
                     if ((noteOffAge > (NOTE_NAME_FORCE_DRAW_AGE_THRESHOLD / scrollFactor))
                         || (sinceLastDraw > (NOTE_NAME_FRAME_THRESHOLD / scrollFactor))) {
-                        __classPrivateFieldGet(this, _Renderer_lastNoteNameDrawFrame, "f")[i] = __classPrivateFieldGet(this, _Renderer_currentFrame, "f");
+                        this.#lastNoteNameDrawFrame[i] = this.#currentFrame;
                         const noteName = tonalLib.Midi.midiToNoteName(i, { sharps: settings.isSharpMode }).replace(/-?\d+$/, '');
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").font = '' + fontSize + 'px Roboto, sans-serif';
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").textAlign = 'center';
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").strokeStyle = 'rgba(0, 0, 0, 0.7)';
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").lineWidth = scaleValue(5, __classPrivateFieldGet(this, _Renderer_scale, "f"));
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").fillStyle = '#ffff20';
-                        __classPrivateFieldGet(this, _Renderer_roll, "f").fillText(noteName, bl + bw / 2, drawHeight + fontSize);
+                        this.#roll.font = '' + fontSize + 'px Roboto, sans-serif';
+                        this.#roll.textAlign = 'center';
+                        this.#roll.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                        this.#roll.lineWidth = scaleValue(5, this.#scale);
+                        this.#roll.strokeText(noteName, bl + bw / 2, drawHeight + fontSize);
+                        this.#roll.fillStyle = '#ffff20';
+                        this.#roll.fillText(noteName, bl + bw / 2, drawHeight + fontSize);
                     }
                 }
             }
         }
         if (settings.isShowingOctaveLines) {
-            this.drawOctaveLines(drawHeight);
+            this.drawOctaveLines(scrollAmount);
         }
-        if (__classPrivateFieldGet(this, _Renderer_lastVlinesOn, "f") !== settings.isShowingOctaveLines) {
-            __classPrivateFieldGet(this, _Renderer_instances, "m", _Renderer_barAreaChanged).call(this);
-            __classPrivateFieldSet(this, _Renderer_lastVlinesOn, settings.isShowingOctaveLines, "f");
+        if (this.#lastVlinesOn !== settings.isShowingOctaveLines) {
+            this.#barAreaChanged();
+            this.#lastVlinesOn = settings.isShowingOctaveLines;
         }
         // Base line.
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillStyle = rgbToStr(__classPrivateFieldGet(this, _Renderer_BAR_BASE_LINE_COLOR, "f"));
-        __classPrivateFieldGet(this, _Renderer_bar, "f").fillRect(0, __classPrivateFieldGet(this, _Renderer_BAR_H, "f"), __classPrivateFieldGet(this, _Renderer_W, "f"), -__classPrivateFieldGet(this, _Renderer_BAR_SUB_LINE_WIDTH, "f"));
+        this.#bar.fillStyle = rgbToStr(this.#BAR_BASE_LINE_COLOR);
+        this.#bar.fillRect(0, this.#BAR_H, this.#W, -this.#BAR_SUB_LINE_WIDTH);
     }
     flip() {
-        __classPrivateFieldGet(this, _Renderer_bar2, "f").drawImage(__classPrivateFieldGet(this, _Renderer_cbar, "f"), 0, 0);
-        if (!__classPrivateFieldGet(this, _Renderer_rollFrozen, "f")) {
-            __classPrivateFieldGet(this, _Renderer_roll2, "f").drawImage(__classPrivateFieldGet(this, _Renderer_croll, "f"), 0, 0);
+        this.#bar2.drawImage(this.#cbar, 0, 0);
+        if (!this.#rollFrozen) {
+            this.#roll2.drawImage(this.#croll, 0, 0);
         }
     }
     toggleMute() {
@@ -298,24 +271,19 @@ export class Renderer {
         $('#canvases').show();
     }
     toggleRollFrozen() {
-        __classPrivateFieldSet(this, _Renderer_rollFrozen, !__classPrivateFieldGet(this, _Renderer_rollFrozen, "f"), "f");
+        this.#rollFrozen = !this.#rollFrozen;
         this.flip();
     }
     get isRollFrozen() {
-        return __classPrivateFieldGet(this, _Renderer_rollFrozen, "f");
+        return this.#rollFrozen;
     }
     get isVideoMuted() {
         return $('#canvases').css('display') === 'none';
     }
     drawExtraLine(type) {
-        var _a;
-        __classPrivateFieldSet(this, _Renderer_extraLineType, Math.max(__classPrivateFieldGet(this, _Renderer_extraLineType, "f"), type), "f");
-        __classPrivateFieldSet(this, _Renderer_needsAnimation, true, "f");
-        (_a = __classPrivateFieldGet(this, _Renderer_onRequestAnimation, "f")) === null || _a === void 0 ? void 0 : _a.call(this);
+        this.#extraLineType = Math.max(this.#extraLineType, type);
+        this.#needsAnimation = true;
+        this.#onRequestAnimation?.();
     }
 }
-_Renderer_scale = new WeakMap(), _Renderer_BAR_SUB_LINE_WIDTH = new WeakMap(), _Renderer_BAR_BASE_LINE_COLOR = new WeakMap(), _Renderer_W = new WeakMap(), _Renderer_H = new WeakMap(), _Renderer_BAR_H = new WeakMap(), _Renderer_ROLL_H = new WeakMap(), _Renderer_MIN_NOTE = new WeakMap(), _Renderer_MAX_NOTE = new WeakMap(), _Renderer_cbar = new WeakMap(), _Renderer_bar = new WeakMap(), _Renderer_croll = new WeakMap(), _Renderer_roll = new WeakMap(), _Renderer_cbar2 = new WeakMap(), _Renderer_bar2 = new WeakMap(), _Renderer_croll2 = new WeakMap(), _Renderer_roll2 = new WeakMap(), _Renderer_rollFrozen = new WeakMap(), _Renderer_drewOffLine = new WeakMap(), _Renderer_currentFrame = new WeakMap(), _Renderer_lastDrawFrame = new WeakMap(), _Renderer_subpixelScroll = new WeakMap(), _Renderer_lastDrawY = new WeakMap(), _Renderer_lastPedalColorInt = new WeakMap(), _Renderer_lastVlinesOn = new WeakMap(), _Renderer_lastNoteNameDrawFrame = new WeakMap(), _Renderer_needsAnimation = new WeakMap(), _Renderer_extraLineType = new WeakMap(), _Renderer_EXTRA_LINE_COLORS = new WeakMap(), _Renderer_EXTRA_LINE_HEIGHT = new WeakMap(), _Renderer_EXTRA_LINE_DASH = new WeakMap(), _Renderer_status = new WeakMap(), _Renderer_getSettings = new WeakMap(), _Renderer_onRequestAnimation = new WeakMap(), _Renderer_tonalOverride = new WeakMap(), _Renderer_instances = new WeakSet(), _Renderer_barAreaChanged = function _Renderer_barAreaChanged() {
-    __classPrivateFieldSet(this, _Renderer_lastDrawFrame, __classPrivateFieldGet(this, _Renderer_currentFrame, "f"), "f");
-    __classPrivateFieldSet(this, _Renderer_lastDrawY, 0, "f");
-};
 //# sourceMappingURL=renderer.js.map

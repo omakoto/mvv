@@ -69,12 +69,41 @@ describe('Renderer', () => {
         // Roll scrolled, pedal filled, on-line drawn, note block drawn
         expect(rollCtx.drawImage).toHaveBeenCalled();
         expect(rollCtx.fillRect).toHaveBeenCalled();
-        // Extra metronome line stroked with dash
-        expect(rollCtx.setLineDash).toHaveBeenCalled();
+        // Extra metronome line stroked with dash, then dash reset to solid so note names aren't dashed
+        expect(rollCtx.setLineDash).toHaveBeenNthCalledWith(1, expect.arrayContaining([expect.any(Number)]));
         expect(rollCtx.stroke).toHaveBeenCalledTimes(1);
+        expect(rollCtx.setLineDash).toHaveBeenLastCalledWith([]);
         // Note name drawn for just-pressed C4 (octave stripped -> "C")
         expect(rollCtx.fillText).toHaveBeenCalledWith('C', expect.any(Number), expect.any(Number));
         expect(rollCtx.strokeText).toHaveBeenCalledWith('C', expect.any(Number), expect.any(Number));
+    });
+
+    it('preserves lines on zero-scroll frames in slowest scroll mode (0.25px)', () => {
+        settings.scrollSpeedPx = 0.25;
+        settings.scrollSpeedFactor = 0.125;
+        settings.isShowingOctaveLines = false;
+
+        const rollCtx = contexts.get('roll')!;
+        rollCtx.fillRect.mockClear();
+        rollCtx.drawImage.mockClear();
+
+        // Frame 1 (subpixel 0.25 -> scrollAmount 0): extra line drawn, NO pedal fill overwrite
+        renderer.drawExtraLine(0);
+        renderer.onDraw(1000);
+        expect(rollCtx.drawImage).not.toHaveBeenCalled();
+        expect(rollCtx.stroke).toHaveBeenCalledTimes(1);
+        expect(rollCtx.fillRect).not.toHaveBeenCalled();
+
+        // Frames 2 & 3 (subpixel 0.50, 0.75 -> scrollAmount 0): top band still NOT overwritten
+        renderer.onDraw(1010);
+        renderer.onDraw(1020);
+        expect(rollCtx.drawImage).not.toHaveBeenCalled();
+        expect(rollCtx.fillRect).not.toHaveBeenCalled();
+
+        // Frame 4 (subpixel 1.00 -> scrollAmount 1): shifts by 1px and fills only the 1px exposed strip
+        renderer.onDraw(1030);
+        expect(rollCtx.drawImage).toHaveBeenCalledTimes(1);
+        expect(rollCtx.fillRect).toHaveBeenCalledWith(0, 0, 1600, 1);
     });
 
     it('keeps needsAnimation true while released notes fade out and stops after ALPHA_DECAY_SEC', () => {

@@ -23,11 +23,8 @@
  * - Deactivating it closes the AudioContext, disconnects the audio stream, and shuts down this processor.
  */
 export class AttackProcessor extends AudioWorkletProcessor {
-    constructor() {
-        super(...arguments);
-        this.lastMaxVolume = 0;
-        this.attackThreshold = 0.1;
-    }
+    lastMaxVolume = 0;
+    attackThreshold = 0.1;
     process(inputs, _outputs, _parameters) {
         const input = inputs[0];
         if (!input || input.length === 0) {

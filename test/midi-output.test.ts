@@ -125,4 +125,26 @@ describe('MidiOutputDeviceSelector', () => {
         selector.selectDevice('NonExistent');
         expect(manager.getMidiOut()).toBe(synth);
     });
+
+    it('skips redundant reset when active device stays connected and clears output when all disconnect', () => {
+        vi.spyOn(console, 'log').mockImplementation(() => {});
+        const manager = new MidiOutputManager();
+        const selector = new MidiOutputDeviceSelector(manager, createMemoryStorage());
+
+        const piano = createMockOutput('Yamaha P-125');
+        (piano as any).state = 'connected';
+        selector.setDevices([piano]);
+        expect(piano.send).toHaveBeenCalledTimes(33);
+
+        // Refreshing with same connected device does not re-send MIDI reset
+        piano.send.mockClear();
+        selector.setDevices([piano]);
+        expect(piano.send).not.toHaveBeenCalled();
+
+        // Disconnecting clears output manager so anyDeviceSelected becomes false
+        (piano as any).state = 'disconnected';
+        selector.setDevices([piano]);
+        expect(manager.anyDeviceSelected).toBe(false);
+        expect(manager.getMidiOut()).toBeNull();
+    });
 });

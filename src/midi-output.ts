@@ -18,6 +18,10 @@ export class MidiOutputManager {
         this.reset();
     }
 
+    clearMidiOut(): void {
+        this.#device = null;
+    }
+
     getMidiOut(): WebMidi.MIDIOutput | null {
         return this.#device;
     }
@@ -61,25 +65,36 @@ export class MidiOutputDeviceSelector {
     ) {
         this.#outputManager = outputManager;
         this.#storage = storage;
-        this.#selectedDeviceName = this.#storage?.getItem(MidiOutputDeviceSelector.STORAGE_KEY_OUTPUT_DEVICE) ?? null;
+        try {
+            this.#selectedDeviceName = this.#storage?.getItem(MidiOutputDeviceSelector.STORAGE_KEY_OUTPUT_DEVICE) ?? null;
+        } catch {
+            this.#selectedDeviceName = null;
+        }
     }
 
     setDevices(outputs: WebMidi.MIDIOutput[]): void {
-        this.#devices = outputs;
+        // Ignore disconnected ports when refreshing after hot-plug events.
+        this.#devices = outputs.filter(output => output.state !== 'disconnected');
+
+        let target: WebMidi.MIDIOutput | undefined;
         if (this.#selectedDeviceName) {
-            const device = this.#devices.find(d => d.name === this.#selectedDeviceName);
-            if (device) {
-                this.#outputManager.setMidiOut(device);
-                return;
-            }
+            target = this.#devices.find(d => d.name === this.#selectedDeviceName);
         }
 
         // Fallback to the first non-"midi through" device
-        const device = this.#devices.find(output => !/midi through/i.test(output.name ?? ""));
-        if (device) {
-            this.#outputManager.setMidiOut(device);
+        if (!target) {
+            target = this.#devices.find(output => !/midi through/i.test(output.name ?? ""));
+        }
+
+        if (target) {
+            // Avoid sending a 33-message MIDI reset when the selected device hasn't changed.
+            if (this.#outputManager.getMidiOut() !== target) {
+                this.#outputManager.setMidiOut(target);
+            }
             return;
         }
+
+        this.#outputManager.clearMidiOut();
         info("No MIDI output devices detected.");
     }
 
@@ -91,7 +106,11 @@ export class MidiOutputDeviceSelector {
         const device = this.#devices.find(d => d.name === deviceName);
         if (device) {
             this.#selectedDeviceName = deviceName;
-            this.#storage?.setItem(MidiOutputDeviceSelector.STORAGE_KEY_OUTPUT_DEVICE, deviceName);
+            try {
+                this.#storage?.setItem(MidiOutputDeviceSelector.STORAGE_KEY_OUTPUT_DEVICE, deviceName);
+            } catch {
+                // Ignore storage quota/security errors.
+            }
             this.#outputManager.setMidiOut(device);
         }
     }
